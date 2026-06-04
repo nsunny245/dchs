@@ -24,8 +24,13 @@ class AppServiceProvider extends ServiceProvider
         });
 
         \Illuminate\Support\Facades\View::composer('*', function ($view) {
-            $view->with('globalPrograms', \App\Models\Course::where('is_active', true)->orderBy('name')->get());
-            $view->with('globalCampuses', \App\Models\Campus::where('is_active', true)->orderBy('city')->get());
+            if (\Illuminate\Support\Facades\Schema::hasTable('courses') && \Illuminate\Support\Facades\Schema::hasTable('campuses')) {
+                $view->with('globalPrograms', \App\Models\Course::where('is_active', true)->orderBy('name')->get());
+                $view->with('globalCampuses', \App\Models\Campus::where('is_active', true)->orderBy('city')->get());
+            } else {
+                $view->with('globalPrograms', collect());
+                $view->with('globalCampuses', collect());
+            }
         });
     }
 }
