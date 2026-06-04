@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+/* Point Tailwind v4 to Filament vendor views */
+@source "../../../vendor/filament/**/*.blade.php";
+
+/* Brand Colors Integration */
+@theme {
+    --color-primary-50: #f0f5fa;
+    --color-primary-100: #e1ebf5;
+    --color-primary-200: #c3d7eb;
+    --color-primary-300: #a5c3e1;
+    --color-primary-400: #87afd7;
+    --color-primary-500: #1e3a5f;
+    --color-primary-600: #162b47;
+    --color-primary-700: #0f1c2f;
+    --color-primary-800: #070d17;
+    --color-primary-900: #000000;
+}
+
+/* Custom Overrides */
+.fi-wi-stats-overview-stat {
+    @apply border-l-4 border-l-[#d4af37] bg-white shadow-sm;
+}
+
+.fi-wi-stats-overview-stat-label {
+    @apply text-[#1e3a5f] font-bold;
+}
+
+.fi-header-heading {
+    @apply text-[#1e3a5f] font-serif;
+}
+
+.fi-sidebar-nav-group-label {
+    @apply text-[#1e3a5f] font-semibold;
+}
+
+.fi-logo {
+    @apply max-h-16 mb-4;
+}
+
+/* Login Page & Global Button Styling */
+.fi-simple-main {
+    @apply bg-white shadow-2xl rounded-2xl border border-gray-100 !important;
+}
+
+.fi-simple-layout {
+    background: radial-gradient(circle at top right, #f0f5fa, #e1ebf5) !important;
+}
+
+/* Fix for the "Plain White" Button Issue */
+.fi-btn.fi-btn-color-primary,
+button[type="submit"].fi-btn {
+    background-color: #1e3a5f !important;
+    color: white !important;
+    font-weight: 700 !important;
+    transition: all 0.3s ease !important;
+}
+
+.fi-btn.fi-btn-color-primary:hover,
+button[type="submit"].fi-btn:hover {
+    background-color: #162b47 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(30, 58, 95, 0.3) !important;
+}
+
+/* Ensure the text inside the button is white */
+.fi-btn.fi-btn-color-primary *,
+button[type="submit"].fi-btn * {
+    color: white !important;
+}
+
+.fi-input-wrp:focus-within {
+    @apply border-[#1e3a5f] ring-1 ring-[#1e3a5f] !important;
+}
+
+/* Chart & Widget Tweaks */
+.fi-wi-chart-canvas {
+    @apply bg-white rounded-xl p-4 shadow-sm;
+}
