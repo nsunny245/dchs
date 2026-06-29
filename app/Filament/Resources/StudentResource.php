@@ -19,11 +19,6 @@ class StudentResource extends Resource
     protected static ?string $navigationGroup = 'Student Relations';
     protected static ?int $navigationSort = 2;
 
-    public static function shouldRegisterNavigation(): bool
-    {
-        return !auth()->user()->hasRole('Super Admin');
-    }
-
     public static function form(Form $form): Form
     {
         return $form

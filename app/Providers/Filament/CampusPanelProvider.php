@@ -19,31 +19,28 @@ use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
-use App\Filament\Resources\CampusResource;
-use App\Filament\Resources\CourseResource;
-use App\Filament\Resources\SettingResource;
-use App\Filament\Resources\UserResource;
-use App\Filament\Resources\ExpenseCategoryResource;
+use App\Filament\Resources\AdmissionResource;
+use App\Filament\Resources\StudentResource;
+use App\Filament\Resources\StaffResource;
+use App\Filament\Resources\TimetableResource;
+use App\Filament\Resources\ExamResource;
+use App\Filament\Resources\MarkResource;
+use App\Filament\Resources\FeeStructureResource;
+use App\Filament\Resources\FeePaymentResource;
 use App\Filament\Resources\ExpenseResource;
-use App\Filament\Resources\FranchisorResource;
 
-use App\Filament\Widgets\OverviewStats;
-use App\Filament\Widgets\FinancialSummaryWidget;
-use App\Filament\Widgets\CampusFinancialOverviewWidget;
-
-class AdminPanelProvider extends PanelProvider
+class CampusPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->default()
-            ->id('admin')
-            ->path('admin')
+            ->id('campus')
+            ->path('campus')
             ->login()
             ->colors([
-                'primary' => '#1e3a5f',
+                'primary' => '#0f766e', // Teal theme for Campus panel
             ])
-            ->brandName('DCHS Super Admin')
+            ->brandName('DCHS Campus Portal')
             ->brandLogo(asset('images/dchs-logo.png'))
             ->brandLogoHeight('3rem')
             ->favicon(asset('images/dchs-logo.png'))
@@ -51,22 +48,21 @@ class AdminPanelProvider extends PanelProvider
                 \Filament\Support\Assets\Css::make('custom-admin-theme', '/css/custom-admin.css'),
             ])
             ->resources([
-                CampusResource::class,
-                CourseResource::class,
-                FranchisorResource::class,
-                ExpenseCategoryResource::class,
+                AdmissionResource::class,
+                StudentResource::class,
+                StaffResource::class,
+                TimetableResource::class,
+                ExamResource::class,
+                MarkResource::class,
+                FeeStructureResource::class,
+                FeePaymentResource::class,
                 ExpenseResource::class,
-                UserResource::class,
-                SettingResource::class,
             ])
             ->pages([
                 Pages\Dashboard::class,
             ])
             ->widgets([
                 Widgets\AccountWidget::class,
-                OverviewStats::class,
-                FinancialSummaryWidget::class,
-                CampusFinancialOverviewWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -83,6 +79,7 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             ->navigationGroups([
+                NavigationGroup::make('Student Relations')->collapsed(false),
                 NavigationGroup::make('Academic Management')->collapsed(false),
                 NavigationGroup::make('Financial Management')->collapsed(false),
                 NavigationGroup::make('Administration')->collapsed(false),
