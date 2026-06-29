@@ -39,6 +39,7 @@ class CampusPanelProvider extends PanelProvider
             ->id('campus')
             ->path('campus')
             ->login()
+            ->authGuard('campus')
             ->colors([
                 'primary' => '#0f766e', // Teal theme for Campus panel
             ])
