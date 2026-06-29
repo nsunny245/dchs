@@ -19,6 +19,16 @@ class FeeStructureResource extends Resource
     protected static ?string $navigationGroup = 'Financial Management';
     protected static ?int $navigationSort = 1;
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return !auth()->user()->hasRole('Admission Officer');
+    }
+
+    public static function canViewAny(): bool
+    {
+        return !auth()->user()->hasRole('Admission Officer');
+    }
+
     public static function form(Form $form): Form
     {
         return $form
