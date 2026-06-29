@@ -15,15 +15,15 @@ class PdfController extends Controller
      */
     public function admissionLetter(Admission $admission)
     {
-        $admission->load(['campus', 'course']);
+        $admission->load(['campus', 'course', 'academicSession']);
 
-        $pdf = Pdf::loadView('pdf.admission-letter', [
+        $pdf = Pdf::loadView('pdf.official_admission_form', [
             'admission' => $admission,
         ]);
 
         $pdf->setPaper('A4', 'portrait');
 
-        return $pdf->download("admission-letter-{$admission->enrollment_no}.pdf");
+        return $pdf->stream("admission-form-{$admission->id}.pdf");
     }
 
     /**

@@ -19,6 +19,8 @@ use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
+use App\Filament\Resources\AcademicSessionResource;
+use App\Filament\Resources\VisitorQueryResource;
 use App\Filament\Resources\AdmissionResource;
 use App\Filament\Resources\StudentResource;
 use App\Filament\Resources\StaffResource;
@@ -48,6 +50,8 @@ class CampusPanelProvider extends PanelProvider
                 \Filament\Support\Assets\Css::make('custom-admin-theme', '/css/custom-admin.css'),
             ])
             ->resources([
+                AcademicSessionResource::class,
+                VisitorQueryResource::class,
                 AdmissionResource::class,
                 StudentResource::class,
                 StaffResource::class,

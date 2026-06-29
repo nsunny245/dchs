@@ -15,8 +15,14 @@ class Admission extends Model
 
     protected $casts = [
         'dob' => 'date',
+        'admission_date' => 'date',
         'applied_at' => 'datetime',
     ];
+
+    public function academicSession(): BelongsTo
+    {
+        return $this->belongsTo(AcademicSession::class);
+    }
 
     public function campus(): BelongsTo
     {

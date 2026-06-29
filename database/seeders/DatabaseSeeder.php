@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             CampusUserSeeder::class,
             ExpenseCategorySeeder::class,
+            AcademicSessionSeeder::class,
+            ReceptionistUserSeeder::class,
         ]);
     }
 }
