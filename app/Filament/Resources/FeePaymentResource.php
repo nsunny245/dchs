@@ -16,8 +16,13 @@ class FeePaymentResource extends Resource
     protected static ?string $model = FeePayment::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-credit-card';
-    protected static ?string $navigationGroup = 'Financial';
+    protected static ?string $navigationGroup = 'Financial Management';
     protected static ?int $navigationSort = 2;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return !auth()->user()->hasRole('Super Admin');
+    }
 
     public static function form(Form $form): Form
     {

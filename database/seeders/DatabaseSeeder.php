@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
             RoleAndPermissionSeeder::class,
             CampusAndCourseSeeder::class,
             AdminUserSeeder::class,
+            CampusUserSeeder::class,
+            ExpenseCategorySeeder::class,
         ]);
     }
 }

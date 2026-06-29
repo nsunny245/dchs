@@ -20,6 +20,11 @@ class StaffResource extends Resource
     
     protected static ?string $navigationGroup = 'Administration';
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return !auth()->user()->hasRole('Super Admin');
+    }
+
     public static function form(Form $form): Form
     {
         return $form

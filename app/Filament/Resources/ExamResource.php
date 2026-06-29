@@ -19,6 +19,11 @@ class ExamResource extends Resource
     protected static ?string $navigationGroup = 'Academic Management';
     protected static ?int $navigationSort = 4;
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return !auth()->user()->hasRole('Super Admin');
+    }
+
     public static function form(Form $form): Form
     {
         return $form
