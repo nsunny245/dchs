@@ -68,6 +68,12 @@ class AdmissionResource extends Resource
                         Forms\Components\Tabs\Tab::make('Personal Details')
                             ->icon('heroicon-o-user')
                             ->schema([
+                                Forms\Components\FileUpload::make('student_photo')
+                                    ->label('Student Passport Photo')
+                                    ->directory('student-photos')
+                                    ->image()
+                                    ->avatar()
+                                    ->columnSpanFull(),
                                 Forms\Components\TextInput::make('applicant_name')
                                     ->label('Applicant Name (English)')
                                     ->required()
@@ -192,6 +198,45 @@ class AdmissionResource extends Resource
                                             ->label('Total Marks'),
                                         Forms\Components\TextInput::make('inter_grade')
                                             ->label('Division / Grade'),
+                                    ])->columns(2),
+                            ]),
+
+                        Forms\Components\Tabs\Tab::make('Documents & Signatures')
+                            ->icon('heroicon-o-document-duplicate')
+                            ->schema([
+                                Forms\Components\Section::make('Signatures & Thumb Impression Preview')
+                                    ->schema([
+                                        Forms\Components\FileUpload::make('student_signature')
+                                            ->label('Student Signature / Thumb Impression Image')
+                                            ->directory('signatures')
+                                            ->image(),
+                                        Forms\Components\FileUpload::make('guardian_signature')
+                                            ->label('Guardian Signature / Thumb Impression Image')
+                                            ->directory('signatures')
+                                            ->image(),
+                                    ])->columns(2),
+
+                                Forms\Components\Section::make('Permanent Document Vault')
+                                    ->description('Upload certificates & CNIC copies for recordkeeping')
+                                    ->schema([
+                                        Forms\Components\FileUpload::make('cnic_copy')
+                                            ->label('Student CNIC / B-Form Copy')
+                                            ->directory('student-docs'),
+                                        Forms\Components\FileUpload::make('father_cnic_copy')
+                                            ->label('Father / Guardian CNIC Copy')
+                                            ->directory('student-docs'),
+                                        Forms\Components\FileUpload::make('matric_copy')
+                                            ->label('Matric Result Card / Certificate Copy')
+                                            ->directory('student-docs'),
+                                        Forms\Components\FileUpload::make('inter_copy')
+                                            ->label('Intermediate Certificate Copy')
+                                            ->directory('student-docs'),
+                                        Forms\Components\FileUpload::make('domicile_copy')
+                                            ->label('Domicile Certificate Copy')
+                                            ->directory('student-docs'),
+                                        Forms\Components\FileUpload::make('other_docs')
+                                            ->label('Other Document (Character Cert, etc.)')
+                                            ->directory('student-docs'),
                                     ])->columns(2),
                             ]),
                     ])->columnSpanFull(),

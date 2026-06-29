@@ -153,7 +153,11 @@
                 </div>
             </td>
             <td style="width: 20%; text-align: right;">
-                <div class="photo-box">Paste Passport<br>Size Photo Here</div>
+                @if($admission->student_photo && file_exists(public_path('storage/' . $admission->student_photo)))
+                    <img src="{{ public_path('storage/' . $admission->student_photo) }}" style="width: 100px; height: 120px; object-fit: cover; border: 1px solid #333;">
+                @else
+                    <div class="photo-box">Paste Passport<br>Size Photo Here</div>
+                @endif
             </td>
         </tr>
     </table>
@@ -354,12 +358,20 @@
     <table style="width: 100%; margin-top: 40px;">
         <tr>
             <td style="width: 33%; text-align: center;">
-                <div class="thumb-box">Thumb Impression</div>
+                @if($admission->student_signature && file_exists(public_path('storage/' . $admission->student_signature)))
+                    <div style="height: 60px;"><img src="{{ public_path('storage/' . $admission->student_signature) }}" style="max-width: 120px; max-height: 55px;"></div>
+                @else
+                    <div class="thumb-box">Thumb Impression</div>
+                @endif
                 <div style="border-top: 1px solid #000; width: 80%; margin: 15px auto 5px;"></div>
                 <strong>Applicant's Signatures</strong>
             </td>
             <td style="width: 33%; text-align: center;">
-                <div class="thumb-box">Thumb Impression</div>
+                @if($admission->guardian_signature && file_exists(public_path('storage/' . $admission->guardian_signature)))
+                    <div style="height: 60px;"><img src="{{ public_path('storage/' . $admission->guardian_signature) }}" style="max-width: 120px; max-height: 55px;"></div>
+                @else
+                    <div class="thumb-box">Thumb Impression</div>
+                @endif
                 <div style="border-top: 1px solid #000; width: 80%; margin: 15px auto 5px;"></div>
                 <strong>Guardian's Signature</strong>
             </td>

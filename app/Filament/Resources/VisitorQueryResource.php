@@ -129,6 +129,32 @@ class VisitorQueryResource extends Resource
                     ->relationship('desiredCourse', 'name'),
             ])
             ->actions([
+                Tables\Actions\Action::make('convertToAdmission')
+                    ->label('Convert to Admission')
+                    ->icon('heroicon-o-user-plus')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('Convert Inquiry to Admission')
+                    ->modalDescription('This will change the query status to Admitted and create a draft Admission record pre-filled with this student\'s details.')
+                    ->action(function (VisitorQuery $record) {
+                        $record->update(['status' => 'admitted']);
+
+                        $admission = \App\Models\Admission::create([
+                            'campus_id' => $record->campus_id,
+                            'applicant_name' => $record->visitor_name,
+                            'father_name' => $record->relation_to_student === 'father' ? $record->visitor_name : 'To Be Filled',
+                            'cnic' => 'TEMP-' . time() . '-' . rand(100, 999),
+                            'dob' => now()->subYears(18)->format('Y-m-d'),
+                            'gender' => 'male',
+                            'phone' => $record->phone,
+                            'address' => 'Pending address',
+                            'course_id' => $record->desired_course_id ?? \App\Models\Course::first()?->id ?? 1,
+                            'reference' => 'Inquiry (' . $record->came_by . ')',
+                            'status' => 'pending',
+                        ]);
+
+                        return redirect(AdmissionResource::getUrl('edit', ['record' => $admission]));
+                    }),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
