@@ -107,6 +107,7 @@ class AdmissionResource extends Resource
                                 Forms\Components\TextInput::make('phone')
                                     ->label('Student Contact #')
                                     ->tel()
+                                    ->telRegex('/^[+]?[0-9\s\-()]{7,20}$/')
                                     ->maxLength(255),
                                 Forms\Components\TextInput::make('email')
                                     ->email()
@@ -144,7 +145,8 @@ class AdmissionResource extends Resource
                                     ->maxLength(255),
                                 Forms\Components\TextInput::make('mother_phone')
                                     ->label("Mother's Contact #")
-                                    ->tel(),
+                                    ->tel()
+                                    ->telRegex('/^[+]?[0-9\s\-()]{7,20}$/'),
                                 Forms\Components\TextInput::make('reference')
                                     ->label('Reference (Who referred)'),
                                 Forms\Components\Textarea::make('address')

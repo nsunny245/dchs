@@ -31,7 +31,8 @@ class CampusResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('address'),
                 Forms\Components\TextInput::make('phone')
-                    ->tel(),
+                    ->tel()
+                    ->telRegex('/^[+]?[0-9\s\-()]{7,20}$/'),
                 Forms\Components\TextInput::make('email')
                     ->email(),
                 Forms\Components\Toggle::make('is_active')

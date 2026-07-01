@@ -45,6 +45,7 @@ class StaffResource extends Resource
                             ->maxLength(255),
                         Forms\Components\TextInput::make('phone')
                             ->tel()
+                            ->telRegex('/^[+]?[0-9\s\-()]{7,20}$/')
                             ->maxLength(255),
                         Forms\Components\DatePicker::make('joining_date')
                             ->required(),

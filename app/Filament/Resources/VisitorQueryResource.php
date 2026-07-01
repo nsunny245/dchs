@@ -39,6 +39,7 @@ class VisitorQueryResource extends Resource
                         Forms\Components\TextInput::make('phone')
                             ->label('Phone / Contact #')
                             ->tel()
+                            ->telRegex('/^[+]?[0-9\s\-()]{7,20}$/')
                             ->required()
                             ->maxLength(255),
                         Forms\Components\Select::make('relation_to_student')

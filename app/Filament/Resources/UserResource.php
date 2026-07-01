@@ -25,7 +25,10 @@ class UserResource extends Resource
         return $form->schema([
             TextInput::make('name')->required()->maxLength(255),
             TextInput::make('email')->email()->required()->unique(ignoreRecord: true),
-            TextInput::make('phone')->tel()->nullable(),
+            TextInput::make('phone')
+                ->tel()
+                ->telRegex('/^[+]?[0-9\s\-()]{7,20}$/')
+                ->nullable(),
             TextInput::make('password')
                 ->password()
                 ->required(fn (string $context): bool => $context === 'create')
