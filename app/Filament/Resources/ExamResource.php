@@ -38,8 +38,9 @@ class ExamResource extends Resource
                         Forms\Components\Select::make('campus_id')
                             ->relationship('campus', 'name')
                             ->required()
-                            ->hidden(fn () => !auth()->user()->hasRole('Super Admin'))
-                            ->default(auth()->user()->campus_id),
+                            ->default(fn () => auth()->user()->campus_id)
+                            ->disabled(fn () => !auth()->user()->hasRole('Super Admin'))
+                            ->dehydrated(),
                         Forms\Components\TextInput::make('exam_name')
                             ->required()
                             ->maxLength(255),

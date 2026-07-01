@@ -153,8 +153,8 @@
                 </div>
             </td>
             <td style="width: 20%; text-align: right;">
-                @if($admission->student_photo && file_exists(public_path('storage/' . $admission->student_photo)))
-                    <img src="{{ public_path('storage/' . $admission->student_photo) }}" style="width: 100px; height: 120px; object-fit: cover; border: 1px solid #333;">
+                @if($admission->student_photo && file_exists(storage_path('app/public/' . $admission->student_photo)))
+                    <img src="{{ storage_path('app/public/' . $admission->student_photo) }}" style="width: 100px; height: 120px; object-fit: cover; border: 1px solid #333;">
                 @else
                     <div class="photo-box">Paste Passport<br>Size Photo Here</div>
                 @endif
@@ -358,8 +358,8 @@
     <table style="width: 100%; margin-top: 40px;">
         <tr>
             <td style="width: 33%; text-align: center;">
-                @if($admission->student_signature && file_exists(public_path('storage/' . $admission->student_signature)))
-                    <div style="height: 60px;"><img src="{{ public_path('storage/' . $admission->student_signature) }}" style="max-width: 120px; max-height: 55px;"></div>
+                @if($admission->student_signature && file_exists(storage_path('app/public/' . $admission->student_signature)))
+                    <div style="height: 60px;"><img src="{{ storage_path('app/public/' . $admission->student_signature) }}" style="max-width: 120px; max-height: 55px;"></div>
                 @else
                     <div class="thumb-box">Thumb Impression</div>
                 @endif
@@ -367,8 +367,8 @@
                 <strong>Applicant's Signatures</strong>
             </td>
             <td style="width: 33%; text-align: center;">
-                @if($admission->guardian_signature && file_exists(public_path('storage/' . $admission->guardian_signature)))
-                    <div style="height: 60px;"><img src="{{ public_path('storage/' . $admission->guardian_signature) }}" style="max-width: 120px; max-height: 55px;"></div>
+                @if($admission->guardian_signature && file_exists(storage_path('app/public/' . $admission->guardian_signature)))
+                    <div style="height: 60px;"><img src="{{ storage_path('app/public/' . $admission->guardian_signature) }}" style="max-width: 120px; max-height: 55px;"></div>
                 @else
                     <div class="thumb-box">Thumb Impression</div>
                 @endif
