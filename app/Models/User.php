@@ -27,6 +27,16 @@ class User extends Authenticatable implements FilamentUser
         return true;
     }
 
+    public function hasRole($roles, $guard = null): bool
+    {
+        return parent::hasRole($roles, $guard ?? 'web');
+    }
+
+    public function hasPermissionTo($permission, $guardName = null): bool
+    {
+        return parent::hasPermissionTo($permission, $guardName ?? 'web');
+    }
+
     protected $fillable = [
         'name', 'email', 'password', 'phone', 'campus_id', 'status',
     ];
