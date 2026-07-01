@@ -59,10 +59,10 @@
 
                 <!-- Desktop Menu -->
                 <div class="hidden lg:flex items-center space-x-6">
-                    <a href="{{ route('home') }}" class="text-navy-900 hover:text-gold-500 font-semibold text-sm transition px-3 py-2">Home</a>
+                    <a href="{{ route('home') }}" class="text-navy-900 hover:text-gold-500 font-semibold text-sm transition px-3 py-2 nav-link-hover">Home</a>
                     
                     <div class="relative group" x-data="{ open: false }">
-                        <button @mouseenter="open = true" @mouseleave="open = false" class="text-navy-900 hover:text-gold-500 font-semibold text-sm transition px-3 py-2 flex items-center">
+                        <button @mouseenter="open = true" @mouseleave="open = false" class="text-navy-900 hover:text-gold-500 font-semibold text-sm transition px-3 py-2 flex items-center nav-link-hover">
                             About Us
                             <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -78,17 +78,17 @@
                         </div>
                     </div>
 
-                    <a href="{{ route('campuses') }}" class="text-navy-900 hover:text-gold-500 font-semibold text-sm transition px-3 py-2">Campuses</a>
+                    <a href="{{ route('campuses') }}" class="text-navy-900 hover:text-gold-500 font-semibold text-sm transition px-3 py-2 nav-link-hover">Campuses</a>
                     
                     <div class="relative group" x-data="{ open: false }">
-                        <button @mouseenter="open = true" @mouseleave="open = false" class="text-navy-900 hover:text-gold-500 font-semibold text-sm transition px-3 py-2 flex items-center">
+                        <button @mouseenter="open = true" @mouseleave="open = false" class="text-navy-900 hover:text-gold-500 font-semibold text-sm transition px-3 py-2 flex items-center nav-link-hover">
                             Programs
                             <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
                         </button>
                         <div x-show="open" @mouseenter="open = true" @mouseleave="open = false" class="dropdown-menu absolute top-full left-0 mt-0 w-72 bg-white rounded-lg shadow-xl border-t-4 border-gold-500 overflow-hidden">
-                            <div class="py-1 max-h-96 overflow-y-auto">
+                            <div class="py-1 max-h-96 overflow-y-auto font-body">
                                 @forelse($globalPrograms as $program)
                                     <a href="{{ route('courses.show', $program->code) }}" class="block px-4 py-2.5 hover:bg-navy-50 border-b border-gray-50 last:border-0">
                                         <div class="flex items-center justify-between">
@@ -103,10 +103,10 @@
                         </div>
                     </div>
 
-                    <a href="{{ route('admissions') }}" class="text-navy-900 hover:text-gold-500 font-semibold text-sm transition px-3 py-2">Admissions</a>
-                    <a href="{{ route('contact') }}" class="text-navy-900 hover:text-gold-500 font-semibold text-sm transition px-3 py-2">Contact</a>
+                    <a href="{{ route('admissions') }}" class="text-navy-900 hover:text-gold-500 font-semibold text-sm transition px-3 py-2 nav-link-hover">Admissions</a>
+                    <a href="{{ route('contact') }}" class="text-navy-900 hover:text-gold-500 font-semibold text-sm transition px-3 py-2 nav-link-hover">Contact</a>
 
-                    <a href="{{ route('admissions.apply') }}" class="btn btn-accent rounded-full text-xs hover:shadow-lg">
+                    <a href="{{ route('admissions.apply') }}" class="btn btn-accent rounded-full text-xs hover:shadow-md hover:scale-105 transition-all">
                         Apply Now
                     </a>
                 </div>

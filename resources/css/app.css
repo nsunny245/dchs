@@ -100,3 +100,75 @@
   padding: 24px;
 }
 
+/* Premium Visual Upgrades */
+
+/* Frosted Glass Panel */
+.glass-panel {
+  background: rgba(18, 34, 60, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Double Border Accent */
+.double-border-container {
+  position: relative;
+}
+.double-border-backdrop {
+  content: "";
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: -12px;
+  bottom: -12px;
+  border: 2px solid var(--color-gold-500);
+  border-radius: var(--radius-md);
+  z-index: 0;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+.double-border-container:hover .double-border-backdrop {
+  top: 8px;
+  left: 8px;
+  right: -8px;
+  bottom: -8px;
+}
+
+/* Premium Program Cards */
+.card-program {
+  background: var(--color-white);
+  border: 1px solid var(--color-brand-border);
+  border-top: 4px solid var(--color-brand-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-program:hover {
+  transform: translateY(-4px);
+  border-top-color: var(--color-gold-500);
+  box-shadow: 0 12px 24px rgba(18, 34, 60, 0.04), 0 4px 16px rgba(235, 180, 90, 0.12);
+}
+
+/* Nav Link Underline Transitions */
+.nav-link-hover {
+  position: relative;
+}
+.nav-link-hover::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -4px;
+  left: 50%;
+  background-color: var(--color-gold-500);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+.nav-link-hover:hover::after {
+  width: 100%;
+}
+
+
