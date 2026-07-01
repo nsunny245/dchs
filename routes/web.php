@@ -19,8 +19,7 @@ Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 // ── Public PDF Report ──
 Route::get('/project-status-report', [PdfController::class, 'projectStatusReport'])->name('project-status-report');
 
-// ── PDF Downloads (protected) ──
-Route::middleware('auth')->prefix('pdf')->name('pdf.')->group(function () {
+Route::middleware('auth:admin,campus')->prefix('pdf')->name('pdf.')->group(function () {
     Route::get('/admission-letter/{admission}', [PdfController::class, 'admissionLetter'])->name('admission-letter');
     Route::get('/fee-receipt/{feePayment}', [PdfController::class, 'feeReceipt'])->name('fee-receipt');
     Route::get('/report-card/{student}', [PdfController::class, 'reportCard'])->name('report-card');

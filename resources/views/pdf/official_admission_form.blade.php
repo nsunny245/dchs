@@ -182,13 +182,13 @@
     <table class="grid-table">
         <tr>
             <th style="width: 20%;">Applicant's Name:</th>
-            <td style="width: 40%;"><strong>{{ strtoupper($admission->applicant_name) }}</strong></td>
+            <td style="width: 40%;"><strong>{{ strtoupper($admission->applicant_name ?? '') }}</strong></td>
             <th style="width: 15%;">نام (طالب علم):</th>
             <td style="width: 25%; font-weight: bold;">{{ $admission->applicant_name_urdu ?? '—' }}</td>
         </tr>
         <tr>
             <th>Father's / Guardian:</th>
-            <td>{{ strtoupper($admission->father_name) }}</td>
+            <td>{{ strtoupper($admission->father_name ?? '') }}</td>
             <th>نام (والد/سرپرست):</th>
             <td>{{ $admission->father_name_urdu ?? '—' }}</td>
         </tr>
@@ -202,7 +202,7 @@
             <th>Date Of Birth:</th>
             <td>{{ $admission->dob ? $admission->dob->format('d-m-Y') : '—' }}</td>
             <th>Gender:</th>
-            <td>{{ ucfirst($admission->gender) }}</td>
+            <td>{{ ucfirst($admission->gender ?? '') }}</td>
         </tr>
         <tr>
             <th>Domicile District:</th>
