@@ -12,7 +12,11 @@ use Filament\Panel;
 
 class User extends Authenticatable implements FilamentUser
 {
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable;
+    use HasRoles {
+        hasRole as traitHasRole;
+        hasPermissionTo as traitHasPermissionTo;
+    }
 
     public function canAccessPanel(Panel $panel): bool
     {
@@ -29,12 +33,12 @@ class User extends Authenticatable implements FilamentUser
 
     public function hasRole($roles, $guard = null): bool
     {
-        return parent::hasRole($roles, $guard ?? 'web');
+        return $this->traitHasRole($roles, $guard ?? 'web');
     }
 
     public function hasPermissionTo($permission, $guardName = null): bool
     {
-        return parent::hasPermissionTo($permission, $guardName ?? 'web');
+        return $this->traitHasPermissionTo($permission, $guardName ?? 'web');
     }
 
     protected $fillable = [
