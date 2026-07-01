@@ -43,7 +43,7 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->authGuard('admin')
             ->colors([
-                'primary' => '#1e3a5f',
+                'primary' => '#12223C',
             ])
             ->brandName('DCHS Super Admin')
             ->brandLogo(asset('images/dchs-logo.png'))

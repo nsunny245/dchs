@@ -5,33 +5,33 @@
 
 /* Brand Colors Integration */
 @theme {
-    --color-primary-50: #f0f5fa;
-    --color-primary-100: #e1ebf5;
-    --color-primary-200: #c3d7eb;
-    --color-primary-300: #a5c3e1;
-    --color-primary-400: #87afd7;
-    --color-primary-500: #1e3a5f;
-    --color-primary-600: #162b47;
-    --color-primary-700: #0f1c2f;
-    --color-primary-800: #070d17;
-    --color-primary-900: #000000;
+    --color-primary-50: #EAEDF2;
+    --color-primary-100: #D2D8E3;
+    --color-primary-200: #A6B0C4;
+    --color-primary-300: #4C5C7A;
+    --color-primary-400: #4C5C7A;
+    --color-primary-500: #12223C;
+    --color-primary-600: #1A2E4F;
+    --color-primary-700: #1A2E4F;
+    --color-primary-800: #0A1526;
+    --color-primary-900: #0A1526;
 }
 
 /* Custom Overrides */
 .fi-wi-stats-overview-stat {
-    @apply border-l-4 border-l-[#d4af37] bg-white shadow-sm;
+    @apply border-l-4 border-l-[#EBB45A] bg-white shadow-sm;
 }
 
 .fi-wi-stats-overview-stat-label {
-    @apply text-[#1e3a5f] font-bold;
+    @apply text-[#12223C] font-bold;
 }
 
 .fi-header-heading {
-    @apply text-[#1e3a5f] font-serif;
+    @apply text-[#12223C] font-display font-bold;
 }
 
 .fi-sidebar-nav-group-label {
-    @apply text-[#1e3a5f] font-semibold;
+    @apply text-[#12223C] font-semibold;
 }
 
 .fi-logo {
@@ -44,13 +44,13 @@
 }
 
 .fi-simple-layout {
-    background: radial-gradient(circle at top right, #f0f5fa, #e1ebf5) !important;
+    background: radial-gradient(circle at top right, #EAEDF2, #D2D8E3) !important;
 }
 
 /* Fix for the "Plain White" Button Issue */
 .fi-btn.fi-btn-color-primary,
 button[type="submit"].fi-btn {
-    background-color: #1e3a5f !important;
+    background-color: #12223C !important;
     color: white !important;
     font-weight: 700 !important;
     transition: all 0.3s ease !important;
@@ -58,9 +58,9 @@ button[type="submit"].fi-btn {
 
 .fi-btn.fi-btn-color-primary:hover,
 button[type="submit"].fi-btn:hover {
-    background-color: #162b47 !important;
+    background-color: #1A2E4F !important;
     transform: translateY(-1px) !important;
-    box-shadow: 0 4px 12px rgba(30, 58, 95, 0.3) !important;
+    box-shadow: 0 4px 12px rgba(18, 34, 60, 0.3) !important;
 }
 
 /* Ensure the text inside the button is white */
@@ -70,7 +70,7 @@ button[type="submit"].fi-btn * {
 }
 
 .fi-input-wrp:focus-within {
-    @apply border-[#1e3a5f] ring-1 ring-[#1e3a5f] !important;
+    @apply border-[#12223C] ring-1 ring-[#12223C] !important;
 }
 
 /* Chart & Widget Tweaks */

@@ -1,0 +1,148 @@
+/*
+  Daniyal Group of Colleges — Design Tokens (CSS)
+  Drop this file into any web project and consume via var(--token-name).
+*/
+
+:root {
+  /* ===== Core Brand Colors ===== */
+  --color-navy-50:  #EAEDF2;
+  --color-navy-100: #D2D8E3;
+  --color-navy-200: #A6B0C4;
+  --color-navy-400: #4C5C7A;
+  --color-navy-700: #1A2E4F;
+  --color-navy-900: #12223C; /* Primary brand color */
+  --color-navy-950: #0A1526;
+
+  --color-gold-50:  #FDF4E4;
+  --color-gold-100: #FBE7C4;
+  --color-gold-300: #F3CD8B;
+  --color-gold-500: #EBB45A; /* Primary accent color */
+  --color-gold-600: #D89A34;
+  --color-gold-700: #B37B22;
+
+  --color-white: #FFFFFF;
+  --color-black: #000000;
+
+  /* ===== Semantic Colors ===== */
+  --color-success: #1E8A5F;
+  --color-warning: #EBB45A;
+  --color-danger:  #C0392B;
+  --color-info:    #2C6FAD;
+
+  --color-surface:      #F7F8FA;
+  --color-surface-dark: #0A1526;
+  --color-border:       #E1E4EA;
+
+  --color-text-primary:   #12223C;
+  --color-text-secondary: #4C5C7A;
+  --color-text-inverse:   #FFFFFF;
+
+  /* ===== Typography ===== */
+  --font-display: "Montserrat", "Poppins", "Segoe UI", Arial, sans-serif;
+  --font-body: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+  --font-tagline: "Oswald", "Bebas Neue", "Arial Narrow", sans-serif;
+  --font-arabic: "Noto Naskh Arabic", "Scheherazade New", serif;
+
+  --text-display-xl: 48px;
+  --text-display-lg: 36px;
+  --text-heading-1: 28px;
+  --text-heading-2: 22px;
+  --text-heading-3: 18px;
+  --text-body-lg: 16px;
+  --text-body-sm: 14px;
+  --text-label: 12px;
+
+  --leading-display-xl: 56px;
+  --leading-display-lg: 44px;
+  --leading-heading-1: 36px;
+  --leading-heading-2: 30px;
+  --leading-heading-3: 26px;
+  --leading-body-lg: 24px;
+  --leading-body-sm: 20px;
+  --leading-label: 16px;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800;
+
+  /* ===== Spacing (4px base) ===== */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  /* ===== Radius ===== */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+
+  /* ===== Shadows ===== */
+  --shadow-sm: 0 1px 2px rgba(18, 34, 60, 0.06);
+  --shadow-md: 0 4px 12px rgba(18, 34, 60, 0.10);
+  --shadow-lg: 0 12px 32px rgba(18, 34, 60, 0.16);
+
+  /* ===== Focus ring ===== */
+  --focus-ring: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-gold-500);
+}
+
+/* ===== Base component classes (optional utility layer) ===== */
+
+.btn {
+  font-family: var(--font-body);
+  font-weight: var(--weight-semibold);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-5);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.btn-primary { background: var(--color-navy-900); color: var(--color-white); }
+.btn-primary:hover { background: var(--color-navy-700); }
+
+.btn-accent { background: var(--color-gold-500); color: var(--color-navy-900); }
+.btn-accent:hover { background: var(--color-gold-600); }
+
+.btn-outline { background: transparent; color: var(--color-navy-900); border: 1px solid var(--color-navy-900); }
+.btn-outline:hover { background: var(--color-navy-50); }
+
+.card {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-5);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--text-label);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: var(--radius-full);
+  padding: var(--space-1) var(--space-3);
+}
+.badge-success { background: rgba(30,138,95,0.12); color: var(--color-success); }
+.badge-warning { background: rgba(235,180,90,0.18); color: var(--color-gold-700); }
+.badge-danger  { background: rgba(192,57,43,0.12); color: var(--color-danger); }
+.badge-info    { background: rgba(44,111,173,0.12); color: var(--color-info); }
+
+input, select, textarea {
+  font-family: var(--font-body);
+  border: 1px solid var(--color-navy-100);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}

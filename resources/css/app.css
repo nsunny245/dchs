@@ -6,6 +6,97 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    /* Brand Color Scale */
+    --color-navy-50: #EAEDF2;
+    --color-navy-100: #D2D8E3;
+    --color-navy-200: #A6B0C4;
+    --color-navy-400: #4C5C7A;
+    --color-navy-700: #1A2E4F;
+    --color-navy-900: #12223C;
+    --color-navy-950: #0A1526;
+
+    --color-gold-50: #FDF4E4;
+    --color-gold-100: #FBE7C4;
+    --color-gold-300: #F3CD8B;
+    --color-gold-500: #EBB45A;
+    --color-gold-600: #D89A34;
+    --color-gold-700: #B37B22;
+
+    --color-brand-success: #1E8A5F;
+    --color-brand-warning: #EBB45A;
+    --color-brand-danger: #C0392B;
+    --color-brand-info: #2C6FAD;
+
+    --color-brand-surface: #F7F8FA;
+    --color-brand-surface-dark: #0A1526;
+    --color-brand-border: #E1E4EA;
+
+    --color-text-primary: #12223C;
+    --color-text-secondary: #4C5C7A;
+    --color-text-inverse: #FFFFFF;
+
+    /* Fonts */
+    --font-display: "Montserrat", "Poppins", "Segoe UI", Arial, sans-serif;
+    --font-body: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+    --font-tagline: "Oswald", "Bebas Neue", "Arial Narrow", sans-serif;
+    --font-arabic: "Noto Naskh Arabic", "Scheherazade New", serif;
+
+    /* Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 16px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(18, 34, 60, 0.06);
+    --shadow-md: 0 4px 12px rgba(18, 34, 60, 0.10);
+    --shadow-lg: 0 12px 32px rgba(18, 34, 60, 0.16);
 }
+
+/* Core Component Styles */
+.btn {
+  font-family: var(--font-body);
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  padding: 12px 24px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  font-size: 14px;
+}
+
+.btn-primary {
+  background: var(--color-navy-900);
+  color: var(--color-white);
+}
+.btn-primary:hover {
+  background: var(--color-navy-700);
+}
+
+.btn-accent {
+  background: var(--color-gold-500);
+  color: var(--color-navy-900);
+}
+.btn-accent:hover {
+  background: var(--color-gold-600);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--color-navy-900);
+  border: 1px solid var(--color-navy-900);
+}
+.btn-outline:hover {
+  background: var(--color-navy-50);
+}
+
+.card {
+  background: var(--color-white);
+  border: 1px solid var(--color-brand-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
+}
+
