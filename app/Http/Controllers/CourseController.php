@@ -10,12 +10,12 @@ class CourseController extends Controller
     public function index()
     {
         $courses = Course::where('is_active', true)->get();
-        return view('courses.index', compact('courses'));
+        return view('pages.courses.index', compact('courses'));
     }
 
     public function show($code)
     {
         $course = Course::where('code', $code)->firstOrFail();
-        return view('courses.show', compact('course'));
+        return view('pages.courses.show', compact('course'));
     }
 }

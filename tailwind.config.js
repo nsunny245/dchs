@@ -8,23 +8,48 @@ export default {
     theme: {
         extend: {
             colors: {
-                primary: {
-                    50: '#f0f9ff',
-                    100: '#e0f2fe',
-                    500: '#102a43', // Dark Navy
-                    600: '#0a1c35', // Deep Navy from logo
-                    800: '#0a1c35', // Match logo navy
-                    900: '#050c1a',
+                navy: {
+                    50: '#EAEDF2',
+                    100: '#D2D8E3',
+                    200: '#A6B0C4',
+                    400: '#4C5C7A',
+                    700: '#1A2E4F',
+                    900: '#12223C',
+                    950: '#0A1526',
                 },
                 gold: {
-                    400: '#e1b96a',
-                    500: '#c5a059', // Muted Gold from logo
-                    600: '#a3844a',
+                    50: '#FDF4E4',
+                    100: '#FBE7C4',
+                    300: '#F3CD8B',
+                    500: '#EBB45A',
+                    600: '#D89A34',
+                    700: '#B37B22',
+                },
+                success: '#1E8A5F',
+                warning: '#EBB45A',
+                danger: '#C0392B',
+                info: '#2C6FAD',
+                brand: {
+                    surface: '#F7F8FA',
+                    border: '#E1E4EA',
                 }
             },
             fontFamily: {
-                sans: ['Inter', 'system-ui', 'sans-serif'],
-                serif: ['Playfair Display', 'serif'],
+                display: ['Montserrat', 'Poppins', 'sans-serif'],
+                body: ['Inter', 'sans-serif'],
+                tagline: ['Oswald', 'sans-serif'],
+                arabic: ['Noto Naskh Arabic', 'serif'],
+            },
+            borderRadius: {
+                sm: '4px',
+                md: '8px',
+                lg: '16px',
+                full: '999px',
+            },
+            boxShadow: {
+                sm: '0 1px 2px rgba(18,34,60,0.06)',
+                md: '0 4px 12px rgba(18,34,60,0.10)',
+                lg: '0 12px 32px rgba(18,34,60,0.16)',
             }
         },
     },

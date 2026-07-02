@@ -12,12 +12,14 @@ class AdmissionController extends Controller
 {
     public function index()
     {
-        return view('admissions.index');
+        return view('pages.admissions');
     }
 
     public function apply()
     {
-        return view('admissions.apply');
+        $courses = Course::where('is_active', true)->orderBy('name')->get();
+        $campuses = Campus::where('is_active', true)->orderBy('city')->get();
+        return view('pages.apply', compact('courses', 'campuses'));
     }
 
     public function store(Request $request)
