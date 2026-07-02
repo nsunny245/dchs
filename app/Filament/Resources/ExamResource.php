@@ -21,12 +21,12 @@ class ExamResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return !auth()->user()->hasRole('Admission Officer');
+        return !(auth()->user()?->hasRole('Admission Officer') ?? false);
     }
 
     public static function canViewAny(): bool
     {
-        return !auth()->user()->hasRole('Admission Officer');
+        return !(auth()->user()?->hasRole('Admission Officer') ?? false);
     }
 
     public static function form(Form $form): Form
