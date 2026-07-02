@@ -101,8 +101,8 @@ class UserResource extends Resource
     }
 
     // 🔒 Authorization
-    public static function canViewAny(): bool { return auth()->user()->can('view any user'); }
-    public static function canCreate(): bool { return auth()->user()->can('create user'); }
-    public static function canUpdate(\Illuminate\Database\Eloquent\Model $record): bool { return auth()->user()->can('update user'); }
-    public static function canDelete(\Illuminate\Database\Eloquent\Model $record): bool { return auth()->user()->can('delete user'); }
+    public static function canViewAny(): bool { return auth()->user()?->can('view any user') ?? false; }
+    public static function canCreate(): bool { return auth()->user()?->can('create user') ?? false; }
+    public static function canUpdate(\Illuminate\Database\Eloquent\Model $record): bool { return auth()->user()?->can('update user') ?? false; }
+    public static function canDelete(\Illuminate\Database\Eloquent\Model $record): bool { return auth()->user()?->can('delete user') ?? false; }
 }
