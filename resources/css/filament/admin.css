@@ -3,77 +3,162 @@
 /* Point Tailwind v4 to Filament vendor views */
 @source "../../../vendor/filament/**/*.blade.php";
 
-/* Brand Colors Integration */
+/* Brand Colors Integration (Tailwind v4) */
 @theme {
-    --color-primary-50: #f0f5fa;
-    --color-primary-100: #e1ebf5;
-    --color-primary-200: #c3d7eb;
-    --color-primary-300: #a5c3e1;
-    --color-primary-400: #87afd7;
-    --color-primary-500: #1e3a5f;
-    --color-primary-600: #162b47;
-    --color-primary-700: #0f1c2f;
-    --color-primary-800: #070d17;
-    --color-primary-900: #000000;
+    --color-navy-50: #EAEDF2;
+    --color-navy-100: #D2D8E3;
+    --color-navy-200: #A6B0C4;
+    --color-navy-400: #4C5C7A;
+    --color-navy-700: #1A2E4F;
+    --color-navy-900: #12223C;
+    --color-navy-950: #0A1526;
+
+    --color-gold-50: #FDF4E4;
+    --color-gold-100: #FBE7C4;
+    --color-gold-300: #F3CD8B;
+    --color-gold-500: #EBB45A;
+    --color-gold-600: #D89A34;
+    --color-gold-700: #B37B22;
+
+    --color-brand-success: #1E8A5F;
+    --color-brand-warning: #EBB45A;
+    --color-brand-danger: #C0392B;
+    --color-brand-info: #2C6FAD;
 }
 
-/* Custom Overrides */
-.fi-wi-stats-overview-stat {
-    @apply border-l-4 border-l-[#d4af37] bg-white shadow-sm;
+/* Page Background Reset */
+body,
+.fi-layout,
+.fi-main {
+    background-color: #F7F8FA !important;
 }
 
-.fi-wi-stats-overview-stat-label {
-    @apply text-[#1e3a5f] font-bold;
+/* Cards & Section Styling Alignment */
+.fi-section,
+.fi-card,
+.fi-ta-ctn,
+.fi-wi-widget {
+    border: 1px solid #E1E4EA !important;
+    border-radius: 8px !important;
+    box-shadow: 0 1px 2px rgba(18, 34, 60, 0.06) !important;
+    background-color: #FFFFFF !important;
 }
 
-.fi-header-heading {
-    @apply text-[#1e3a5f] font-serif;
+/* Sidebar Branding & Navigation Customization */
+.fi-sidebar {
+    background-color: #0A1526 !important;
+    border-right: 1px solid #12223C !important;
 }
 
-.fi-sidebar-nav-group-label {
-    @apply text-[#1e3a5f] font-semibold;
+/* Navigation Group Labels styling */
+.fi-sidebar-nav-group-label,
+.fi-sidebar-group-label {
+    color: #A6B0C4 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.075em !important;
+    font-weight: 600 !important;
+    padding-left: 12px !important;
+    margin-top: 16px !important;
+    margin-bottom: 8px !important;
 }
 
-.fi-logo {
-    @apply max-h-16 mb-4;
+/* Sidebar Navigation Items */
+.fi-sidebar-item-button {
+    color: #A6B0C4 !important;
+    transition: all 0.2s ease !important;
+    border-left: 4px solid transparent !important;
 }
 
-/* Login Page & Global Button Styling */
-.fi-simple-main {
-    @apply !bg-white !shadow-2xl !rounded-2xl !border !border-gray-100;
+.fi-sidebar-item-button:hover {
+    background-color: #1A2E4F !important;
+    color: #FFFFFF !important;
 }
 
-.fi-simple-layout {
-    background: radial-gradient(circle at top right, #f0f5fa, #e1ebf5) !important;
-}
-
-/* Fix for the "Plain White" Button Issue */
-.fi-btn.fi-btn-color-primary,
-button[type="submit"].fi-btn {
-    background-color: #1e3a5f !important;
-    color: white !important;
+/* Active Nav Item Indicator & Left Gold Bar */
+.fi-sidebar-item-active .fi-sidebar-item-button,
+.fi-sidebar-item-button[aria-current="page"] {
+    background-color: #1A2E4F !important;
+    color: #EBB45A !important;
+    border-left-color: #EBB45A !important;
+    border-top-left-radius: 0px !important;
+    border-bottom-left-radius: 0px !important;
     font-weight: 700 !important;
-    transition: all 0.3s ease !important;
 }
 
-.fi-btn.fi-btn-color-primary:hover,
-button[type="submit"].fi-btn:hover {
-    background-color: #162b47 !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 12px rgba(30, 58, 95, 0.3) !important;
+.fi-sidebar-item-active .fi-sidebar-item-icon,
+.fi-sidebar-item-button[aria-current="page"] .fi-sidebar-item-icon {
+    color: #EBB45A !important;
 }
 
-/* Ensure the text inside the button is white */
-.fi-btn.fi-btn-color-primary *,
-button[type="submit"].fi-btn * {
-    color: white !important;
+.fi-sidebar-collapse-button {
+    color: #A6B0C4 !important;
 }
 
-.fi-input-wrp:focus-within {
-    @apply !border-[#1e3a5f] !ring-1 !ring-[#1e3a5f];
+/* User Account Menu Avatar styling */
+.fi-user-avatar {
+    background-color: #12223C !important;
+    color: #EBB45A !important;
+    border: 2px solid #EBB45A !important;
+    font-weight: 700 !important;
 }
 
-/* Chart & Widget Tweaks */
-.fi-wi-chart-canvas {
-    @apply bg-white rounded-xl p-4 shadow-sm;
+/* Stat Cards Top Borders using CSS :has() */
+.fi-wi-stats-overview-stat {
+    border-top: 3px solid #EBB45A !important; /* fallback to gold brand accent */
+}
+
+.fi-wi-stats-overview-stat:has(.text-success-600),
+.fi-wi-stats-overview-stat:has(.fi-color-success) {
+    border-top-color: #1E8A5F !important;
+}
+
+.fi-wi-stats-overview-stat:has(.text-danger-600),
+.fi-wi-stats-overview-stat:has(.fi-color-danger) {
+    border-top-color: #C0392B !important;
+}
+
+.fi-wi-stats-overview-stat:has(.text-warning-600),
+.fi-wi-stats-overview-stat:has(.fi-color-warning) {
+    border-top-color: #EBB45A !important;
+}
+
+.fi-wi-stats-overview-stat:has(.text-info-600),
+.fi-wi-stats-overview-stat:has(.fi-color-info) {
+    border-top-color: #2C6FAD !important;
+}
+
+/* Stat Content layout tweaks */
+.fi-wi-stats-overview-stat-label {
+    color: #12223C !important;
+    font-weight: 700 !important;
+}
+
+/* Table Design Customization */
+.fi-ta-header,
+.fi-ta-header-cell,
+thead tr {
+    background-color: #EAEDF2 !important;
+}
+
+thead th span,
+thead th {
+    color: #12223C !important;
+    font-weight: 700 !important;
+}
+
+/* Table row hover and zebra striping */
+tbody tr:hover,
+.fi-ta-row:hover {
+    background-color: #FDF4E4 !important;
+}
+
+tbody tr:nth-child(even),
+.fi-ta-row:nth-child(even) {
+    background-color: #F7F8FA !important;
+}
+
+/* Topbar logo height tweak */
+.fi-logo {
+    max-height: 3.5rem !important;
 }

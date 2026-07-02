@@ -34,16 +34,21 @@ class CampusFinancialOverviewWidget extends BaseWidget
                     ->label('Collected Fee')
                     ->state(fn (Campus $record) => FeePayment::where('campus_id', $record->id)->where('status', 'paid')->sum('amount'))
                     ->money('PKR')
+                    ->alignRight()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('pending_fee')
                     ->label('Pending Fee')
                     ->state(fn (Campus $record) => FeePayment::where('campus_id', $record->id)->whereIn('status', ['unpaid', 'overdue', 'partial'])->sum('amount'))
                     ->money('PKR')
+                    ->color(fn ($state) => $state > 0 ? 'warning' : 'gray')
+                    ->alignRight()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('expenses')
                     ->label('Total Expenses')
                     ->state(fn (Campus $record) => Expense::where('campus_id', $record->id)->sum('amount'))
                     ->money('PKR')
+                    ->color(fn ($state) => $state > 0 ? 'danger' : 'gray')
+                    ->alignRight()
                     ->sortable(),
             ])
             ->paginated(false);

@@ -43,15 +43,42 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->authGuard('admin')
             ->colors([
-                'primary' => '#12223C',
+                'primary' => [
+                    50 => '#FDF4E4',
+                    100 => '#FBE7C4',
+                    200 => '#FBE7C4',
+                    300 => '#F3CD8B',
+                    400 => '#F3CD8B',
+                    500 => '#EBB45A',
+                    600 => '#D89A34',
+                    700 => '#B37B22',
+                    800 => '#B37B22',
+                    900 => '#12223C',
+                    950 => '#0A1526',
+                ],
+                'danger' => Color::hex('#C0392B'),
+                'success' => Color::hex('#1E8A5F'),
+                'warning' => Color::hex('#EBB45A'),
+                'info' => Color::hex('#2C6FAD'),
+                'navy' => [
+                    50 => '#EAEDF2',
+                    100 => '#D2D8E3',
+                    200 => '#A6B0C4',
+                    300 => '#A6B0C4',
+                    400 => '#4C5C7A',
+                    500 => '#4C5C7A',
+                    600 => '#1A2E4F',
+                    700 => '#1A2E4F',
+                    800 => '#12223C',
+                    900 => '#12223C',
+                    950 => '#0A1526',
+                ],
             ])
             ->brandName('DCHS Super Admin')
             ->brandLogo(asset('images/dchs-logo.png'))
-            ->brandLogoHeight('3rem')
-            ->favicon(asset('images/dchs-logo.png'))
-            ->assets([
-                \Filament\Support\Assets\Css::make('custom-admin-theme', '/css/custom-admin.css'),
-            ])
+            ->brandLogoHeight('3.5rem')
+            ->favicon(asset('favicon.ico'))
+            ->viteTheme('resources/css/filament/admin.css')
             ->resources([
                 AcademicSessionResource::class,
                 CampusResource::class,

@@ -32,23 +32,23 @@ class OverviewStats extends BaseWidget
             Stat::make('Active Campuses', $campusCount)
                 ->description('Operational locations')
                 ->descriptionIcon('heroicon-m-building-office-2')
-                ->color('info'),
+                ->color('primary'),
             Stat::make('Programs Offered', $courseCount)
                 ->description('Across all campuses')
                 ->descriptionIcon('heroicon-m-academic-cap')
-                ->color('warning'),
+                ->color('primary'),
             Stat::make('Pending Applications', $pendingApps)
                 ->description('Awaiting review')
                 ->descriptionIcon('heroicon-m-clock')
-                ->color('danger'),
+                ->color('warning'),
             Stat::make('Approved Admissions', $approvedApps)
                 ->description('Ready for onboarding')
                 ->descriptionIcon('heroicon-m-check-circle')
-                ->color('primary'),
+                ->color('success'),
             Stat::make('Faculty Members', $facultyCount)
                 ->description('Teaching staff')
                 ->descriptionIcon('heroicon-m-users')
-                ->color('gray'),
+                ->color('info'),
         ];
     }
 }
