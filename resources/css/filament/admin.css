@@ -162,3 +162,51 @@ tbody tr:nth-child(even),
 .fi-logo {
     max-height: 3.5rem !important;
 }
+
+/* Login Page & Global Button Styling overrides */
+.fi-simple-main {
+    background-color: #FFFFFF !important;
+    border: 1px solid #E1E4EA !important;
+    box-shadow: 0 12px 32px rgba(18, 34, 60, 0.16) !important;
+    border-radius: 12px !important;
+}
+
+.fi-simple-layout {
+    background: radial-gradient(circle at top right, #EAEDF2, #D2D8E3) !important;
+}
+
+/* Primary Button Override for Sign In */
+.fi-btn.fi-btn-color-primary,
+button[type="submit"].fi-btn,
+.fi-simple-main button[type="submit"] {
+    background-color: #EBB45A !important; /* Gold */
+    color: #0A1526 !important; /* Dark Navy text */
+    font-weight: 700 !important;
+    transition: all 0.3s ease !important;
+    border-radius: 9999px !important;
+    border: none !important;
+    display: inline-flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.fi-btn.fi-btn-color-primary:hover,
+button[type="submit"].fi-btn:hover,
+.fi-simple-main button[type="submit"]:hover {
+    background-color: #D89A34 !important; /* Darker gold */
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(235, 180, 90, 0.3) !important;
+}
+
+/* Make sure inner text of button is readable */
+.fi-btn.fi-btn-color-primary *,
+button[type="submit"].fi-btn *,
+.fi-simple-main button[type="submit"] * {
+    color: #0A1526 !important;
+}
+
+/* Input borders focus ring colors */
+.fi-input-wrp:focus-within {
+    border-color: #12223C !important;
+    box-shadow: 0 0 0 1px #12223C !important;
+}
