@@ -4,11 +4,11 @@
 
 @section('content')
 <!-- Hero Section -->
-<section class="relative h-[650px] flex items-center overflow-hidden">
+<section class="relative h-[800px] flex items-center overflow-hidden">
     <!-- Immersive Background Image with Scrim -->
     <div class="absolute inset-0 z-0">
         <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1920" alt="Daniyal Group of Colleges Student Lab" class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-gradient-to-r from-navy-950 via-navy-900/70 to-transparent"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-navy-950 via-navy-900/80 to-transparent"></div>
     </div>
 
     <!-- Crest Logo Watermark in Background -->
@@ -19,7 +19,7 @@
     <div class="container mx-auto px-6 relative z-10">
         <div class="max-w-2xl">
             <!-- Frosted Glass Text Overlay with Gold Accent Left Border -->
-            <div class="backdrop-blur-md bg-navy-950/65 border-l-4 border-gold-500 border-t border-r border-b border-white/10 rounded-r-2xl rounded-l-none p-8 md:p-10 shadow-2xl" 
+            <div class="backdrop-blur-md bg-navy-950/75 border-l-4 border-gold-500 border-t border-r border-b border-white/10 rounded-r-2xl rounded-l-none p-10 md:p-12 shadow-2xl" 
                  data-aos="fade-right">
                 
                 <div class="inline-flex items-center bg-gold-500/20 border border-gold-500/40 rounded-full px-4 py-1.5 mb-6">

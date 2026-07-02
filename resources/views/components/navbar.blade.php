@@ -2,13 +2,12 @@
     'globalPrograms' => []
 ])
 
-<nav class="bg-white/90 backdrop-blur-md border-b border-brand-border sticky top-0 z-50 transition-all duration-300 shadow-sm"
+<nav class="bg-white border-b border-brand-border sticky top-0 z-50 transition-all duration-300 shadow-sm"
      x-data="{ mobileMenuOpen: false, scrolled: false }"
      x-init="window.addEventListener('scroll', () => { scrolled = window.pageYOffset > 20 })"
-     :class="{ 'py-1 shadow-md bg-white/95': scrolled, 'py-3': !scrolled }">
-    <!-- Top Utility Bar (scrolling hides or keeps small) -->
-    <div class="bg-navy-950 text-white text-[11px] py-2 transition-all duration-300 font-body"
-         :class="{ 'h-0 py-0 overflow-hidden opacity-0': scrolled }">
+     :class="{ 'py-1 shadow-md': scrolled, 'py-3': !scrolled }">
+    <!-- Top Utility Bar (Solid navy bg-navy-950, visible) -->
+    <div class="bg-navy-950 text-white text-[11px] py-2 transition-all duration-300 font-body">
         <div class="container mx-auto px-6 flex justify-between items-center">
             <div class="flex items-center space-x-6">
                 <span class="flex items-center text-navy-200">
