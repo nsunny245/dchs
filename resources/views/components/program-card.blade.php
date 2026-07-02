@@ -7,12 +7,12 @@
     $code = strtoupper($program->code);
 @endphp
 
-<div class="card-program relative overflow-hidden flex flex-col justify-between" 
+<div class="bg-white border border-navy-100 hover:border-gold-500 hover:-translate-y-1.5 transition-all duration-300 rounded-xl p-6 shadow-sm hover:shadow-lg relative overflow-hidden flex flex-col justify-between" 
      data-aos="fade-up" data-aos-delay="{{ ($index % 3) * 100 }}">
     <div>
         <!-- Header with Allied Health Dynamic SVG Icon -->
         <div class="flex items-center justify-between mb-6">
-            <div class="w-12 h-12 bg-gold-50 rounded-xl flex items-center justify-center text-gold-700 shadow-sm border border-gold-100/50">
+            <div class="w-12 h-12 bg-gold-50 rounded-xl flex items-center justify-center text-gold-600 shadow-sm border border-gold-300/40">
                 @if(in_array($code, ['LHV', 'CMW']))
                     <!-- Nursing / Midwife Icon -->
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">

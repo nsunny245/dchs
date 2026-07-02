@@ -7,13 +7,13 @@
 
 <div class="mb-12 @if($align === 'center') text-center @else text-left @endif" data-aos="fade-up">
     @if($eyebrow)
-        <span class="inline-block bg-gold-500/10 border border-gold-500/20 text-gold-700 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest font-display uppercase mb-3">
+        <span class="inline-block bg-gold-50 text-gold-700 border border-gold-300 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest font-display uppercase mb-3">
             {{ $eyebrow }}
         </span>
     @endif
 
     <h2 class="text-3xl md:text-4xl font-extrabold text-navy-900 font-display leading-tight mb-3">
-        {{ $heading }}
+        {!! $heading !!}
     </h2>
 
     @if($underline)

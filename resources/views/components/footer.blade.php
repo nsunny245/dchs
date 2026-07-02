@@ -7,14 +7,15 @@
     <div class="absolute -right-24 -bottom-24 w-96 h-96 bg-gold-500/5 rounded-full pointer-events-none"></div>
 
     <div class="container mx-auto px-6 relative z-10">
+        <!-- Logo & Tagline Row (Dedicating top of footer layout) -->
+        <div class="mb-12 border-b border-navy-900 pb-8 flex flex-col items-center md:items-start">
+            <x-logo-mark size="footer" />
+            <h3 class="font-tagline text-gold-500 uppercase tracking-widest text-sm mt-4">Where Success Is a Tradition</h3>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
-            <!-- Brand Column with Enlarged Logo -->
+            <!-- Brand Description & Socials Column -->
             <div class="space-y-6">
-                <div class="flex items-start">
-                    <!-- Footer Logo (noticeably larger, double size) -->
-                    <x-logo-mark size="footer" />
-                </div>
-                <h3 class="font-tagline text-gold-500 uppercase tracking-widest text-sm">Where Success Is a Tradition</h3>
                 <p class="text-navy-200 text-xs leading-relaxed max-w-sm">
                     Daniyal Group of Colleges is Punjab's premier allied health sciences institution, preparing medical students for clinical excellence.
                 </p>

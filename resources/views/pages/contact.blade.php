@@ -72,7 +72,7 @@
                     </div>
 
                     <div>
-                        <button type="submit" class="w-full bg-navy-900 text-white hover:bg-navy-700 py-3.5 rounded-lg font-bold uppercase tracking-wider shadow transition-transform transform hover:-translate-y-0.5">
+                        <button type="submit" class="w-full bg-gold-500 text-navy-900 hover:bg-gold-600 py-3.5 rounded-full font-bold uppercase tracking-wider shadow transition-transform transform hover:-translate-y-0.5">
                             Submit Form
                         </button>
                     </div>

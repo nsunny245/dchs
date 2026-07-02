@@ -44,14 +44,14 @@
                 <a href="{{ route('home') }}" class="text-navy-900 hover:text-gold-700 font-bold text-[13px] px-3 py-2 nav-link-hover">Home</a>
                 
                 <!-- About Us Dropdown -->
-                <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
-                    <button class="text-navy-900 hover:text-gold-700 font-bold text-[13px] px-3 py-2 flex items-center nav-link-hover">
+                <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false" @click.away="open = false">
+                    <button @click="open = !open" class="text-navy-900 hover:text-gold-700 font-bold text-[13px] px-3 py-2 flex items-center nav-link-hover">
                         About Us
                         <svg class="w-3 h-3 ml-1 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
                         </svg>
                     </button>
-                    <div x-show="open" x-transition.opacity.duration.200ms class="absolute top-full left-0 w-56 bg-white rounded-md shadow-lg border-t-4 border-gold-500 overflow-hidden z-50 font-body">
+                    <div x-show="open" x-cloak x-transition.opacity.duration.200ms class="absolute top-full left-0 w-56 bg-white rounded-md shadow-lg border-t-4 border-gold-500 overflow-hidden z-50 font-body">
                         <div class="py-1">
                             <a href="{{ route('about.chairmans-message') }}" class="block px-4 py-3.5 text-[13px] font-semibold text-navy-900 hover:bg-navy-50 hover:text-gold-700">Chairman's Message</a>
                             <a href="{{ route('about.vision-mission') }}" class="block px-4 py-3.5 text-[13px] font-semibold text-navy-900 hover:bg-navy-50 hover:text-gold-700">Vision & Mission</a>
@@ -64,14 +64,14 @@
                 <a href="{{ route('campuses') }}" class="text-navy-900 hover:text-gold-700 font-bold text-[13px] px-3 py-2 nav-link-hover">Campuses</a>
                 
                 <!-- Programs Dropdown -->
-                <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
-                    <button class="text-navy-900 hover:text-gold-700 font-bold text-[13px] px-3 py-2 flex items-center nav-link-hover">
+                <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false" @click.away="open = false">
+                    <button @click="open = !open" class="text-navy-900 hover:text-gold-700 font-bold text-[13px] px-3 py-2 flex items-center nav-link-hover">
                         Programs
                         <svg class="w-3 h-3 ml-1 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
                         </svg>
                     </button>
-                    <div x-show="open" x-transition.opacity.duration.200ms class="absolute top-full left-1/2 transform -translate-x-1/2 w-80 bg-white rounded-md shadow-lg border-t-4 border-gold-500 overflow-hidden z-50 font-body">
+                    <div x-show="open" x-cloak x-transition.opacity.duration.200ms class="absolute top-full left-1/2 transform -translate-x-1/2 w-80 bg-white rounded-md shadow-lg border-t-4 border-gold-500 overflow-hidden z-50 font-body">
                         <div class="py-1 max-h-[350px] overflow-y-auto">
                             @forelse($globalPrograms as $program)
                                 <a href="{{ route('courses.show', $program->code) }}" class="block px-4 py-3 hover:bg-navy-50 border-b border-navy-50 last:border-0">

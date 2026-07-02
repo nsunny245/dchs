@@ -7,8 +7,8 @@
 <section class="relative h-[800px] flex items-center overflow-hidden">
     <!-- Immersive Background Image with Scrim -->
     <div class="absolute inset-0 z-0">
-        <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1920" alt="Daniyal Group of Colleges Student Lab" class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-gradient-to-r from-navy-950 via-navy-900/80 to-transparent"></div>
+        <img src="https://images.unsplash.com/photo-1581056771107-24ca5f033842?w=1920" alt="Daniyal Group of Colleges Student Lab" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-r from-navy-950 via-navy-900/85 to-navy-900/40"></div>
     </div>
 
     <!-- Crest Logo Watermark in Background -->
@@ -22,9 +22,9 @@
             <div class="backdrop-blur-md bg-navy-950/75 border-l-4 border-gold-500 border-t border-r border-b border-white/10 rounded-r-2xl rounded-l-none p-10 md:p-12 shadow-2xl" 
                  data-aos="fade-right">
                 
-                <div class="inline-flex items-center bg-gold-500/20 border border-gold-500/40 rounded-full px-4 py-1.5 mb-6">
-                    <span class="w-2 h-2 bg-gold-500 rounded-full mr-2 animate-pulse"></span>
-                    <span class="text-gold-500 text-[10px] font-bold uppercase tracking-widest font-display">Admissions Open 2026</span>
+                <div class="inline-flex items-center bg-gold-500 text-navy-900 rounded-full px-4 py-1.5 mb-6 font-bold uppercase tracking-widest text-[10px] font-display shadow-sm">
+                    <span class="w-1.5 h-1.5 bg-navy-900 rounded-full mr-2 animate-pulse"></span>
+                    <span>Admissions Open 2026</span>
                 </div>
                 
                 <h1 class="text-4xl md:text-5xl font-extrabold text-white font-display leading-tight mb-4">
@@ -46,7 +46,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17.89 13.5H3m14.89 0l-4.89-4.89m4.89 4.89L13 18.39" />
                         </svg>
                     </x-button>
-                    <x-button variant="outline" :href="route('campuses')" class="px-8 py-3.5 border-white/30 text-white hover:bg-white/10">
+                    <x-button variant="outline" :href="route('campuses')" class="px-8 py-3.5 bg-white text-navy-900 border border-navy-900 hover:bg-navy-50">
                         Explore Campuses
                     </x-button>
                 </div>
@@ -68,7 +68,11 @@
 
 <!-- Chairman's Editorial Section -->
 <section class="py-24 bg-white relative overflow-hidden font-body">
-    <div class="container mx-auto px-6">
+    <!-- Blurred color blob backgrounds for premium depth -->
+    <div class="absolute top-1/4 left-0 w-96 h-96 bg-gold-500/10 rounded-full blur-3xl z-0 pointer-events-none"></div>
+    <div class="absolute bottom-1/4 right-0 w-96 h-96 bg-navy-900/10 rounded-full blur-3xl z-0 pointer-events-none"></div>
+
+    <div class="container mx-auto px-6 relative z-10">
         <div class="flex flex-col lg:flex-row items-center gap-16">
             <!-- Left Column: Double Border Image with Radial Glow -->
             <div class="w-full lg:w-5/12 flex justify-center" data-aos="fade-right">
@@ -87,7 +91,7 @@
                 </div>
                 
                 <h2 class="text-3xl md:text-4xl font-extrabold text-navy-900 font-display mb-6">
-                    Shaping Healthcare Leaders
+                    Shaping Healthcare <span class="text-gold-700 relative inline-block">Leaders<span class="absolute bottom-1 left-0 w-full h-[4px] bg-gold-500/40 rounded-full"></span></span>
                 </h2>
 
                 <div class="relative bg-brand-surface border-l-4 border-gold-500 rounded-r-xl p-8 mb-6 shadow-sm">
@@ -113,11 +117,14 @@
 </section>
 
 <!-- Programs Showcase Section -->
-<section class="py-24 bg-brand-surface relative border-t border-brand-border">
-    <div class="container mx-auto px-6">
+<section class="py-24 bg-brand-surface relative border-t border-brand-border overflow-hidden">
+    <!-- Center-aligned large gold blur blob behind cards -->
+    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gold-500/10 rounded-full blur-3xl z-0 pointer-events-none"></div>
+
+    <div class="container mx-auto px-6 relative z-10">
         <x-section-heading 
             eyebrow="OUR ACADEMIC catalog" 
-            heading="Allied Health Sciences Programs" 
+            heading="Allied Health <span class='text-gold-700 relative inline-block'>Sciences<span class='absolute bottom-1 left-0 w-full h-[4px] bg-gold-500/40 rounded-full'></span></span> Programs" 
             align="center" />
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -137,7 +144,7 @@
     <div class="container mx-auto px-6">
         <x-section-heading 
             eyebrow="GEOGRAPHIC FOOTPRINT" 
-            heading="Four Locations, One Standard" 
+            heading="Four Locations, One <span class='text-gold-700 relative inline-block'>Standard<span class='absolute bottom-1 left-0 w-full h-[4px] bg-gold-500/40 rounded-full'></span></span>" 
             align="center" />
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

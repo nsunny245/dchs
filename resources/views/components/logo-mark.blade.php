@@ -5,7 +5,7 @@
 @php
     $class = match($size) {
         'nav' => 'h-16 w-auto md:h-20',
-        'hero-watermark' => 'w-[400px] h-[400px] opacity-[0.03] select-none pointer-events-none',
+        'hero-watermark' => 'w-[400px] h-[400px] opacity-[0.08] select-none pointer-events-none',
         'footer' => 'h-32 w-auto md:h-40',
         'mobile-overlay' => 'h-24 w-auto',
         'splash' => 'h-32 w-auto animate-pulse',

@@ -148,7 +148,7 @@
                 </div>
 
                 <div class="pt-6">
-                    <button type="submit" class="w-full bg-navy-900 text-white hover:bg-navy-700 py-4 rounded-xl font-bold uppercase tracking-wider shadow-lg transition-transform duration-200 transform hover:-translate-y-0.5">
+                    <button type="submit" class="w-full bg-gold-500 text-navy-900 hover:bg-gold-600 py-4 rounded-full font-bold uppercase tracking-wider shadow-lg transition-transform duration-200 transform hover:-translate-y-0.5">
                         Submit Application
                     </button>
                 </div>
