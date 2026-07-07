@@ -10,7 +10,7 @@ class LhvStudentsSeeder extends Seeder
 {
     public function run(): void
     {
-        $jsonPath = "/Users/mnsmacbookpro2019/.gemini/antigravity/brain/c95c2b71-918d-40bb-8fc2-5aeddedd2e0a/scratch/students.json";
+        $jsonPath = database_path('seeders/lhv_students_2025.json');
         if (!file_exists($jsonPath)) {
             $this->command->error("JSON file not found at " . $jsonPath);
             return;
