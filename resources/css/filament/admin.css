@@ -210,3 +210,14 @@ button[type="submit"].fi-btn *,
     border-color: #12223C !important;
     box-shadow: 0 0 0 1px #12223C !important;
 }
+
+/* Global Select Input Dropdown Arrow repeating fix */
+select,
+.fi-select-input,
+.fi-select select,
+.fi-fo-select select {
+    background-repeat: no-repeat !important;
+    background-position: right 0.75rem center !important;
+    background-size: 1.25rem 1.25rem !important;
+    padding-right: 2.5rem !important;
+}
