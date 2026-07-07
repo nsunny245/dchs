@@ -23,6 +23,11 @@ class AdmissionResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Placeholder::make('missing_docs_notice')
+                    ->label('⚠️ Document Status')
+                    ->content('Notice: Some required documents (CNIC copy, Matric certificate copy, or Domicile copy) are missing for this applicant. Please upload them to complete the record.')
+                    ->visible(fn ($record) => $record && (empty($record->cnic_copy) || empty($record->matric_copy) || empty($record->domicile_copy)))
+                    ->columnSpanFull(),
                 Forms\Components\Tabs::make('AdmissionForm')
                     ->tabs([
                         Forms\Components\Tabs\Tab::make('Office & Session')
@@ -254,6 +259,14 @@ class AdmissionResource extends Resource
                     ->label('Applicant Name')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\IconColumn::make('missing_docs')
+                    ->label('Docs Missing')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-exclamation-triangle')
+                    ->trueColor('warning')
+                    ->falseIcon('heroicon-o-check-circle')
+                    ->falseColor('success')
+                    ->state(fn ($record) => empty($record->cnic_copy) || empty($record->matric_copy) || empty($record->domicile_copy)),
                 Tables\Columns\TextColumn::make('course.name')
                     ->label('Course')
                     ->sortable(),
