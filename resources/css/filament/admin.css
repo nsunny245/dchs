@@ -238,3 +238,38 @@ select,
     margin-right: auto !important;
     width: 100% !important;
 }
+
+/* Fix Tailwind v4 compilation bugs on Filament arbitrary column spans */
+.col-\[--col-span-default\] {
+    grid-column: var(--col-span-default) !important;
+}
+
+@media (min-width: 640px) {
+    .sm\:col-\[--col-span-sm\] {
+        grid-column: var(--col-span-sm) !important;
+    }
+}
+
+@media (min-width: 768px) {
+    .md\:col-\[--col-span-md\] {
+        grid-column: var(--col-span-md) !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    .lg\:col-\[--col-span-lg\] {
+        grid-column: var(--col-span-lg) !important;
+    }
+}
+
+@media (min-width: 1280px) {
+    .xl\:col-\[--col-span-xl\] {
+        grid-column: var(--col-span-xl) !important;
+    }
+}
+
+@media (min-width: 1536px) {
+    .xxl\:col-\[--col-span-2xl\] {
+        grid-column: var(--col-span-2xl) !important;
+    }
+}
