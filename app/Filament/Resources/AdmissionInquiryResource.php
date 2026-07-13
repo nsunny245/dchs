@@ -170,7 +170,14 @@ class AdmissionInquiryResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->where('came_by', 'website');
+        $query = parent::getEloquentQuery()->where('came_by', 'website');
+        $user = filament()->auth()->user();
+
+        if ($user && $user->campus_id && !$user->hasRole('Super Admin')) {
+            $query->where('campus_id', $user->campus_id);
+        }
+
+        return $query;
     }
 
     public static function getPages(): array

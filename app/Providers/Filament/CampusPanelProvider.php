@@ -30,6 +30,7 @@ use App\Filament\Resources\MarkResource;
 use App\Filament\Resources\FeeStructureResource;
 use App\Filament\Resources\FeePaymentResource;
 use App\Filament\Resources\ExpenseResource;
+use App\Filament\Resources\AdmissionInquiryResource;
 
 class CampusPanelProvider extends PanelProvider
 {
@@ -80,6 +81,7 @@ class CampusPanelProvider extends PanelProvider
             ->resources([
                 AcademicSessionResource::class,
                 VisitorQueryResource::class,
+                AdmissionInquiryResource::class,
                 AdmissionResource::class,
                 StudentResource::class,
                 StaffResource::class,

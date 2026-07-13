@@ -29,6 +29,7 @@ use App\Filament\Resources\ExpenseResource;
 use App\Filament\Resources\FranchisorResource;
 use App\Filament\Resources\VisitorQueryResource;
 use App\Filament\Resources\AdmissionInquiryResource;
+use App\Filament\Resources\ContactSubmissionResource;
 
 use App\Filament\Widgets\OverviewStats;
 use App\Filament\Widgets\FinancialSummaryWidget;
@@ -92,6 +93,7 @@ class AdminPanelProvider extends PanelProvider
                 SettingResource::class,
                 VisitorQueryResource::class,
                 AdmissionInquiryResource::class,
+                ContactSubmissionResource::class,
             ])
             ->pages([
                 Pages\Dashboard::class,

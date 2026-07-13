@@ -184,9 +184,8 @@ class VisitorQueryResource extends Resource
             $query->where('campus_id', $user->campus_id);
         }
 
-        if ($user && $user->hasRole('Super Admin')) {
-            $query->where('came_by', '!=', 'website');
-        }
+        // Exclude website online inquiries globally since they are separated into AdmissionInquiryResource
+        $query->where('came_by', '!=', 'website');
 
         return $query;
     }
