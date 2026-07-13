@@ -65,13 +65,21 @@ body,
 
 /* Sidebar Navigation Items */
 .fi-sidebar-item-button {
-    color: #A6B0C4 !important;
+    color: #FFFFFF !important;
     transition: all 0.2s ease !important;
     border-left: 4px solid transparent !important;
 }
 
+.fi-sidebar-item-icon {
+    color: #FFFFFF !important;
+}
+
 .fi-sidebar-item-button:hover {
     background-color: #1A2E4F !important;
+    color: #FFFFFF !important;
+}
+
+.fi-sidebar-item-button:hover .fi-sidebar-item-icon {
     color: #FFFFFF !important;
 }
 
@@ -220,4 +228,11 @@ select,
     background-position: right 0.75rem center !important;
     background-size: 1.25rem 1.25rem !important;
     padding-right: 2.5rem !important;
+}
+
+/* Center main content container next to the sidebar with equal left/right margins */
+.fi-main {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    width: 100% !important;
 }

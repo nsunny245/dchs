@@ -100,6 +100,10 @@ class VisitorQueryResource extends Resource
                     ->label('Date')
                     ->dateTime('d M Y, h:i A')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('campus.name')
+                    ->label('Campus')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('visitor_name')
                     ->label('Visitor Name')
                     ->searchable()
