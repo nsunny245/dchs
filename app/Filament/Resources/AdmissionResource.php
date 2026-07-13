@@ -36,8 +36,8 @@ class AdmissionResource extends Resource
                                 Forms\Components\Select::make('campus_id')
                                     ->relationship('campus', 'name')
                                     ->required()
-                                    ->default(fn () => auth()->user()->campus_id)
-                                    ->disabled(fn () => !auth()->user()->hasRole('Super Admin'))
+                                    ->default(fn () => filament()->auth()->user()->campus_id)
+                                    ->disabled(fn () => !filament()->auth()->user()->hasRole('Super Admin'))
                                     ->dehydrated(),
                                 Forms\Components\Select::make('academic_session_id')
                                     ->relationship('academicSession', 'name')
@@ -292,7 +292,7 @@ class AdmissionResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('campus')
                     ->relationship('campus', 'name')
-                    ->hidden(fn () => !auth()->user()->hasRole('Super Admin')),
+                    ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin')),
                 Tables\Filters\SelectFilter::make('academicSession')
                     ->relationship('academicSession', 'name'),
                 Tables\Filters\SelectFilter::make('status'),
@@ -318,8 +318,8 @@ class AdmissionResource extends Resource
     {
         $query = parent::getEloquentQuery();
         
-        if (!auth()->user()->hasRole('Super Admin')) {
-            $query->where('campus_id', auth()->user()->campus_id);
+        if (!filament()->auth()->user()->hasRole('Super Admin')) {
+            $query->where('campus_id', filament()->auth()->user()->campus_id);
         }
 
         return $query;

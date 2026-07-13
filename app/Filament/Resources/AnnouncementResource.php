@@ -28,8 +28,8 @@ class AnnouncementResource extends Resource
                         Forms\Components\Select::make('campus_id')
                             ->relationship('campus', 'name')
                             ->required()
-                            ->hidden(fn () => !auth()->user()->hasRole('Super Admin'))
-                            ->default(auth()->user()->campus_id),
+                            ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin'))
+                            ->default(filament()->auth()->user()->campus_id),
                         Forms\Components\TextInput::make('title')
                             ->required()
                             ->maxLength(255),
@@ -60,7 +60,7 @@ class AnnouncementResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('campus')
                     ->relationship('campus', 'name')
-                    ->hidden(fn () => !auth()->user()->hasRole('Super Admin')),
+                    ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin')),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -77,8 +77,8 @@ class AnnouncementResource extends Resource
     {
         $query = parent::getEloquentQuery();
         
-        if (!auth()->user()->hasRole('Super Admin')) {
-            $query->where('campus_id', auth()->user()->campus_id);
+        if (!filament()->auth()->user()->hasRole('Super Admin')) {
+            $query->where('campus_id', filament()->auth()->user()->campus_id);
         }
 
         return $query;

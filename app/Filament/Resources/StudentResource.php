@@ -28,8 +28,8 @@ class StudentResource extends Resource
                         Forms\Components\Select::make('campus_id')
                             ->relationship('campus', 'name')
                             ->required()
-                            ->hidden(fn () => !auth()->user()->hasRole('Super Admin'))
-                            ->default(auth()->user()->campus_id),
+                            ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin'))
+                            ->default(filament()->auth()->user()->campus_id),
                         Forms\Components\TextInput::make('enrollment_number')
                             ->required()
                             ->unique(ignoreRecord: true)
@@ -74,7 +74,7 @@ class StudentResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('campus')
                     ->relationship('campus', 'name')
-                    ->hidden(fn () => !auth()->user()->hasRole('Super Admin')),
+                    ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin')),
                 Tables\Filters\TernaryFilter::make('is_active'),
             ])
             ->actions([
@@ -98,8 +98,8 @@ class StudentResource extends Resource
     {
         $query = parent::getEloquentQuery();
         
-        if (!auth()->user()->hasRole('Super Admin')) {
-            $query->where('campus_id', auth()->user()->campus_id);
+        if (!filament()->auth()->user()->hasRole('Super Admin')) {
+            $query->where('campus_id', filament()->auth()->user()->campus_id);
         }
 
         return $query;

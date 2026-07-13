@@ -13,7 +13,7 @@ class OverviewStats extends BaseWidget
 {
     protected function getStats(): array
     {
-        $user = auth()->user();
+        $user = filament()->auth()->user();
         $isSuperAdmin = $user->hasRole('Super Admin');
         
         // Hierarchy-aware queries

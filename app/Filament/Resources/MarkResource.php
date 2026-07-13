@@ -21,12 +21,12 @@ class MarkResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return !(auth()->user()?->hasRole('Admission Officer') ?? false);
+        return !(filament()->auth()->user()?->hasRole('Admission Officer') ?? false);
     }
 
     public static function canViewAny(): bool
     {
-        return !(auth()->user()?->hasRole('Admission Officer') ?? false);
+        return !(filament()->auth()->user()?->hasRole('Admission Officer') ?? false);
     }
 
     public static function form(Form $form): Form
@@ -38,8 +38,8 @@ class MarkResource extends Resource
                         Forms\Components\Select::make('campus_id')
                             ->relationship('campus', 'name')
                             ->required()
-                            ->hidden(fn () => !auth()->user()->hasRole('Super Admin'))
-                            ->default(auth()->user()->campus_id),
+                            ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin'))
+                            ->default(filament()->auth()->user()->campus_id),
                         Forms\Components\Select::make('student_id')
                             ->relationship('student', 'id')
                             ->getOptionLabelFromRecordUsing(fn ($record) => $record->full_name)
@@ -78,7 +78,7 @@ class MarkResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('campus')
                     ->relationship('campus', 'name')
-                    ->hidden(fn () => !auth()->user()->hasRole('Super Admin')),
+                    ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin')),
                 Tables\Filters\SelectFilter::make('exam')
                     ->relationship('exam', 'exam_name'),
             ])
@@ -97,8 +97,8 @@ class MarkResource extends Resource
     {
         $query = parent::getEloquentQuery();
         
-        if (!auth()->user()->hasRole('Super Admin')) {
-            $query->where('campus_id', auth()->user()->campus_id);
+        if (!filament()->auth()->user()->hasRole('Super Admin')) {
+            $query->where('campus_id', filament()->auth()->user()->campus_id);
         }
 
         return $query;

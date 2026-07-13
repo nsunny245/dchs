@@ -13,7 +13,7 @@ class FinancialSummaryWidget extends BaseWidget
 
     public static function canView(): bool
     {
-        return auth()->user()->hasRole('Super Admin') || auth()->user()->hasRole('Finance');
+        return filament()->auth()->user()->hasRole('Super Admin') || filament()->auth()->user()->hasRole('Finance');
     }
 
     protected function getStats(): array

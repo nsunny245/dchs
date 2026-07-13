@@ -36,7 +36,7 @@ class ExpenseResource extends Resource
                     ->placeholder('Global / Head Office')
                     ->searchable()
                     ->preload()
-                    ->default(fn () => auth()->user()->campus_id),
+                    ->default(fn () => filament()->auth()->user()->campus_id),
                 Forms\Components\TextInput::make('amount')
                     ->numeric()
                     ->prefix('PKR')
@@ -96,7 +96,7 @@ class ExpenseResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-        $user = auth()->user();
+        $user = filament()->auth()->user();
 
         if ($user && $user->campus_id && !$user->hasRole('Super Admin')) {
             $query->where('campus_id', $user->campus_id);

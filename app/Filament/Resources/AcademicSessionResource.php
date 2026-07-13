@@ -77,7 +77,7 @@ class AcademicSessionResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-        $user = auth()->user();
+        $user = filament()->auth()->user();
 
         if ($user && $user->campus_id && !$user->hasRole('Super Admin')) {
             $query->where(function ($q) use ($user) {

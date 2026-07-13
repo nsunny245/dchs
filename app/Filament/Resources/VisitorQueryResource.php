@@ -29,8 +29,8 @@ class VisitorQueryResource extends Resource
                         Forms\Components\Select::make('campus_id')
                             ->relationship('campus', 'name')
                             ->required()
-                            ->default(fn () => auth()->user()->campus_id)
-                            ->disabled(fn () => !auth()->user()->hasRole('Super Admin'))
+                            ->default(fn () => filament()->auth()->user()->campus_id)
+                            ->disabled(fn () => !filament()->auth()->user()->hasRole('Super Admin'))
                             ->dehydrated(),
                         Forms\Components\TextInput::make('visitor_name')
                             ->label('Visitor / Student Name')
@@ -178,7 +178,7 @@ class VisitorQueryResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-        $user = auth()->user();
+        $user = filament()->auth()->user();
 
         if ($user && $user->campus_id && !$user->hasRole('Super Admin')) {
             $query->where('campus_id', $user->campus_id);
