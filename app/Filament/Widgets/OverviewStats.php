@@ -11,6 +11,8 @@ use App\Models\Admission;
 
 class OverviewStats extends BaseWidget
 {
+    protected static ?int $sort = 1;
+
     protected function getStats(): array
     {
         $user = filament()->auth()->user();

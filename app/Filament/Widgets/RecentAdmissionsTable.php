@@ -9,6 +9,7 @@ use App\Models\Admission;
 
 class RecentAdmissionsTable extends BaseWidget
 {
+    protected static ?int $sort = 4;
     protected static ?string $heading = 'Recent Applications';
     protected int | string | array $columnSpan = 'full';
 
