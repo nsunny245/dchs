@@ -60,6 +60,7 @@ class StaffResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id')->label('S.No')->rowIndex(),
                 Tables\Columns\TextColumn::make('employee_id')
                     ->searchable()
                     ->sortable(),

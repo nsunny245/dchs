@@ -62,6 +62,7 @@ class MarkResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id')->label('S.No')->rowIndex(),
                 Tables\Columns\TextColumn::make('student.full_name')
                     ->searchable()
                     ->sortable(),

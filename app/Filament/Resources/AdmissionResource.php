@@ -255,6 +255,7 @@ class AdmissionResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id')->label('S.No')->rowIndex(),
                 Tables\Columns\TextColumn::make('applicant_name')
                     ->label('Applicant Name')
                     ->searchable()

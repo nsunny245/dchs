@@ -47,6 +47,7 @@ class AnnouncementResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id')->label('S.No')->rowIndex(),
                 Tables\Columns\TextColumn::make('title')
                     ->searchable()
                     ->sortable(),

@@ -88,7 +88,8 @@ class VisitorQueryResource extends Resource
                             ->label('Query / Discussion Notes')
                             ->maxLength(65535)
                             ->columnSpanFull(),
-                    ])->columns(2),
+                    ])->columns(2)
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -96,6 +97,7 @@ class VisitorQueryResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id')->label('S.No')->rowIndex(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Date')
                     ->dateTime('d M Y, h:i A')

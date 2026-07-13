@@ -58,6 +58,7 @@ class ExpenseResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id')->label('S.No')->rowIndex(),
                 Tables\Columns\TextColumn::make('expense_date')
                     ->date()
                     ->sortable(),

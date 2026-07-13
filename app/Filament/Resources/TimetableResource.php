@@ -78,6 +78,7 @@ class TimetableResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id')->label('S.No')->rowIndex(),
                 Tables\Columns\TextColumn::make('day_of_week')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('subject_name')
