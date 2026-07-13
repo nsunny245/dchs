@@ -63,22 +63,23 @@ body,
     margin-bottom: 8px !important;
 }
 
-/* Sidebar Navigation Items */
-.fi-sidebar-item-button {
+/* Sidebar Navigation Items - Inactive State */
+.fi-sidebar-item:not(.fi-sidebar-item-active) .fi-sidebar-item-button,
+.fi-sidebar-item:not(.fi-sidebar-item-active) .fi-sidebar-item-button *,
+.fi-sidebar-item:not(.fi-sidebar-item-active) .fi-sidebar-item-icon {
     color: #FFFFFF !important;
+}
+
+.fi-sidebar-item-button {
     transition: all 0.2s ease !important;
     border-left: 4px solid transparent !important;
 }
 
-.fi-sidebar-item-icon {
-    color: #FFFFFF !important;
-}
-
 .fi-sidebar-item-button:hover {
     background-color: #1A2E4F !important;
-    color: #FFFFFF !important;
 }
 
+.fi-sidebar-item-button:hover *,
 .fi-sidebar-item-button:hover .fi-sidebar-item-icon {
     color: #FFFFFF !important;
 }
@@ -87,16 +88,17 @@ body,
 .fi-sidebar-item-active .fi-sidebar-item-button,
 .fi-sidebar-item-button[aria-current="page"] {
     background-color: #1A2E4F !important;
-    color: #EBB45A !important;
     border-left-color: #EBB45A !important;
     border-top-left-radius: 0px !important;
     border-bottom-left-radius: 0px !important;
     font-weight: 700 !important;
 }
 
+.fi-sidebar-item-active .fi-sidebar-item-button *,
+.fi-sidebar-item-button[aria-current="page"] *,
 .fi-sidebar-item-active .fi-sidebar-item-icon,
 .fi-sidebar-item-button[aria-current="page"] .fi-sidebar-item-icon {
-    color: #EBB45A !important;
+    color: #EBB45A !important; /* Gold */
 }
 
 .fi-sidebar-collapse-button {
