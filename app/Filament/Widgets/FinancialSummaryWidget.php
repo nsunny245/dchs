@@ -13,14 +13,30 @@ class FinancialSummaryWidget extends BaseWidget
 
     public static function canView(): bool
     {
-        return filament()->auth()->user()->hasRole('Super Admin') || filament()->auth()->user()->hasRole('Finance');
+        $user = filament()->auth()->user();
+        if (!$user) {
+            return false;
+        }
+        return $user->hasRole('Super Admin') || $user->hasRole('Campus Principal') || $user->hasRole('Finance');
     }
 
     protected function getStats(): array
     {
-        $totalPaidFee = FeePayment::where('status', 'paid')->sum('amount');
-        $totalPendingFee = FeePayment::whereIn('status', ['unpaid', 'overdue', 'partial'])->sum('amount');
-        $totalExpenses = Expense::sum('amount');
+        $user = filament()->auth()->user();
+        $isSuperAdmin = $user->hasRole('Super Admin');
+
+        $totalPaidFee = $isSuperAdmin 
+            ? FeePayment::where('status', 'paid')->sum('amount')
+            : FeePayment::where('campus_id', $user->campus_id)->where('status', 'paid')->sum('amount');
+            
+        $totalPendingFee = $isSuperAdmin 
+            ? FeePayment::whereIn('status', ['unpaid', 'overdue', 'partial'])->sum('amount')
+            : FeePayment::where('campus_id', $user->campus_id)->whereIn('status', ['unpaid', 'overdue', 'partial'])->sum('amount');
+            
+        $totalExpenses = $isSuperAdmin 
+            ? Expense::sum('amount')
+            : Expense::where('campus_id', $user->campus_id)->sum('amount');
+            
         $netEarnings = $totalPaidFee - $totalExpenses;
 
         return [
@@ -33,7 +49,7 @@ class FinancialSummaryWidget extends BaseWidget
                 ->descriptionIcon('heroicon-m-exclamation-triangle')
                 ->color('warning'),
             Stat::make('Total College Expenses', 'PKR ' . number_format($totalExpenses, 2))
-                ->description('Across all campuses & head office')
+                ->description($isSuperAdmin ? 'Across all campuses & head office' : 'For this campus location')
                 ->descriptionIcon('heroicon-m-arrow-trending-down')
                 ->color('danger'),
             Stat::make('Net Net Earnings (Profit/Loss)', 'PKR ' . number_format($netEarnings, 2))

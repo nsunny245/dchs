@@ -17,13 +17,22 @@ class CampusFinancialOverviewWidget extends BaseWidget
 
     public static function canView(): bool
     {
-        return filament()->auth()->user()->hasRole('Super Admin') || filament()->auth()->user()->hasRole('Finance');
+        $user = filament()->auth()->user();
+        if (!$user) {
+            return false;
+        }
+        return $user->hasRole('Super Admin') || $user->hasRole('Campus Principal') || $user->hasRole('Finance');
     }
 
     public function table(Table $table): Table
     {
         return $table
-            ->query(Campus::query())
+            ->query(function () {
+                $user = filament()->auth()->user();
+                return $user->hasRole('Super Admin')
+                    ? Campus::query()
+                    : Campus::query()->where('id', $user->campus_id);
+            })
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->label('Campus Name')

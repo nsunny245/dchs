@@ -31,6 +31,10 @@ use App\Filament\Resources\FeeStructureResource;
 use App\Filament\Resources\FeePaymentResource;
 use App\Filament\Resources\ExpenseResource;
 use App\Filament\Resources\AdmissionInquiryResource;
+use App\Filament\Widgets\OverviewStats;
+use App\Filament\Widgets\FinancialSummaryWidget;
+use App\Filament\Widgets\CampusFinancialOverviewWidget;
+use App\Filament\Widgets\RecentAdmissionsTable;
 
 class CampusPanelProvider extends PanelProvider
 {
@@ -97,6 +101,10 @@ class CampusPanelProvider extends PanelProvider
             ])
             ->widgets([
                 Widgets\AccountWidget::class,
+                OverviewStats::class,
+                FinancialSummaryWidget::class,
+                CampusFinancialOverviewWidget::class,
+                RecentAdmissionsTable::class,
             ])
             ->middleware([
                 EncryptCookies::class,
