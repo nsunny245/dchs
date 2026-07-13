@@ -25,7 +25,14 @@ class User extends Authenticatable implements FilamentUser
         }
 
         if ($panel->getId() === 'campus') {
-            return $this->campus_id !== null || $this->hasAnyRole(['Campus Principal', 'Admission Officer', 'Faculty', 'Finance']) || $this->hasRole('Super Admin');
+            $hasCampusRole = false;
+            foreach (['Campus Principal', 'Admission Officer', 'Faculty', 'Finance'] as $role) {
+                if ($this->hasRole($role)) {
+                    $hasCampusRole = true;
+                    break;
+                }
+            }
+            return $this->campus_id !== null || $hasCampusRole || $this->hasRole('Super Admin');
         }
 
         return true;
