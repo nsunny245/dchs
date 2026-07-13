@@ -20,10 +20,17 @@ class VisitorQuery extends Model
         'status',
         'follow_up_date',
         'notes',
+        'father_name',
+        'cnic',
+        'dob',
+        'gender',
+        'address',
+        'previous_education',
     ];
 
     protected $casts = [
         'follow_up_date' => 'date',
+        'dob' => 'date',
     ];
 
     public function campus(): BelongsTo

@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\VisitorQueryResource\Pages;
+use App\Filament\Resources\AdmissionInquiryResource\Pages;
 use App\Models\VisitorQuery;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -11,67 +11,65 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
-class VisitorQueryResource extends Resource
+class AdmissionInquiryResource extends Resource
 {
     protected static ?string $model = VisitorQuery::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
+    protected static ?string $navigationIcon = 'heroicon-o-envelope-open';
     protected static ?string $navigationGroup = 'Student Relations';
-    protected static ?int $navigationSort = 0; // Top item in Student Relations
+    protected static ?int $navigationSort = 1;
+
+    protected static ?string $navigationLabel = 'Admission Inquiries';
+    protected static ?string $modelLabel = 'Admission Inquiry';
+    protected static ?string $pluralModelLabel = 'Admission Inquiries';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Visitor & Inquiry Details')
-                    ->description('Log new walk-in or phone inquiry details')
+                Forms\Components\Section::make('Inquiry & Applicant Details')
+                    ->description('Review details of online admission inquiries')
                     ->schema([
                         Forms\Components\Select::make('campus_id')
                             ->relationship('campus', 'name')
                             ->required()
-                            ->default(fn () => auth()->user()->campus_id)
-                            ->disabled(fn () => !auth()->user()->hasRole('Super Admin'))
+                            ->disabled()
                             ->dehydrated(),
                         Forms\Components\TextInput::make('visitor_name')
-                            ->label('Visitor / Student Name')
+                            ->label('Applicant Name')
                             ->required()
+                            ->disabled()
                             ->maxLength(255),
+                        Forms\Components\TextInput::make('father_name')
+                            ->label('Father Name')
+                            ->disabled()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('cnic')
+                            ->label('CNIC / B-Form #')
+                            ->disabled()
+                            ->maxLength(255),
+                        Forms\Components\DatePicker::make('dob')
+                            ->label('Date of Birth')
+                            ->disabled(),
+                        Forms\Components\TextInput::make('gender')
+                            ->label('Gender')
+                            ->disabled(),
                         Forms\Components\TextInput::make('phone')
                             ->label('Phone / Contact #')
-                            ->tel()
-                            ->telRegex('/^[+]?[0-9\s\-()]{7,20}$/')
-                            ->required()
+                            ->disabled()
                             ->maxLength(255),
-                        Forms\Components\Select::make('relation_to_student')
-                            ->label('Relation to Student')
-                            ->options([
-                                'self' => 'Self (Student Himself/Herself)',
-                                'father' => 'Father',
-                                'mother' => 'Mother',
-                                'guardian' => 'Guardian',
-                                'relative' => 'Relative',
-                                'other' => 'Other',
-                            ])
-                            ->default('self')
-                            ->required(),
-                        Forms\Components\Select::make('came_by')
-                            ->label('Came By / Referral Source')
-                            ->options([
-                                'walk_in' => 'Walk-In / Direct Visit',
-                                'social_media' => 'Social Media (FB/Insta/WhatsApp)',
-                                'banner_poster' => 'Flex Banner / Poster',
-                                'friend_alumni' => 'Friend / Alumni Reference',
-                                'newspaper' => 'Newspaper / Pamphlet',
-                                'website' => 'Website Online Inquiry',
-                                'other' => 'Other',
-                            ])
-                            ->default('walk_in')
-                            ->required(),
                         Forms\Components\Select::make('desired_course_id')
                             ->relationship('desiredCourse', 'name')
                             ->label('Desired Course / Program')
-                            ->searchable()
-                            ->preload(),
+                            ->disabled(),
+                        Forms\Components\TextInput::make('previous_education')
+                            ->label('Matric Details')
+                            ->disabled()
+                            ->columnSpanFull(),
+                        Forms\Components\Textarea::make('address')
+                            ->label('Residential Address')
+                            ->disabled()
+                            ->columnSpanFull(),
                         Forms\Components\Select::make('status')
                             ->options([
                                 'new' => 'New Inquiry',
@@ -80,7 +78,6 @@ class VisitorQueryResource extends Resource
                                 'admitted' => 'Converted to Admission',
                                 'closed' => 'Closed',
                             ])
-                            ->default('new')
                             ->required(),
                         Forms\Components\DatePicker::make('follow_up_date')
                             ->label('Next Follow-up Date'),
@@ -101,21 +98,16 @@ class VisitorQueryResource extends Resource
                     ->dateTime('d M Y, h:i A')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('visitor_name')
-                    ->label('Visitor Name')
+                    ->label('Applicant Name')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('phone')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('relation_to_student')
-                    ->badge()
-                    ->formatStateUsing(fn (string $state): string => ucfirst($state)),
+                Tables\Columns\TextColumn::make('cnic')
+                    ->label('CNIC')
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('desiredCourse.name')
-                    ->label('Desired Course')
-                    ->placeholder('General Inquiry'),
-                Tables\Columns\TextColumn::make('came_by')
-                    ->badge()
-                    ->color('gray')
-                    ->formatStateUsing(fn (string $state): string => str_replace('_', ' ', ucfirst($state))),
+                    ->label('Desired Course'),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -153,12 +145,13 @@ class VisitorQueryResource extends Resource
                             'address' => $record->address ?? 'Pending address',
                             'course_id' => $record->desired_course_id ?? \App\Models\Course::first()?->id ?? 1,
                             'previous_education' => $record->previous_education,
-                            'reference' => 'Inquiry (' . $record->came_by . ')',
+                            'reference' => 'Inquiry (Online)',
                             'status' => 'pending',
                         ]);
 
                         return redirect(AdmissionResource::getUrl('edit', ['record' => $admission]));
-                    }),
+                    })
+                    ->visible(fn (VisitorQuery $record) => $record->status !== 'admitted'),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
@@ -171,26 +164,15 @@ class VisitorQueryResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
-        $user = auth()->user();
-
-        if ($user && $user->campus_id && !$user->hasRole('Super Admin')) {
-            $query->where('campus_id', $user->campus_id);
-        }
-
-        if ($user && $user->hasRole('Super Admin')) {
-            $query->where('came_by', '!=', 'website');
-        }
-
-        return $query;
+        return parent::getEloquentQuery()->where('came_by', 'website');
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListVisitorQueries::route('/'),
-            'create' => Pages\CreateVisitorQuery::route('/create'),
-            'edit' => Pages\EditVisitorQuery::route('/{record}/edit'),
+            'index' => Pages\ListAdmissionInquiries::route('/'),
+            'create' => Pages\CreateAdmissionInquiry::route('/create'),
+            'edit' => Pages\EditAdmissionInquiry::route('/{record}/edit'),
         ];
     }
 }

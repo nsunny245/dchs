@@ -27,6 +27,8 @@ use App\Filament\Resources\UserResource;
 use App\Filament\Resources\ExpenseCategoryResource;
 use App\Filament\Resources\ExpenseResource;
 use App\Filament\Resources\FranchisorResource;
+use App\Filament\Resources\VisitorQueryResource;
+use App\Filament\Resources\AdmissionInquiryResource;
 
 use App\Filament\Widgets\OverviewStats;
 use App\Filament\Widgets\FinancialSummaryWidget;
@@ -88,6 +90,8 @@ class AdminPanelProvider extends PanelProvider
                 ExpenseResource::class,
                 UserResource::class,
                 SettingResource::class,
+                VisitorQueryResource::class,
+                AdmissionInquiryResource::class,
             ])
             ->pages([
                 Pages\Dashboard::class,
