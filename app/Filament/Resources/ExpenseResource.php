@@ -40,7 +40,40 @@ class ExpenseResource extends Resource
                 Forms\Components\TextInput::make('amount')
                     ->numeric()
                     ->prefix('PKR')
+                    ->live()
                     ->required(),
+                Forms\Components\Select::make('expense_source')
+                    ->label('Expense Source')
+                    ->options([
+                        'college_revenue' => 'College Revenue / Income',
+                        'chairman_naveed' => 'Paid by Chairman (Dr. Naveed)',
+                        'split' => 'Split Payment (Revenue & Chairman)',
+                    ])
+                    ->default('college_revenue')
+                    ->live()
+                    ->required(),
+                Forms\Components\TextInput::make('college_revenue_amount')
+                    ->label('College Revenue Portion')
+                    ->numeric()
+                    ->prefix('PKR')
+                    ->visible(fn (Forms\Get $get) => $get('expense_source') === 'split')
+                    ->required(fn (Forms\Get $get) => $get('expense_source') === 'split')
+                    ->rules([
+                        fn (Forms\Get $get) => function (string $attribute, $value, $fail) use ($get) {
+                            $source = $get('expense_source');
+                            $amount = (float) $get('amount');
+                            $chairmanAmount = (float) $get('chairman_naveed_amount');
+                            if ($source === 'split' && (round((float)$value + $chairmanAmount, 2) !== round($amount, 2))) {
+                                $fail("The sum of College Revenue (" . $value . ") and Chairman (" . $chairmanAmount . ") portions must equal the total expense amount (" . $amount . ").");
+                            }
+                        }
+                    ]),
+                Forms\Components\TextInput::make('chairman_naveed_amount')
+                    ->label('Chairman Portion')
+                    ->numeric()
+                    ->prefix('PKR')
+                    ->visible(fn (Forms\Get $get) => $get('expense_source') === 'split')
+                    ->required(fn (Forms\Get $get) => $get('expense_source') === 'split'),
                 Forms\Components\DatePicker::make('expense_date')
                     ->default(now())
                     ->required(),
@@ -73,6 +106,21 @@ class ExpenseResource extends Resource
                 Tables\Columns\TextColumn::make('amount')
                     ->money('PKR')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('expense_source')
+                    ->label('Source')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'college_revenue' => 'success',
+                        'chairman_naveed' => 'info',
+                        'split' => 'warning',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'college_revenue' => 'College Revenue',
+                        'chairman_naveed' => 'Chairman Naveed',
+                        'split' => 'Split Payment',
+                        default => $state,
+                    }),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('expense_category_id')

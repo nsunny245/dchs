@@ -54,7 +54,7 @@ class CampusFinancialOverviewWidget extends BaseWidget
                     ->sortable(),
                 Tables\Columns\TextColumn::make('expenses')
                     ->label('Total Expenses')
-                    ->state(fn (Campus $record) => Expense::where('campus_id', $record->id)->sum('amount'))
+                    ->state(fn (Campus $record) => Expense::where('campus_id', $record->id)->sum('college_revenue_amount'))
                     ->money('PKR')
                     ->color(fn ($state) => $state > 0 ? 'danger' : 'gray')
                     ->alignRight()

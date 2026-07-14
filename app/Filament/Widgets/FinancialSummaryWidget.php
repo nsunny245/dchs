@@ -34,8 +34,8 @@ class FinancialSummaryWidget extends BaseWidget
             : FeePayment::where('campus_id', $user->campus_id)->whereIn('status', ['unpaid', 'overdue', 'partial'])->sum('amount');
             
         $totalExpenses = $isSuperAdmin 
-            ? Expense::sum('amount')
-            : Expense::where('campus_id', $user->campus_id)->sum('amount');
+            ? Expense::sum('college_revenue_amount')
+            : Expense::where('campus_id', $user->campus_id)->sum('college_revenue_amount');
             
         $netEarnings = $totalPaidFee - $totalExpenses;
 
