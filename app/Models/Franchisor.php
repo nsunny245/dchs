@@ -19,11 +19,17 @@ class Franchisor extends Model
         'address',
         'is_active',
         'notes',
+        'user_id',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function admissions()
     {

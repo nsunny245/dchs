@@ -55,6 +55,9 @@ class FranchisorAdmissionResource extends Resource
                                 }
                                 return Franchisor::where('type', $type)->where('is_active', true)->pluck('name', 'id');
                             })
+                            ->default(fn () => filament()->auth()->user()?->franchisor?->id)
+                            ->disabled(fn () => filament()->auth()->user()?->franchisor !== null)
+                            ->dehydrated()
                             ->required(),
                         Forms\Components\Select::make('course_id')
                             ->relationship('course', 'name')
@@ -187,13 +190,17 @@ class FranchisorAdmissionResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-        $type = self::getFranchisorType();
+        $user = filament()->auth()->user();
 
-        // Scope to only admissions belonging to this franchisor type
-        if ($type) {
-            $query->whereHas('franchisor', function ($q) use ($type) {
-                $q->where('type', $type);
-            });
+        if ($user && $user->franchisor) {
+            $query->where('franchisor_id', $user->franchisor->id);
+        } else {
+            $type = self::getFranchisorType();
+            if ($type) {
+                $query->whereHas('franchisor', function ($q) use ($type) {
+                    $q->where('type', $type);
+                });
+            }
         }
 
         return $query;

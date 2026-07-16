@@ -132,7 +132,6 @@ class SuperAdminFranchisorPaymentResource extends Resource
     {
         return [
             'index' => Pages\ListSuperAdminFranchisorPayments::route('/'),
-            'create' => Pages\CreateSuperAdminFranchisorPayment::route('/create'),
             'edit' => Pages\EditSuperAdminFranchisorPayment::route('/{record}/edit'),
         ];
     }

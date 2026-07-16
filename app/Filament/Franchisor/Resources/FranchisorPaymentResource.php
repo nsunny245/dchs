@@ -112,12 +112,17 @@ class FranchisorPaymentResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-        $type = FranchisorAdmissionResource::getFranchisorType();
+        $user = filament()->auth()->user();
 
-        if ($type) {
-            $query->whereHas('franchisor', function ($q) use ($type) {
-                $q->where('type', $type);
-            });
+        if ($user && $user->franchisor) {
+            $query->where('franchisor_id', $user->franchisor->id);
+        } else {
+            $type = FranchisorAdmissionResource::getFranchisorType();
+            if ($type) {
+                $query->whereHas('franchisor', function ($q) use ($type) {
+                    $q->where('type', $type);
+                });
+            }
         }
 
         return $query;

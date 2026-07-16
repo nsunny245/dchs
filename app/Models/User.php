@@ -74,4 +74,9 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->belongsTo(Campus::class);
     }
+
+    public function franchisor(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Franchisor::class, 'user_id');
+    }
 }
