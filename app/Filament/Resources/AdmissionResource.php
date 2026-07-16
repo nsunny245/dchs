@@ -91,6 +91,7 @@ class AdmissionResource extends Resource
                                         'approved' => 'Approved',
                                         'rejected' => 'Rejected',
                                         'waitlisted' => 'Waitlisted',
+                                        'document_missing' => 'Document Missing (Warning)',
                                     ])
                                     ->default('pending')
                                     ->required(),
@@ -166,6 +167,49 @@ class AdmissionResource extends Resource
                                     ->columnSpanFull()
                                     ->defaultItems(0),
                             ])->columns(2),
+
+                        Forms\Components\Tabs\Tab::make('Fee & Installments')
+                            ->icon('heroicon-o-currency-dollar')
+                            ->visible(fn (Forms\Get $get) => !$get('franchisor_id'))
+                            ->schema([
+                                Forms\Components\Placeholder::make('fee_structure_guide')
+                                    ->label('Standard Course Fee Reference')
+                                    ->content(function (Forms\Get $get) {
+                                        $courseId = $get('course_id');
+                                        $campusId = $get('campus_id') ?: filament()->auth()->user()?->campus_id;
+                                        if (!$courseId || !$campusId) {
+                                            return 'Please select a course and campus first to view the fee guide.';
+                                        }
+                                        $structure = \App\Models\FeeStructure::where('course_id', $courseId)
+                                            ->where('campus_id', $campusId)
+                                            ->first();
+                                        if (!$structure) {
+                                            return 'No standard fee structure found for this course and campus.';
+                                        }
+                                        return sprintf(
+                                            'Total Package: PKR %s | Standard Installments count: %d | Late fee per day: PKR %s',
+                                            number_format($structure->total_fee, 2),
+                                            $structure->installment_count,
+                                            number_format($structure->late_fee, 2)
+                                        );
+                                    })
+                                    ->columnSpanFull(),
+                                Forms\Components\Repeater::make('custom_installments')
+                                    ->label('Custom Installment Schedule')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('title')
+                                            ->placeholder('e.g. 1st Installment')
+                                            ->required(),
+                                        Forms\Components\TextInput::make('amount')
+                                            ->numeric()
+                                            ->prefix('PKR')
+                                            ->required(),
+                                        Forms\Components\DatePicker::make('due_date'),
+                                    ])
+                                    ->columns(3)
+                                    ->columnSpanFull()
+                                    ->defaultItems(0),
+                            ]),
 
                         Forms\Components\Tabs\Tab::make('Personal Details')
                             ->icon('heroicon-o-user')
@@ -305,43 +349,19 @@ class AdmissionResource extends Resource
                                     ])->columns(2),
                             ]),
 
-                        Forms\Components\Tabs\Tab::make('Documents & Signatures')
+                        Forms\Components\Tabs\Tab::make('Documents Vault')
                             ->icon('heroicon-o-document-duplicate')
                             ->schema([
-                                Forms\Components\Section::make('Signatures & Thumb Impression Preview')
-                                    ->schema([
-                                        Forms\Components\FileUpload::make('student_signature')
-                                            ->label('Student Signature / Thumb Impression Image')
-                                            ->directory('signatures')
-                                            ->image(),
-                                        Forms\Components\FileUpload::make('guardian_signature')
-                                            ->label('Guardian Signature / Thumb Impression Image')
-                                            ->directory('signatures')
-                                            ->image(),
-                                    ])->columns(2),
-
-                                Forms\Components\Section::make('Permanent Document Vault')
-                                    ->description('Upload certificates & CNIC copies for recordkeeping')
-                                    ->schema([
-                                        Forms\Components\FileUpload::make('cnic_copy')
-                                            ->label('Student CNIC / B-Form Copy')
-                                            ->directory('student-docs'),
-                                        Forms\Components\FileUpload::make('father_cnic_copy')
-                                            ->label('Father / Guardian CNIC Copy')
-                                            ->directory('student-docs'),
-                                        Forms\Components\FileUpload::make('matric_copy')
-                                            ->label('Matric Result Card / Certificate Copy')
-                                            ->directory('student-docs'),
-                                        Forms\Components\FileUpload::make('inter_copy')
-                                            ->label('Intermediate Certificate Copy')
-                                            ->directory('student-docs'),
-                                        Forms\Components\FileUpload::make('domicile_copy')
-                                            ->label('Domicile Certificate Copy')
-                                            ->directory('student-docs'),
-                                        Forms\Components\FileUpload::make('other_docs')
-                                            ->label('Other Document (Character Cert, etc.)')
-                                            ->directory('student-docs'),
-                                    ])->columns(2),
+                                Forms\Components\FileUpload::make('documents_zip_path')
+                                    ->label('ZIP Archive of all Documents')
+                                    ->directory('student-zips')
+                                    ->acceptedFileTypes(['application/zip', 'application/x-zip-compressed'])
+                                    ->columnSpanFull(),
+                                Forms\Components\Textarea::make('missing_documents')
+                                    ->label('Missing Documents Details')
+                                    ->placeholder('e.g., Intermediate Result Card is missing, Domicile certificate copy is missing...')
+                                    ->rows(3)
+                                    ->columnSpanFull(),
                             ]),
                     ])->columnSpanFull(),
             ]);
