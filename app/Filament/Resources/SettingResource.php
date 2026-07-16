@@ -32,9 +32,17 @@ class SettingResource extends Resource
                             ->default(filament()->auth()->user()->campus_id),
                         Forms\Components\TextInput::make('key')
                             ->required()
+                            ->live()
                             ->maxLength(255),
+                        Forms\Components\Select::make('value')
+                            ->label('Franchisor User Account')
+                            ->options(fn () => \App\Models\User::pluck('name', 'id'))
+                            ->visible(fn (Forms\Get $get) => in_array($get('key'), ['franchisor_inbound_user_id', 'franchisor_outbound_user_id']))
+                            ->required(fn (Forms\Get $get) => in_array($get('key'), ['franchisor_inbound_user_id', 'franchisor_outbound_user_id'])),
                         Forms\Components\Textarea::make('value')
-                            ->required()
+                            ->label('Value')
+                            ->hidden(fn (Forms\Get $get) => in_array($get('key'), ['franchisor_inbound_user_id', 'franchisor_outbound_user_id']))
+                            ->required(fn (Forms\Get $get) => !in_array($get('key'), ['franchisor_inbound_user_id', 'franchisor_outbound_user_id']))
                             ->columnSpanFull(),
                     ])->columns(2),
             ]);
@@ -49,6 +57,12 @@ class SettingResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('value')
+                    ->formatStateUsing(function (Setting $record, string $state) {
+                        if (in_array($record->key, ['franchisor_inbound_user_id', 'franchisor_outbound_user_id'])) {
+                            return \App\Models\User::find($state)?->name ?? $state;
+                        }
+                        return $state;
+                    })
                     ->limit(50),
                 Tables\Columns\TextColumn::make('campus.name')
                     ->sortable()

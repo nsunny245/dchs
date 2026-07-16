@@ -5,12 +5,10 @@ namespace App\Providers\Filament;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Navigation\NavigationGroup;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -19,33 +17,15 @@ use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
-use App\Filament\Resources\AcademicSessionResource;
-use App\Filament\Resources\CampusResource;
-use App\Filament\Resources\CourseResource;
-use App\Filament\Resources\SettingResource;
-use App\Filament\Resources\UserResource;
-use App\Filament\Resources\ExpenseCategoryResource;
-use App\Filament\Resources\ExpenseResource;
-use App\Filament\Resources\FranchisorResource;
-use App\Filament\Resources\VisitorQueryResource;
-use App\Filament\Resources\AdmissionInquiryResource;
-use App\Filament\Resources\ContactSubmissionResource;
-use App\Filament\Resources\SuperAdminFranchisorPaymentResource;
-
-use App\Filament\Widgets\OverviewStats;
-use App\Filament\Widgets\FinancialSummaryWidget;
-use App\Filament\Widgets\CampusFinancialOverviewWidget;
-
-class AdminPanelProvider extends PanelProvider
+class FranchisorPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->default()
-            ->id('admin')
-            ->path('admin')
+            ->id('franchisor')
+            ->path('franchisor')
             ->login()
-            ->authGuard('admin')
+            ->authGuard('web')
             ->colors([
                 'primary' => [
                     50 => '#FDF4E4',
@@ -78,33 +58,19 @@ class AdminPanelProvider extends PanelProvider
                     950 => '#0A1526',
                 ],
             ])
-            ->brandName('DCHS Super Admin')
+            ->brandName('DCHS Franchisor Portal')
             ->brandLogo(asset('images/dchs-logo.png'))
             ->brandLogoHeight('3.5rem')
             ->favicon(asset('favicon.ico'))
             ->viteTheme('resources/css/filament/admin.css')
-            ->resources([
-                AcademicSessionResource::class,
-                CampusResource::class,
-                CourseResource::class,
-                FranchisorResource::class,
-                ExpenseCategoryResource::class,
-                ExpenseResource::class,
-                UserResource::class,
-                SettingResource::class,
-                VisitorQueryResource::class,
-                AdmissionInquiryResource::class,
-                ContactSubmissionResource::class,
-                SuperAdminFranchisorPaymentResource::class,
-            ])
+            ->discoverResources(in: app_path('Filament/Franchisor/Resources'), for: 'App\\Filament\\Franchisor\\Resources')
+            ->discoverPages(in: app_path('Filament/Franchisor/Pages'), for: 'App\\Filament\\Franchisor\\Pages')
             ->pages([
                 Pages\Dashboard::class,
             ])
+            ->discoverWidgets(in: app_path('Filament/Franchisor/Widgets'), for: 'App\\Filament\\Franchisor\\Widgets')
             ->widgets([
-                Widgets\AccountWidget::class,
-                OverviewStats::class,
-                FinancialSummaryWidget::class,
-                CampusFinancialOverviewWidget::class,
+                \Filament\Widgets\AccountWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -119,12 +85,6 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ])
-            ->navigationGroups([
-                NavigationGroup::make('Academic Management')->collapsed(false),
-                NavigationGroup::make('Financial Management')->collapsed(false),
-                NavigationGroup::make('Administration')->collapsed(false),
-            ])
-            ->maxContentWidth('7xl');
+            ]);
     }
 }

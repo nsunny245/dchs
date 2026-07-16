@@ -44,4 +44,9 @@ class Student extends Model
     {
         return $this->hasMany(Mark::class);
     }
+
+    public function franchisor(): BelongsTo
+    {
+        return $this->belongsTo(Franchisor::class);
+    }
 }

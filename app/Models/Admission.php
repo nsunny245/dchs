@@ -38,4 +38,14 @@ class Admission extends Model
     {
         return $this->hasOne(Student::class);
     }
+
+    public function franchisor(): BelongsTo
+    {
+        return $this->belongsTo(Franchisor::class);
+    }
+
+    public function franchisorPayment(): HasOne
+    {
+        return $this->hasOne(FranchisorStudentPayment::class);
+    }
 }

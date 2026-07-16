@@ -24,4 +24,19 @@ class Franchisor extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    public function admissions()
+    {
+        return $this->hasMany(Admission::class);
+    }
+
+    public function students()
+    {
+        return $this->hasMany(Student::class);
+    }
+
+    public function studentPayments()
+    {
+        return $this->hasMany(FranchisorStudentPayment::class);
+    }
 }

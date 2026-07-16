@@ -35,6 +35,13 @@ class User extends Authenticatable implements FilamentUser
             return $this->campus_id !== null || $hasCampusRole || $this->hasRole('Super Admin');
         }
 
+        if ($panel->getId() === 'franchisor') {
+            $inboundUserId = \App\Models\Setting::where('key', 'franchisor_inbound_user_id')->value('value');
+            $outboundUserId = \App\Models\Setting::where('key', 'franchisor_outbound_user_id')->value('value');
+
+            return $this->id == $inboundUserId || $this->id == $outboundUserId || $this->hasRole('Super Admin') || $this->hasRole('Franchisor Inbound') || $this->hasRole('Franchisor Outbound');
+        }
+
         return true;
     }
 
