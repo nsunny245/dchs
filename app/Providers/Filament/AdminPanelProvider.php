@@ -99,6 +99,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->pages([
                 Pages\Dashboard::class,
+                \App\Filament\Pages\FranchiseReport::class,
             ])
             ->widgets([
                 Widgets\AccountWidget::class,

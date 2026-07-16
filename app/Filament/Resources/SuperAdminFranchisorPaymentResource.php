@@ -15,9 +15,9 @@ class SuperAdminFranchisorPaymentResource extends Resource
 {
     protected static ?string $model = FranchisorStudentPayment::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-building-library';
-    protected static ?string $navigationGroup = 'Student Relations';
-    protected static ?int $navigationSort = 3;
+    protected static ?string $navigationIcon = 'heroicon-o-credit-card';
+    protected static ?string $navigationGroup = 'Franchise Management';
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $navigationLabel = 'Franchisor Seat Payments';
     protected static ?string $modelLabel = 'Franchisor Seat Payment';

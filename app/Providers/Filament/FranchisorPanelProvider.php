@@ -71,6 +71,7 @@ class FranchisorPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Franchisor/Widgets'), for: 'App\\Filament\\Franchisor\\Widgets')
             ->widgets([
                 \Filament\Widgets\AccountWidget::class,
+                \App\Filament\Franchisor\Widgets\FranchisorOverviewStats::class,
             ])
             ->middleware([
                 EncryptCookies::class,

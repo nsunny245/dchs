@@ -15,8 +15,8 @@ class FranchisorResource extends Resource
     protected static ?string $model = Franchisor::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
-    protected static ?string $navigationGroup = 'Academic Management';
-    protected static ?int $navigationSort = 3;
+    protected static ?string $navigationGroup = 'Franchise Management';
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
