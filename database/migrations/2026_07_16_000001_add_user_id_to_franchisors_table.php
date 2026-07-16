@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         if (!Schema::hasColumn('franchisors', 'user_id')) {
             Schema::table('franchisors', function (Blueprint $table) {
-                $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+                $table->unsignedBigInteger('user_id')->nullable()->index();
             });
         }
     }
@@ -18,7 +18,7 @@ return new class extends Migration {
     {
         if (Schema::hasColumn('franchisors', 'user_id')) {
             Schema::table('franchisors', function (Blueprint $table) {
-                $table->dropConstrainedForeignId('user_id');
+                $table->dropColumn('user_id');
             });
         }
     }
