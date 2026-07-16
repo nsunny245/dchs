@@ -50,7 +50,32 @@ class AdmissionResource extends Resource
                                     ->label('Offered Course')
                                     ->required()
                                     ->searchable()
-                                    ->preload(),
+                                    ->preload()
+                                    ->live()
+                                    ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, $state) {
+                                        if (!$state) return;
+                                        $franchisorId = $get('franchisor_id');
+                                        if (!$franchisorId) return;
+
+                                        $deal = \App\Models\FranchisorCourseDeal::where('franchisor_id', $franchisorId)
+                                            ->where('course_id', $state)
+                                            ->first();
+
+                                        $cost = $deal ? (float) $deal->per_seat_cost : 250000.00;
+                                        $set('seat_cost', $cost);
+                                        
+                                        $half = round($cost / 2, 2);
+                                        $set('installments', [
+                                            [
+                                                'title' => '50% Advance Seat Payment',
+                                                'amount' => $half,
+                                            ],
+                                            [
+                                                'title' => '50% Roll Number Slip Issue',
+                                                'amount' => $half,
+                                            ]
+                                        ]);
+                                    }),
                                 Forms\Components\TextInput::make('roll_no')
                                     ->label('Roll No'),
                                 Forms\Components\TextInput::make('registration_no')
@@ -69,6 +94,77 @@ class AdmissionResource extends Resource
                                     ])
                                     ->default('pending')
                                     ->required(),
+                            ])->columns(2),
+
+                        Forms\Components\Tabs\Tab::make('Franchise Details')
+                            ->icon('heroicon-o-presentation-chart-line')
+                            ->schema([
+                                Forms\Components\Select::make('franchisor_id')
+                                    ->relationship('franchisor', 'name')
+                                    ->label('Franchisor / Franchise Partner')
+                                    ->nullable()
+                                    ->searchable()
+                                    ->preload()
+                                    ->live()
+                                    ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, $state) {
+                                        if (!$state) {
+                                            $set('seat_cost', 0);
+                                            $set('installments', []);
+                                            return;
+                                        }
+                                        $courseId = $get('course_id');
+                                        if (!$courseId) return;
+
+                                        $deal = \App\Models\FranchisorCourseDeal::where('franchisor_id', $state)
+                                            ->where('course_id', $courseId)
+                                            ->first();
+
+                                        $cost = $deal ? (float) $deal->per_seat_cost : 250000.00;
+                                        $set('seat_cost', $cost);
+                                        
+                                        $half = round($cost / 2, 2);
+                                        $set('installments', [
+                                            [
+                                                'title' => '50% Advance Seat Payment',
+                                                'amount' => $half,
+                                            ],
+                                            [
+                                                'title' => '50% Roll Number Slip Issue',
+                                                'amount' => $half,
+                                            ]
+                                        ]);
+                                    }),
+                                Forms\Components\TextInput::make('seat_cost')
+                                    ->label('Total Seat Fee Price')
+                                    ->numeric()
+                                    ->prefix('PKR')
+                                    ->live()
+                                    ->afterStateUpdated(function (Forms\Set $set, $state) {
+                                        $half = round((float) $state / 2, 2);
+                                        $set('installments', [
+                                            [
+                                                'title' => '50% Advance Seat Payment',
+                                                'amount' => $half,
+                                            ],
+                                            [
+                                                'title' => '50% Roll Number Slip Issue',
+                                                'amount' => $half,
+                                            ]
+                                        ]);
+                                    }),
+                                Forms\Components\Repeater::make('installments')
+                                    ->label('Installment Schedules')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('title')->required(),
+                                        Forms\Components\TextInput::make('amount')->numeric()->prefix('PKR')->required(),
+                                        Forms\Components\DatePicker::make('due_date'),
+                                        Forms\Components\Toggle::make('is_published')
+                                            ->label('Publish to Franchisor')
+                                            ->default(false),
+                                    ])
+                                    ->columns(4)
+                                    ->columnSpanFull()
+                                    ->defaultItems(0),
                             ])->columns(2),
 
                         Forms\Components\Tabs\Tab::make('Personal Details')

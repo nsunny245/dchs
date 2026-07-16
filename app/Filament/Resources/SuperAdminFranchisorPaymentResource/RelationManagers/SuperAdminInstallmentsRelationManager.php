@@ -43,6 +43,9 @@ class SuperAdminInstallmentsRelationManager extends RelationManager
                 Forms\Components\FileUpload::make('receipt_path')
                     ->directory('franchisor-receipts')
                     ->disk('public'),
+                Forms\Components\Toggle::make('is_published')
+                    ->label('Publish immediately to Franchisor')
+                    ->default(true),
             ]);
     }
 
@@ -73,6 +76,9 @@ class SuperAdminInstallmentsRelationManager extends RelationManager
                         'paid' => 'Verified Paid',
                         default => $state,
                     }),
+                Tables\Columns\IconColumn::make('is_published')
+                    ->boolean()
+                    ->label('Sent to Franchisor'),
                 Tables\Columns\TextColumn::make('payment_method')
                     ->placeholder('-'),
                 Tables\Columns\TextColumn::make('transaction_id')
@@ -88,6 +94,60 @@ class SuperAdminInstallmentsRelationManager extends RelationManager
                 Tables\Actions\CreateAction::make(),
             ])
             ->actions([
+                Tables\Actions\Action::make('sendToFranchisor')
+                    ->label('Send')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->color('info')
+                    ->visible(fn (FranchisorPaymentInstallment $record) => !$record->is_published)
+                    ->action(function (FranchisorPaymentInstallment $record) {
+                        $record->update([
+                            'is_published' => true,
+                         ]);
+
+                         \Filament\Notifications\Notification::make()
+                             ->title('Sent to Franchisor')
+                             ->success()
+                             ->body('This payment installment has been published to the franchisor dashboard.')
+                             ->send();
+                    }),
+                Tables\Actions\Action::make('recordPayment')
+                    ->label('Record Payment')
+                    ->icon('heroicon-o-currency-dollar')
+                    ->color('success')
+                    ->visible(fn (FranchisorPaymentInstallment $record) => $record->status !== 'paid')
+                    ->form([
+                        Forms\Components\Select::make('payment_method')
+                            ->options([
+                                'bank_transfer' => 'Bank Transfer',
+                                'cash' => 'Cash',
+                                'cheque' => 'Cheque',
+                                'online_deposit' => 'Online Deposit',
+                            ])
+                            ->required()
+                            ->default('bank_transfer'),
+                        Forms\Components\TextInput::make('transaction_id')
+                            ->label('Transaction Reference / ID')
+                            ->maxLength(255),
+                        Forms\Components\DatePicker::make('paid_date')
+                            ->label('Payment Date')
+                            ->default(now())
+                            ->required(),
+                    ])
+                    ->action(function (FranchisorPaymentInstallment $record, array $data) {
+                        $record->update([
+                            'status' => 'paid',
+                            'payment_method' => $data['payment_method'],
+                            'transaction_id' => $data['transaction_id'] ?? null,
+                            'paid_date' => $data['paid_date'],
+                            'is_published' => true, // Auto publish once paid
+                        ]);
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Payment Recorded')
+                            ->success()
+                            ->body('The payment has been successfully recorded and applied.')
+                            ->send();
+                    }),
                 Tables\Actions\Action::make('approve')
                     ->label('Verify')
                     ->icon('heroicon-o-check-circle')

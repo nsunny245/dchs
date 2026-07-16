@@ -43,4 +43,33 @@ class ExampleTest extends TestCase
         $course = Course::first();
         $this->get('/courses/' . $course->code)->assertStatus(200);
     }
+
+    public function test_franchisor_pages(): void
+    {
+        // Seed roles and users
+        $this->seed(\Database\Seeders\SeedFranchisorRolesAndUsers::class);
+
+        // 1. Log in as Super Admin
+        $superAdmin = \App\Models\User::factory()->create(['email' => 'admin@admin.com']);
+        $superAdminRole = \Spatie\Permission\Models\Role::findOrCreate('Super Admin', 'web');
+        $superAdmin->assignRole($superAdminRole);
+
+        $response = $this->actingAs($superAdmin, 'admin')
+            ->get('/admin/franchise-report');
+        $response->assertStatus(200);
+
+        // 2. Log in as Franchisor Inbound
+        $inboundUser = \App\Models\User::where('email', 'franchisor.inbound@dchs.com')->first();
+        $response = $this->actingAs($inboundUser, 'web')
+            ->get('/franchisor');
+        $response->assertStatus(200);
+
+        $response = $this->actingAs($inboundUser, 'web')
+            ->get('/franchisor/franchisor-admissions');
+        $response->assertStatus(200);
+
+        $response = $this->actingAs($inboundUser, 'web')
+            ->get('/franchisor/franchisor-payments');
+        $response->assertStatus(200);
+    }
 }

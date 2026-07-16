@@ -20,12 +20,14 @@ class FranchisorPaymentInstallment extends Model
         'payment_method',
         'transaction_id',
         'receipt_path',
+        'is_published',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'due_date' => 'date',
         'paid_date' => 'date',
+        'is_published' => 'boolean',
     ];
 
     public function payment(): BelongsTo

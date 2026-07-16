@@ -1,7 +1,7 @@
 <x-filament-panels::page>
-    <x-filament-panels::page.subheading>
+    <div class="text-sm text-gray-500 -mt-2">
         A comprehensive breakdown of student seats, contracted dues, and collections across all registered Inbound and Outbound franchises.
-    </x-filament-panels::page.subheading>
+    </div>
 
     <div class="mt-2">
         {{ $this->table }}

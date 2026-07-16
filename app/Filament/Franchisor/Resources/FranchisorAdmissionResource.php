@@ -58,13 +58,39 @@ class FranchisorAdmissionResource extends Resource
                             ->default(fn () => filament()->auth()->user()?->franchisor?->id)
                             ->disabled(fn () => filament()->auth()->user()?->franchisor !== null)
                             ->dehydrated()
+                            ->live()
                             ->required(),
                         Forms\Components\Select::make('course_id')
                             ->relationship('course', 'name')
                             ->label('Program / Course')
                             ->required()
                             ->searchable()
-                            ->preload(),
+                            ->preload()
+                            ->live()
+                            ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, $state) {
+                                if (!$state) return;
+                                $franchisorId = $get('franchisor_id') ?: filament()->auth()->user()?->franchisor?->id;
+                                if (!$franchisorId) return;
+
+                                $deal = \App\Models\FranchisorCourseDeal::where('franchisor_id', $franchisorId)
+                                    ->where('course_id', $state)
+                                    ->first();
+
+                                $cost = $deal ? (float) $deal->per_seat_cost : 250000.00;
+                                $set('seat_cost', $cost);
+                                
+                                $half = round($cost / 2, 2);
+                                $set('installments', [
+                                    [
+                                        'title' => '50% Advance Seat Payment',
+                                        'amount' => $half,
+                                    ],
+                                    [
+                                        'title' => '50% Roll Number Slip Issue',
+                                        'amount' => $half,
+                                    ]
+                                ]);
+                            }),
                         Forms\Components\Select::make('campus_id')
                             ->relationship('campus', 'name')
                             ->label('Campus Location')

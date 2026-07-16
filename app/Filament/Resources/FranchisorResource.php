@@ -53,6 +53,35 @@ class FranchisorResource extends Resource
                 Forms\Components\Textarea::make('notes')
                     ->maxLength(65535)
                     ->columnSpanFull(),
+
+                Forms\Components\Section::make('Course Deals & Per-Seat Pricing')
+                    ->description('Configure course seat allocations and pricing deal parameters')
+                    ->schema([
+                        Forms\Components\Repeater::make('courseDeals')
+                            ->relationship('courseDeals')
+                            ->schema([
+                                Forms\Components\Select::make('course_id')
+                                    ->relationship('course', 'name')
+                                    ->label('Course / Program')
+                                    ->required()
+                                    ->searchable()
+                                    ->preload(),
+                                Forms\Components\TextInput::make('total_seats')
+                                    ->label('Total Seats')
+                                    ->numeric()
+                                    ->required()
+                                    ->default(0),
+                                Forms\Components\TextInput::make('per_seat_cost')
+                                    ->label('Per-Seat Cost')
+                                    ->numeric()
+                                    ->prefix('PKR')
+                                    ->required()
+                                    ->default(0.00),
+                            ])
+                            ->columns(3)
+                            ->columnSpanFull()
+                            ->defaultItems(0),
+                    ])->columnSpanFull(),
             ]);
     }
 

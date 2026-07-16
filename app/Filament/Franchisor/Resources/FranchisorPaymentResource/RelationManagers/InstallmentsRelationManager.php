@@ -15,6 +15,11 @@ class InstallmentsRelationManager extends RelationManager
 
     protected static ?string $title = 'Installments Plan';
 
+    protected function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->where('is_published', true);
+    }
+
     public function form(Form $form): Form
     {
         return $form

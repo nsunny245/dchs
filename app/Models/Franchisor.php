@@ -45,4 +45,9 @@ class Franchisor extends Model
     {
         return $this->hasMany(FranchisorStudentPayment::class);
     }
+
+    public function courseDeals()
+    {
+        return $this->hasMany(FranchisorCourseDeal::class);
+    }
 }
