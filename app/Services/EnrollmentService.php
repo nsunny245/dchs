@@ -45,8 +45,28 @@ class EnrollmentService
             $seqFormatted = str_pad($sequence, 6, '0', STR_PAD_LEFT);
             $enrollmentNumber = "DCHS-{$campusCode}-{$courseCode}-{$year}-{$seqFormatted}";
 
-            // 3. Create Student
+            // 3. Create Corresponding User Account for Student login
+            $email = $admission->email;
+            if (!$email || \App\Models\User::where('email', $email)->exists()) {
+                $sanitizedName = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $admission->applicant_name));
+                $email = $sanitizedName . rand(1000, 9999) . '@student.dchs.edu.pk';
+            }
+
+            $userPassword = str_replace('-', '', $admission->cnic) ?: 'password';
+
+            $user = \App\Models\User::create([
+                'name' => $admission->applicant_name,
+                'email' => $email,
+                'password' => bcrypt($userPassword),
+                'phone' => $admission->phone,
+                'campus_id' => $admission->campus_id,
+                'status' => 'active',
+            ]);
+            $user->assignRole('Student');
+
+            // 4. Create Student
             $student = Student::create([
+                'user_id' => $user->id,
                 'enrollment_number' => $enrollmentNumber,
                 'full_name' => $admission->applicant_name,
                 'campus_id' => $admission->campus_id,
