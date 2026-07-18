@@ -138,6 +138,7 @@ class AdmissionResource extends Resource
                                 ->required(),
                             Forms\Components\Toggle::make('same_as_student_address')
                                 ->label("Guardian's address is same as student's address")
+                                ->dehydrated(false)
                                 ->live()
                                 ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
                                     if ($state) {
