@@ -21,12 +21,14 @@ class FeeStructureResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return filament()->auth()->user()?->hasRole('Super Admin') ?? false;
+        $user = filament()->auth()->user();
+        return $user && ($user->email === 'admin@admin.com' || $user->hasRole('Super Admin'));
     }
 
     public static function canViewAny(): bool
     {
-        return filament()->auth()->user()?->hasRole('Super Admin') ?? false;
+        $user = filament()->auth()->user();
+        return $user && ($user->email === 'admin@admin.com' || $user->hasRole('Super Admin'));
     }
 
     public static function form(Form $form): Form

@@ -137,7 +137,7 @@ class FeeCollectionResource extends Resource
                                     ->numeric()
                                     ->prefix('PKR')
                                     ->required()
-                                    ->minVal(1),
+                                    ->minValue(1),
                                 Forms\Components\DatePicker::make('payment_date')
                                     ->label('Collection Date')
                                     ->default(now())
