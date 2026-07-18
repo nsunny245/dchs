@@ -103,7 +103,7 @@ class AdmissionResource extends Resource
                                 ->label('Inquiry Source / Reference'),
                             Forms\Components\Select::make('visitor_query_id')
                                 ->label('Linked Visitor Inquiry')
-                                ->relationship('visitorQuery', 'name')
+                                ->relationship('visitorQuery', 'visitor_name')
                                 ->searchable()
                                 ->preload()
                                 ->nullable(),
