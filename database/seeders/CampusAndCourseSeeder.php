@@ -115,6 +115,20 @@ class CampusAndCourseSeeder extends Seeder
                 'eligibility' => 'Matric Science with minimum 45% marks.',
                 'description' => 'A specialized 1-year certificate program focusing on sterilizing, sanitizing, and distributing medical tools and equipment.'
             ],
+            [
+                'code' => 'Post RN',
+                'name' => 'Post Registered Nurse',
+                'duration_months' => 24,
+                'eligibility' => 'Diploma in General Nursing & Midwifery.',
+                'description' => 'Advanced professional program for practicing nurses seeking higher leadership roles.'
+            ],
+            [
+                'code' => 'BSN',
+                'name' => 'Bachelor of Science in Nursing',
+                'duration_months' => 48,
+                'eligibility' => 'F.Sc Pre-Medical with minimum 50% marks.',
+                'description' => '4-year professional degree training nursing leaders and healthcare experts.'
+            ],
         ];
 
         foreach ($courses as $c) {

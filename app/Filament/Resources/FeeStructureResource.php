@@ -50,6 +50,30 @@ class FeeStructureResource extends Resource
                             ->prefix('PKR')
                             ->default(0)
                             ->required(),
+                        Forms\Components\TextInput::make('admission_fee')
+                            ->numeric()
+                            ->prefix('PKR')
+                            ->default(0),
+                        Forms\Components\TextInput::make('hostel_dues')
+                            ->numeric()
+                            ->prefix('PKR')
+                            ->default(0),
+                        Forms\Components\TextInput::make('verification_fee')
+                            ->numeric()
+                            ->prefix('PKR')
+                            ->default(0),
+                        Forms\Components\TextInput::make('enrollment_fee')
+                            ->numeric()
+                            ->prefix('PKR')
+                            ->default(0),
+                        Forms\Components\TextInput::make('examination_fee')
+                            ->numeric()
+                            ->prefix('PKR')
+                            ->default(0),
+                        Forms\Components\TextInput::make('other_misc')
+                            ->numeric()
+                            ->prefix('PKR')
+                            ->default(0),
                     ])->columns(2),
             ]);
     }
@@ -72,6 +96,24 @@ class FeeStructureResource extends Resource
                 Tables\Columns\TextColumn::make('late_fee')
                     ->money('PKR')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('admission_fee')
+                    ->money('PKR')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('hostel_dues')
+                    ->money('PKR')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('verification_fee')
+                    ->money('PKR')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('enrollment_fee')
+                    ->money('PKR')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('examination_fee')
+                    ->money('PKR')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('other_misc')
+                    ->money('PKR')
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('campus')
