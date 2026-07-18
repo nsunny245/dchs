@@ -48,4 +48,9 @@ class Admission extends Model
     {
         return $this->hasOne(FranchisorStudentPayment::class);
     }
+
+    public function visitorQuery(): BelongsTo
+    {
+        return $this->belongsTo(VisitorQuery::class, 'visitor_query_id');
+    }
 }

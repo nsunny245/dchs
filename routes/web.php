@@ -31,4 +31,6 @@ Route::middleware('auth:admin,campus')->prefix('pdf')->name('pdf.')->group(funct
     Route::get('/admission-letter/{admission}', [PdfController::class, 'admissionLetter'])->name('admission-letter');
     Route::get('/fee-receipt/{feePayment}', [PdfController::class, 'feeReceipt'])->name('fee-receipt');
     Route::get('/report-card/{student}', [PdfController::class, 'reportCard'])->name('report-card');
+    Route::get('/fee-voucher/{voucher}', [PdfController::class, 'feeVoucher'])->name('fee-voucher');
+    Route::get('/payment-receipt/{payment}', [PdfController::class, 'paymentReceipt'])->name('payment-receipt');
 });

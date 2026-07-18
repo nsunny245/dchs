@@ -15,8 +15,13 @@ class ExpenseCategoryResource extends Resource
     protected static ?string $model = ExpenseCategory::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
-    protected static ?string $navigationGroup = 'Financial Management';
+    protected static ?string $navigationGroup = 'Finance';
     protected static ?int $navigationSort = 3;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return filament()->auth()->user()?->hasRole('Super Admin') ?? false;
+    }
 
     public static function form(Form $form): Form
     {

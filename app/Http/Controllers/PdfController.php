@@ -77,4 +77,36 @@ class PdfController extends Controller
 
         return $pdf->download("dchs-project-status-report-" . date('Y-m-d') . ".pdf");
     }
+
+    /**
+     * Generate Fee Voucher PDF (3-part voucher copy layout)
+     */
+    public function feeVoucher(\App\Models\StudentVoucher $voucher)
+    {
+        $voucher->load(['student', 'student.campus', 'student.course']);
+
+        $pdf = Pdf::loadView('pdf.fee-voucher', [
+            'voucher' => $voucher,
+        ]);
+
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->stream("fee-voucher-{$voucher->voucher_number}.pdf");
+    }
+
+    /**
+     * Generate Payment Receipt PDF
+     */
+    public function paymentReceipt(\App\Models\Payment $payment)
+    {
+        $payment->load(['student', 'student.campus', 'student.course', 'collectedBy']);
+
+        $pdf = Pdf::loadView('pdf.payment-receipt', [
+            'payment' => $payment,
+        ]);
+
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->stream("payment-receipt-{$payment->receipt_number}.pdf");
+    }
 }

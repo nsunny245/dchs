@@ -19,57 +19,182 @@ class FeeStructureResource extends Resource
     protected static ?string $navigationGroup = 'Financial Management';
     protected static ?int $navigationSort = 1;
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return filament()->auth()->user()?->hasRole('Super Admin') ?? false;
+    }
+
+    public static function canViewAny(): bool
+    {
+        return filament()->auth()->user()?->hasRole('Super Admin') ?? false;
+    }
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Fee Definition')
+                Forms\Components\Section::make('A. Scope Settings')
+                    ->description('Define the naming, program, campus, and session targeting for this fee plan')
                     ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->label('Fee Structure Name')
+                            ->placeholder('e.g. LHV 2026 Standard Plan')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\Select::make('course_id')
+                            ->relationship('course', 'name')
+                            ->label('Assigned Course / Program')
+                            ->required(),
+                        Forms\Components\Select::make('academic_session_id')
+                            ->relationship('academicSession', 'name')
+                            ->label('Academic Session')
+                            ->required(),
                         Forms\Components\Select::make('campus_id')
                             ->relationship('campus', 'name')
+                            ->label('Assigned Campus')
                             ->required()
                             ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin'))
                             ->default(filament()->auth()->user()->campus_id),
-                        Forms\Components\Select::make('course_id')
-                            ->relationship('course', 'name')
+                        Forms\Components\Select::make('shift')
+                            ->label('Shift Targeting')
+                            ->options([
+                                'both' => 'Both (Morning & Evening)',
+                                'morning' => 'Morning Shift Only',
+                                'evening' => 'Evening Shift Only',
+                            ])
+                            ->default('both')
                             ->required(),
-                        Forms\Components\TextInput::make('total_fee')
-                            ->numeric()
-                            ->prefix('PKR')
+                        Forms\Components\Select::make('status')
+                            ->label('Plan Status')
+                            ->options([
+                                'active' => 'Active / Visible',
+                                'inactive' => 'Inactive / Archived',
+                            ])
+                            ->default('active')
                             ->required(),
-                        Forms\Components\TextInput::make('installment_count')
-                            ->numeric()
-                            ->default(3)
-                            ->required(),
-                        Forms\Components\TextInput::make('late_fee')
+                    ])->columns(2),
+
+                Forms\Components\Section::make('B. Fee Components')
+                    ->description('Configure the precise breakdown of all fees. The total is calculated automatically.')
+                    ->schema([
+                        Forms\Components\TextInput::make('admission_fee')
+                            ->label('Admission Fee')
                             ->numeric()
                             ->prefix('PKR')
                             ->default(0)
+                            ->live()
                             ->required(),
-                        Forms\Components\TextInput::make('admission_fee')
+                        Forms\Components\TextInput::make('total_fee')
+                            ->label('Total Tuition Fee')
                             ->numeric()
                             ->prefix('PKR')
-                            ->default(0),
-                        Forms\Components\TextInput::make('hostel_dues')
-                            ->numeric()
-                            ->prefix('PKR')
-                            ->default(0),
+                            ->live()
+                            ->required(),
                         Forms\Components\TextInput::make('verification_fee')
+                            ->label('Verification Fee')
                             ->numeric()
                             ->prefix('PKR')
-                            ->default(0),
+                            ->default(0)
+                            ->live()
+                            ->required(),
                         Forms\Components\TextInput::make('enrollment_fee')
+                            ->label('Enrollment Fee')
                             ->numeric()
                             ->prefix('PKR')
-                            ->default(0),
+                            ->default(0)
+                            ->live()
+                            ->required(),
                         Forms\Components\TextInput::make('examination_fee')
+                            ->label('Examination Fee')
                             ->numeric()
                             ->prefix('PKR')
-                            ->default(0),
+                            ->default(0)
+                            ->live()
+                            ->required(),
+                        Forms\Components\TextInput::make('hostel_dues')
+                            ->label('Hostel Dues (If applicable)')
+                            ->numeric()
+                            ->prefix('PKR')
+                            ->default(0)
+                            ->live()
+                            ->required(),
                         Forms\Components\TextInput::make('other_misc')
+                            ->label('Other Misc / Extra Charges')
                             ->numeric()
                             ->prefix('PKR')
-                            ->default(0),
+                            ->default(0)
+                            ->live()
+                            ->required(),
+
+                        Forms\Components\Placeholder::make('grand_total_preview')
+                            ->label('Total Package Cost')
+                            ->content(function (Forms\Get $get) {
+                                $total = (float)$get('admission_fee') 
+                                    + (float)$get('total_fee') 
+                                    + (float)$get('verification_fee') 
+                                    + (float)$get('enrollment_fee') 
+                                    + (float)$get('examination_fee') 
+                                    + (float)$get('hostel_dues') 
+                                    + (float)$get('other_misc');
+                                return new \Illuminate\Support\HtmlString('<strong class="text-xl text-emerald-700 font-bold">PKR ' . number_format($total, 2) . '</strong>');
+                            })
+                            ->columnSpanFull(),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('C. Installment Template & Preview')
+                    ->description('Define installment count and review the generated schedules')
+                    ->schema([
+                        Forms\Components\TextInput::make('installment_count')
+                            ->label('Number of tuition installments')
+                            ->numeric()
+                            ->default(12)
+                            ->live()
+                            ->required(),
+                        Forms\Components\TextInput::make('late_fee')
+                            ->label('Late Fee (Per day penalty)')
+                            ->numeric()
+                            ->prefix('PKR')
+                            ->default(100)
+                            ->required(),
+
+                        Forms\Components\Placeholder::make('installment_schedule_preview')
+                            ->label('Installments Schedule Preview')
+                            ->content(function (Forms\Get $get) {
+                                $count = (int)$get('installment_count') ?: 12;
+                                $tuitionTotal = (float)$get('total_fee');
+                                $monthly = $count > 0 ? $tuitionTotal / $count : 0;
+
+                                $rows = [];
+                                for ($i = 1; $i <= $count; $i++) {
+                                    $rows[] = sprintf(
+                                        '<tr>
+                                            <td class="px-4 py-2 border border-slate-200">%d</td>
+                                            <td class="px-4 py-2 border border-slate-200">Tuition Installment #%d</td>
+                                            <td class="px-4 py-2 border border-slate-200 text-right">PKR %s</td>
+                                        </tr>',
+                                        $i,
+                                        $i,
+                                        number_format($monthly, 2)
+                                    );
+                                }
+
+                                return new \Illuminate\Support\HtmlString(sprintf(
+                                    '<table class="w-full text-sm border-collapse border border-slate-200">
+                                        <thead>
+                                            <tr class="bg-slate-100">
+                                                <th class="px-4 py-2 border border-slate-200 text-left">No.</th>
+                                                <th class="px-4 py-2 border border-slate-200 text-left">Voucher Title</th>
+                                                <th class="px-4 py-2 border border-slate-200 text-right">Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            %s
+                                        </tbody>
+                                    </table>',
+                                    implode('', $rows)
+                                ));
+                            })
+                            ->columnSpanFull(),
                     ])->columns(2),
             ]);
     }

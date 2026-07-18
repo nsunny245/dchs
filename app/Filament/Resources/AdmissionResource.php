@@ -26,268 +26,460 @@ class AdmissionResource extends Resource
                 Forms\Components\Placeholder::make('missing_docs_notice')
                     ->label('⚠️ Document Status')
                     ->content('Notice: Some required documents (CNIC copy, Matric certificate copy, or Domicile copy) are missing for this applicant. Please upload them to complete the record.')
-                    ->visible(fn ($record) => $record && (empty($record->cnic_copy) || empty($record->matric_copy) || empty($record->domicile_copy)))
+                    ->visible(fn ($record) => $record && ($record->status === 'documents_pending' || empty($record->cnic_copy) || empty($record->matric_copy) || empty($record->domicile_copy)))
                     ->columnSpanFull(),
-                Forms\Components\Tabs::make('AdmissionForm')
-                    ->tabs([
-                        Forms\Components\Tabs\Tab::make('Office & Session')
-                            ->icon('heroicon-o-building-library')
-                            ->schema([
-                                Forms\Components\Select::make('campus_id')
-                                    ->relationship('campus', 'name')
-                                    ->required()
-                                    ->default(fn () => filament()->auth()->user()->campus_id)
-                                    ->disabled(fn () => !filament()->auth()->user()->hasRole('Super Admin'))
-                                    ->dehydrated(),
-                                Forms\Components\Select::make('academic_session_id')
-                                    ->relationship('academicSession', 'name')
-                                    ->label('Academic Session')
-                                    ->required()
-                                    ->searchable()
-                                    ->preload(),
-                                Forms\Components\Select::make('course_id')
-                                    ->relationship('course', 'name')
-                                    ->label('Offered Course')
-                                    ->required()
-                                    ->searchable()
-                                    ->preload()
-                                    ->live()
-                                    ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, $state) {
-                                        if (!$state) return;
-                                        $franchisorId = $get('franchisor_id');
-                                        if (!$franchisorId) return;
 
-                                        $deal = \App\Models\FranchisorCourseDeal::where('franchisor_id', $franchisorId)
-                                            ->where('course_id', $state)
-                                            ->first();
+                Forms\Components\Wizard::make([
+                    Forms\Components\Wizard\Step::make('Student Information')
+                        ->icon('heroicon-o-user')
+                        ->schema([
+                            Forms\Components\FileUpload::make('student_photo')
+                                ->label('Student Profile Photo')
+                                ->directory('student-photos')
+                                ->image()
+                                ->avatar()
+                                ->columnSpanFull(),
+                            Forms\Components\TextInput::make('applicant_name')
+                                ->label('Full Name (English)')
+                                ->required()
+                                ->maxLength(255),
+                            Forms\Components\TextInput::make('cnic')
+                                ->label('Student CNIC / B-Form #')
+                                ->required()
+                                ->live()
+                                ->afterStateUpdated(function ($state) {
+                                    if (empty($state)) return;
+                                    if (\App\Models\Admission::where('cnic', $state)->exists()) {
+                                        \Filament\Notifications\Notification::make()
+                                            ->title('Warning: Possible Duplicate')
+                                            ->body("An admission application with CNIC/B-Form {$state} already exists.")
+                                            ->warning()
+                                            ->send();
+                                    }
+                                })
+                                ->maxLength(255),
+                            Forms\Components\DatePicker::make('dob')
+                                ->label('Date of Birth')
+                                ->required(),
+                            Forms\Components\Select::make('gender')
+                                ->options([
+                                    'male' => 'Male',
+                                    'female' => 'Female',
+                                    'other' => 'Other',
+                                ])
+                                ->required(),
+                            Forms\Components\TextInput::make('phone')
+                                ->label('Mobile Number')
+                                ->tel()
+                                ->required()
+                                ->live()
+                                ->afterStateUpdated(function ($state) {
+                                    if (empty($state)) return;
+                                    if (\App\Models\Admission::where('phone', $state)->exists()) {
+                                        \Filament\Notifications\Notification::make()
+                                            ->title('Warning: Possible Duplicate Mobile')
+                                            ->body("An admission application with mobile number {$state} already exists.")
+                                            ->warning()
+                                            ->send();
+                                    }
+                                }),
+                            Forms\Components\TextInput::make('email')
+                                ->label('Email Address')
+                                ->email()
+                                ->maxLength(255),
+                            Forms\Components\TextInput::make('city')
+                                ->label('City')
+                                ->default('Okara')
+                                ->required(),
+                            Forms\Components\Select::make('shift')
+                                ->label('Shift Preference')
+                                ->options([
+                                    'morning' => 'Morning',
+                                    'evening' => 'Evening',
+                                ])
+                                ->default('morning')
+                                ->required(),
+                            Forms\Components\TextInput::make('reference')
+                                ->label('Inquiry Source / Reference'),
+                            Forms\Components\Select::make('visitor_query_id')
+                                ->label('Linked Visitor Inquiry')
+                                ->relationship('visitorQuery', 'name')
+                                ->searchable()
+                                ->preload()
+                                ->nullable(),
+                            Forms\Components\Textarea::make('address')
+                                ->label('Current Address')
+                                ->required()
+                                ->columnSpanFull(),
+                        ])->columns(2),
 
-                                        $cost = $deal ? (float) $deal->per_seat_cost : 250000.00;
-                                        $set('seat_cost', $cost);
-                                        
-                                        $half = round($cost / 2, 2);
-                                        $set('installments', [
-                                            [
-                                                'title' => '50% Advance Seat Payment',
-                                                'amount' => $half,
-                                            ],
-                                            [
-                                                'title' => '50% Roll Number Slip Issue',
-                                                'amount' => $half,
-                                            ]
-                                        ]);
-                                    }),
-                                Forms\Components\TextInput::make('roll_no')
-                                    ->label('Roll No'),
-                                Forms\Components\TextInput::make('registration_no')
-                                    ->label('Registration No'),
-                                Forms\Components\TextInput::make('gr_no')
-                                    ->label('GR No'),
-                                Forms\Components\DatePicker::make('admission_date')
-                                    ->label('Admission Date')
-                                    ->default(now()),
-                                Forms\Components\Select::make('status')
-                                    ->options([
-                                        'pending' => 'Pending',
-                                        'approved' => 'Approved',
-                                        'rejected' => 'Rejected',
-                                        'waitlisted' => 'Waitlisted',
-                                        'document_missing' => 'Document Missing (Warning)',
-                                    ])
-                                    ->default('pending')
-                                    ->required(),
-                            ])->columns(2),
+                    Forms\Components\Wizard\Step::make('Parent or Guardian')
+                        ->icon('heroicon-o-users')
+                        ->schema([
+                            Forms\Components\TextInput::make('father_name')
+                                ->label("Father's or Guardian's Name")
+                                ->required()
+                                ->maxLength(255),
+                            Forms\Components\TextInput::make('father_cnic')
+                                ->label("Father/Guardian CNIC #")
+                                ->maxLength(255),
+                            Forms\Components\TextInput::make('mother_cnic')
+                                ->label("Mother's CNIC #")
+                                ->maxLength(255),
+                            Forms\Components\TextInput::make('mother_phone')
+                                ->label("Mother's Contact #")
+                                ->tel(),
+                            Forms\Components\TextInput::make('father_occupation')
+                                ->label("Father's/Guardian's Occupation")
+                                ->maxLength(255),
+                            Forms\Components\TextInput::make('emergency_contact')
+                                ->label('Emergency Contact Number')
+                                ->tel()
+                                ->required(),
+                            Forms\Components\Toggle::make('same_as_student_address')
+                                ->label("Guardian's address is same as student's address")
+                                ->live()
+                                ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
+                                    if ($state) {
+                                        $set('father_address', $get('address'));
+                                    }
+                                }),
+                            Forms\Components\Textarea::make('father_address')
+                                ->label("Guardian's Address")
+                                ->columnSpanFull(),
+                        ])->columns(2),
 
-                        Forms\Components\Tabs\Tab::make('Fee & Installments')
-                            ->icon('heroicon-o-currency-dollar')
-                            ->schema([
-                                Forms\Components\Placeholder::make('fee_structure_guide')
-                                    ->label('Standard Course Fee Reference')
-                                    ->content(function (Forms\Get $get) {
-                                        $courseId = $get('course_id');
-                                        $campusId = $get('campus_id') ?: filament()->auth()->user()?->campus_id;
-                                        if (!$courseId || !$campusId) {
-                                            return 'Please select a course and campus first to view the fee guide.';
+                    Forms\Components\Wizard\Step::make('Academic Eligibility')
+                        ->icon('heroicon-o-academic-cap')
+                        ->schema([
+                            Forms\Components\Placeholder::make('eligibility_status')
+                                ->label('Automatic Eligibility Assessment')
+                                ->content(function (Forms\Get $get) {
+                                    $courseId = $get('course_id');
+                                    if (!$courseId) {
+                                        return 'Please select the Course/Program in Step 5 first to check eligibility.';
+                                    }
+                                    $course = \App\Models\Course::find($courseId);
+                                    if (!$course) return '';
+
+                                    $obtained = (float)$get('matric_obtained_marks');
+                                    $total = (float)$get('matric_total_marks') ?: 1100;
+                                    $percentage = $total > 0 ? ($obtained / $total) * 100 : 0;
+                                    $biology = (float)$get('matric_biology_marks');
+
+                                    $isEligible = true;
+                                    $reasons = [];
+
+                                    if (in_array($course->code, ['LHV', 'CMW', 'CNA', 'PT', 'MLT', 'OT', 'DT', 'AT'])) {
+                                        if ($percentage < 45) {
+                                            $isEligible = false;
+                                            $reasons[] = 'Matric percentage is below 45% (required for Allied Health)';
                                         }
-                                        $structure = \App\Models\FeeStructure::where('course_id', $courseId)
-                                            ->where('campus_id', $campusId)
-                                            ->first();
-                                        if (!$structure) {
-                                            return 'No standard fee structure found for this course and campus.';
+                                        if ($biology <= 0) {
+                                            $isEligible = false;
+                                            $reasons[] = 'Biology marks are required for science programs';
                                         }
-                                        return sprintf(
-                                            'Total Package: PKR %s | Standard Installments count: %d | Late fee per day: PKR %s',
-                                            number_format($structure->total_fee, 2),
-                                            $structure->installment_count,
-                                            number_format($structure->late_fee, 2)
-                                        );
-                                    })
-                                    ->columnSpanFull(),
-                                Forms\Components\Repeater::make('custom_installments')
-                                    ->label('Custom Installment Schedule')
-                                    ->schema([
-                                        Forms\Components\TextInput::make('title')
-                                            ->placeholder('e.g. 1st Installment')
-                                            ->required(),
-                                        Forms\Components\TextInput::make('amount')
-                                            ->numeric()
-                                            ->prefix('PKR')
-                                            ->required(),
-                                        Forms\Components\DatePicker::make('due_date'),
-                                    ])
-                                    ->columns(3)
-                                    ->columnSpanFull()
-                                    ->defaultItems(0),
-                            ]),
+                                    }
 
-                        Forms\Components\Tabs\Tab::make('Personal Details')
-                            ->icon('heroicon-o-user')
-                            ->schema([
-                                Forms\Components\FileUpload::make('student_photo')
-                                    ->label('Student Passport Photo')
-                                    ->directory('student-photos')
-                                    ->image()
-                                    ->avatar()
-                                    ->columnSpanFull(),
-                                Forms\Components\TextInput::make('applicant_name')
-                                    ->label('Applicant Name (English)')
-                                    ->required()
-                                    ->maxLength(255),
-                                Forms\Components\TextInput::make('cnic')
-                                    ->label('Student CNIC / B-Form #')
-                                    ->required()
-                                    ->unique(ignoreRecord: true)
-                                    ->maxLength(255),
-                                Forms\Components\DatePicker::make('dob')
-                                    ->label('Date of Birth')
-                                    ->required(),
-                                Forms\Components\Select::make('gender')
-                                    ->options([
-                                        'male' => 'Male',
-                                        'female' => 'Female',
-                                        'other' => 'Other',
-                                    ])
-                                    ->required(),
-                                Forms\Components\TextInput::make('blood_group')
-                                    ->label('Blood Group')
-                                    ->placeholder('e.g. B+'),
-                                Forms\Components\TextInput::make('domicile_district')
-                                    ->label('Domicile District')
-                                    ->placeholder('e.g. Okara'),
-                                Forms\Components\TextInput::make('caste')
-                                    ->label('Caste'),
-                                Forms\Components\TextInput::make('phone')
-                                    ->label('Student Contact #')
-                                    ->tel()
-                                    ->telRegex('/^[+]?[0-9\s\-()]{7,20}$/')
-                                    ->maxLength(255),
-                                Forms\Components\TextInput::make('email')
-                                    ->email()
-                                    ->maxLength(255),
-                                Forms\Components\Select::make('residence_type')
-                                    ->label('Boarder / Non-boarder')
-                                    ->options([
-                                        'boarder' => 'Boarder (Hostel)',
-                                        'non_boarder' => 'Non-boarder (Day Scholar)',
-                                    ])
-                                    ->default('non_boarder'),
-                                Forms\Components\Select::make('shift')
-                                    ->label('Student Shift')
-                                    ->options([
-                                        'morning' => 'Morning',
-                                        'evening' => 'Evening',
-                                    ])
-                                    ->default('morning'),
-                            ])->columns(2),
+                                    if ($isEligible) {
+                                        return new \Illuminate\Support\HtmlString('<div class="px-4 py-3 bg-emerald-600 text-white rounded-lg font-bold text-center">✅ Eligible (' . round($percentage, 1) . '%)</div>');
+                                    } else {
+                                        return new \Illuminate\Support\HtmlString('<div class="px-4 py-3 bg-rose-600 text-white rounded-lg font-bold text-center">❌ Eligibility Issue (' . implode(', ', $reasons) . ')</div>');
+                                    }
+                                })
+                                ->columnSpanFull(),
 
-                        Forms\Components\Tabs\Tab::make('Family & Guardian')
-                            ->icon('heroicon-o-users')
-                            ->schema([
-                                Forms\Components\TextInput::make('father_name')
-                                    ->label("Father's / Guardian's Name (English)")
-                                    ->required()
-                                    ->maxLength(255),
-                                Forms\Components\TextInput::make('father_cnic')
-                                    ->label("Father CNIC #")
-                                    ->maxLength(255),
-                                Forms\Components\TextInput::make('mother_cnic')
-                                    ->label("Mother CNIC #")
-                                    ->maxLength(255),
-                                Forms\Components\TextInput::make('mother_phone')
-                                    ->label("Mother's Contact #")
-                                    ->tel()
-                                    ->telRegex('/^[+]?[0-9\s\-()]{7,20}$/'),
-                                Forms\Components\TextInput::make('reference')
-                                    ->label('Reference (Who referred)'),
-                                Forms\Components\Textarea::make('address')
-                                    ->label('Postal Address')
-                                    ->maxLength(65535)
-                                    ->columnSpanFull(),
-                            ])->columns(2),
+                            Forms\Components\Section::make('Matriculation / SSC Details')
+                                ->schema([
+                                    Forms\Components\TextInput::make('matric_degree')
+                                        ->label('Degree Title')
+                                        ->default('Matric Science')
+                                        ->required(),
+                                    Forms\Components\TextInput::make('matric_board')
+                                        ->label('Board / University')
+                                        ->required(),
+                                    Forms\Components\TextInput::make('matric_year')
+                                        ->label('Passing Year')
+                                        ->required(),
+                                    Forms\Components\TextInput::make('matric_roll_no')
+                                        ->label('Roll Number')
+                                        ->required(),
+                                    Forms\Components\TextInput::make('matric_obtained_marks')
+                                        ->numeric()
+                                        ->label('Obtained Marks')
+                                        ->live()
+                                        ->required(),
+                                    Forms\Components\TextInput::make('matric_total_marks')
+                                        ->numeric()
+                                        ->label('Total Marks')
+                                        ->default(1100)
+                                        ->live()
+                                        ->required(),
+                                    Forms\Components\TextInput::make('matric_grade')
+                                        ->label('Division / Grade'),
+                                    Forms\Components\TextInput::make('matric_biology_marks')
+                                        ->numeric()
+                                        ->label('Biology Marks')
+                                        ->live()
+                                        ->required(),
+                                ])->columns(2),
 
-                        Forms\Components\Tabs\Tab::make('Academic Qualifications')
-                            ->icon('heroicon-o-academic-cap')
-                            ->schema([
-                                Forms\Components\Section::make('Matriculation / SSC Details')
-                                    ->schema([
-                                        Forms\Components\TextInput::make('matric_degree')
-                                            ->label('Degree Title')
-                                            ->default('Matric Science'),
-                                        Forms\Components\TextInput::make('matric_year')
-                                            ->label('Passing Year'),
-                                        Forms\Components\TextInput::make('matric_roll_no')
-                                            ->label('Roll Number'),
-                                        Forms\Components\TextInput::make('matric_board')
-                                            ->label('Board / University'),
-                                        Forms\Components\TextInput::make('matric_obtained_marks')
-                                            ->numeric()
-                                            ->label('Obtained Marks'),
-                                        Forms\Components\TextInput::make('matric_total_marks')
-                                            ->numeric()
-                                            ->label('Total Marks'),
-                                        Forms\Components\TextInput::make('matric_grade')
-                                            ->label('Division / Grade'),
-                                        Forms\Components\TextInput::make('matric_biology_marks')
-                                            ->numeric()
-                                            ->label('Biology Marks'),
-                                    ])->columns(2),
+                            Forms\Components\Section::make('Intermediate / HSSC Details (Optional)')
+                                ->schema([
+                                    Forms\Components\TextInput::make('inter_degree')
+                                        ->label('Degree Title'),
+                                    Forms\Components\TextInput::make('inter_board')
+                                        ->label('Board / University'),
+                                    Forms\Components\TextInput::make('inter_year')
+                                        ->label('Passing Year'),
+                                    Forms\Components\TextInput::make('inter_roll_no')
+                                        ->label('Roll Number'),
+                                    Forms\Components\TextInput::make('inter_obtained_marks')
+                                        ->numeric()
+                                        ->label('Obtained Marks'),
+                                    Forms\Components\TextInput::make('inter_total_marks')
+                                        ->numeric()
+                                        ->label('Total Marks'),
+                                    Forms\Components\TextInput::make('inter_grade')
+                                        ->label('Division / Grade'),
+                                ])->columns(2),
+                        ]),
 
-                                Forms\Components\Section::make('Intermediate / HSSC Details (Optional)')
-                                    ->schema([
-                                        Forms\Components\TextInput::make('inter_degree')
-                                            ->label('Degree Title')
-                                            ->placeholder('e.g. F.Sc Pre-Medical'),
-                                        Forms\Components\TextInput::make('inter_year')
-                                            ->label('Passing Year'),
-                                        Forms\Components\TextInput::make('inter_roll_no')
-                                            ->label('Roll Number'),
-                                        Forms\Components\TextInput::make('inter_board')
-                                            ->label('Board / University'),
-                                        Forms\Components\TextInput::make('inter_obtained_marks')
-                                            ->numeric()
-                                            ->label('Obtained Marks'),
-                                        Forms\Components\TextInput::make('inter_total_marks')
-                                            ->numeric()
-                                            ->label('Total Marks'),
-                                        Forms\Components\TextInput::make('inter_grade')
-                                            ->label('Division / Grade'),
-                                    ])->columns(2),
-                            ]),
+                    Forms\Components\Wizard\Step::make('Documents Vault')
+                        ->icon('heroicon-o-document-duplicate')
+                        ->schema([
+                            Forms\Components\Section::make('Document Attachments')
+                                ->description('Upload student certificate copies individually')
+                                ->schema([
+                                    Forms\Components\FileUpload::make('cnic_copy')
+                                        ->label('Student CNIC / B-Form Copy')
+                                        ->directory('student-docs'),
+                                    Forms\Components\Select::make('cnic_copy_status')
+                                        ->label('CNIC Status')
+                                        ->options([
+                                            'uploaded' => 'Uploaded',
+                                            'pending' => 'Pending',
+                                            'not_required' => 'Not Required',
+                                            'verified' => 'Verified',
+                                            'rejected' => 'Rejected',
+                                        ])
+                                        ->default('pending'),
 
-                        Forms\Components\Tabs\Tab::make('Documents Vault')
-                            ->icon('heroicon-o-document-duplicate')
-                            ->schema([
-                                Forms\Components\FileUpload::make('documents_zip_path')
-                                    ->label('ZIP Archive of all Documents')
-                                    ->directory('student-zips')
-                                    ->acceptedFileTypes(['application/zip', 'application/x-zip-compressed'])
-                                    ->columnSpanFull(),
-                                Forms\Components\Textarea::make('missing_documents')
-                                    ->label('Missing Documents Details')
-                                    ->placeholder('e.g., Intermediate Result Card is missing, Domicile certificate copy is missing...')
-                                    ->rows(3)
-                                    ->columnSpanFull(),
-                            ]),
-                    ])->columnSpanFull(),
+                                    Forms\Components\FileUpload::make('father_cnic_copy')
+                                        ->label('Father / Guardian CNIC Copy')
+                                        ->directory('student-docs'),
+                                    Forms\Components\Select::make('father_cnic_copy_status')
+                                        ->label('Father CNIC Status')
+                                        ->options([
+                                            'uploaded' => 'Uploaded',
+                                            'pending' => 'Pending',
+                                            'not_required' => 'Not Required',
+                                            'verified' => 'Verified',
+                                            'rejected' => 'Rejected',
+                                        ])
+                                        ->default('pending'),
+
+                                    Forms\Components\FileUpload::make('matric_copy')
+                                        ->label('Matric Result Card / Certificate Copy')
+                                        ->directory('student-docs'),
+                                    Forms\Components\Select::make('matric_copy_status')
+                                        ->label('Matric Doc Status')
+                                        ->options([
+                                            'uploaded' => 'Uploaded',
+                                            'pending' => 'Pending',
+                                            'not_required' => 'Not Required',
+                                            'verified' => 'Verified',
+                                            'rejected' => 'Rejected',
+                                        ])
+                                        ->default('pending'),
+
+                                    Forms\Components\FileUpload::make('inter_copy')
+                                        ->label('Intermediate Certificate Copy')
+                                        ->directory('student-docs'),
+                                    Forms\Components\Select::make('inter_copy_status')
+                                        ->label('Inter Doc Status')
+                                        ->options([
+                                            'uploaded' => 'Uploaded',
+                                            'pending' => 'Pending',
+                                            'not_required' => 'Not Required',
+                                            'verified' => 'Verified',
+                                            'rejected' => 'Rejected',
+                                        ])
+                                        ->default('pending'),
+
+                                    Forms\Components\FileUpload::make('domicile_copy')
+                                        ->label('Domicile Certificate Copy')
+                                        ->directory('student-docs'),
+                                    Forms\Components\Select::make('domicile_copy_status')
+                                        ->label('Domicile Status')
+                                        ->options([
+                                            'uploaded' => 'Uploaded',
+                                            'pending' => 'Pending',
+                                            'not_required' => 'Not Required',
+                                            'verified' => 'Verified',
+                                            'rejected' => 'Rejected',
+                                        ])
+                                        ->default('pending'),
+
+                                    Forms\Components\FileUpload::make('character_certificate_copy')
+                                        ->label('Character Certificate Copy')
+                                        ->directory('student-docs'),
+                                    Forms\Components\Select::make('character_certificate_copy_status')
+                                        ->label('Character Cert Status')
+                                        ->options([
+                                            'uploaded' => 'Uploaded',
+                                            'pending' => 'Pending',
+                                            'not_required' => 'Not Required',
+                                            'verified' => 'Verified',
+                                            'rejected' => 'Rejected',
+                                        ])
+                                        ->default('pending'),
+                                ])->columns(2),
+
+                            Forms\Components\Textarea::make('missing_documents')
+                                ->label('Missing Documents Notes')
+                                ->placeholder('Enter any missing documents here...')
+                                ->rows(3)
+                                ->columnSpanFull(),
+                        ]),
+
+                    Forms\Components\Wizard\Step::make('Course and Fee Plan')
+                        ->icon('heroicon-o-currency-dollar')
+                        ->schema([
+                            Forms\Components\Select::make('campus_id')
+                                ->relationship('campus', 'name')
+                                ->required()
+                                ->default(fn () => filament()->auth()->user()->campus_id)
+                                ->disabled(fn () => !filament()->auth()->user()->hasRole('Super Admin'))
+                                ->dehydrated(),
+                            Forms\Components\Select::make('academic_session_id')
+                                ->relationship('academicSession', 'name')
+                                ->label('Academic Session')
+                                ->required(),
+                            Forms\Components\Select::make('course_id')
+                                ->relationship('course', 'name')
+                                ->label('Assigned Course / Program')
+                                ->required()
+                                ->live(),
+                            Forms\Components\DatePicker::make('admission_date')
+                                ->label('Admission Date')
+                                ->default(now())
+                                ->required(),
+
+                            Forms\Components\Placeholder::make('fee_structure_preview')
+                                ->label('Official Fee Plan Preview')
+                                ->content(function (Forms\Get $get) {
+                                    $courseId = $get('course_id');
+                                    $campusId = $get('campus_id') ?: filament()->auth()->user()?->campus_id;
+                                    if (!$courseId || !$campusId) {
+                                        return 'Please select a Course/Program first to load the fee structures.';
+                                    }
+
+                                    $structure = \App\Models\FeeStructure::where('course_id', $courseId)
+                                        ->where('campus_id', $campusId)
+                                        ->first();
+
+                                    if (!$structure) {
+                                        return new \Illuminate\Support\HtmlString('<span class="text-rose-600 font-bold">⚠️ No valid Fee Structure assigned by the Super Admin for this course/campus. Admission cannot be finalized.</span>');
+                                    }
+
+                                    return new \Illuminate\Support\HtmlString(sprintf(
+                                        '<div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+                                            <div><strong>Fee Package Name:</strong> standard plan</div>
+                                            <div><strong>Admission Fee:</strong> PKR %s</div>
+                                            <div><strong>Tuition Fee Total:</strong> PKR %s (%d installments of PKR %s)</div>
+                                            <div><strong>Verification Fee:</strong> PKR %s</div>
+                                            <div><strong>Enrollment Fee:</strong> PKR %s</div>
+                                            <div><strong>Examination Fee:</strong> PKR %s</div>
+                                            <div><strong>Total Net Package Dues:</strong> <strong class="text-emerald-700">PKR %s</strong></div>
+                                        </div>',
+                                        number_format($structure->admission_fee, 2),
+                                        number_format($structure->total_fee, 2),
+                                        $structure->installment_count,
+                                        number_format($structure->total_fee / ($structure->installment_count ?: 12), 2),
+                                        number_format($structure->verification_fee, 2),
+                                        number_format($structure->enrollment_fee, 2),
+                                        number_format($structure->examination_fee, 2),
+                                        number_format(
+                                            (float)$structure->total_fee 
+                                            + (float)$structure->admission_fee 
+                                            + (float)$structure->verification_fee 
+                                            + (float)$structure->enrollment_fee 
+                                            + (float)$structure->examination_fee 
+                                            + (float)$structure->other_misc, 
+                                            2
+                                        )
+                                    ));
+                                })
+                                ->columnSpanFull(),
+
+                            Forms\Components\Section::make('Scholarship / Fee Concession')
+                                ->schema([
+                                    Forms\Components\Select::make('concession_type')
+                                        ->label('Concession Type')
+                                        ->options([
+                                            'none' => 'None',
+                                            'merit' => 'Merit Scholarship',
+                                            'need' => 'Need-based concession',
+                                            'sibling' => 'Kinship / Sibling concession',
+                                            'special' => 'Special discount / Orphan scholarship',
+                                        ])
+                                        ->default('none')
+                                        ->live(),
+                                    Forms\Components\TextInput::make('concession_amount')
+                                        ->label('Approved Concession Amount')
+                                        ->numeric()
+                                        ->prefix('PKR')
+                                        ->default(0.00)
+                                        ->visible(fn (Forms\Get $get) => $get('concession_type') !== 'none'),
+                                    Forms\Components\TextInput::make('concession_approver')
+                                        ->label('Approving Authority / Officer')
+                                        ->visible(fn (Forms\Get $get) => $get('concession_type') !== 'none'),
+                                    Forms\Components\Textarea::make('concession_reason')
+                                        ->label('Reason / Supporting Notes')
+                                        ->visible(fn (Forms\Get $get) => $get('concession_type') !== 'none')
+                                        ->columnSpanFull(),
+                                ])->columns(2),
+                        ]),
+
+                    Forms\Components\Wizard\Step::make('Review and Confirm')
+                        ->icon('heroicon-o-check-circle')
+                        ->schema([
+                            Forms\Components\Placeholder::make('review_summary')
+                                ->label('Summary Details')
+                                ->content(function (Forms\Get $get) {
+                                    return new \Illuminate\Support\HtmlString(sprintf(
+                                        '<div class="p-4 bg-emerald-50 border border-emerald-100 rounded-lg space-y-1">
+                                            <div><strong>Student Name:</strong> %s</div>
+                                            <div><strong>CNIC / B-Form #:</strong> %s</div>
+                                            <div><strong>Contact Number:</strong> %s</div>
+                                            <div><strong>Selected Shift:</strong> %s</div>
+                                            <div>Please review all fields across steps 1 to 5. Verify Matric qualifications, document status, and fee plan details. Click the action button to complete submission.</div>
+                                        </div>',
+                                        $get('applicant_name'),
+                                        $get('cnic'),
+                                        $get('phone'),
+                                        ucfirst($get('shift') ?: 'morning')
+                                    ));
+                                })
+                                ->columnSpanFull(),
+
+                            Forms\Components\Select::make('status')
+                                ->label('Initial Operational Status')
+                                ->options([
+                                    'draft' => 'Draft / Incomplete',
+                                    'submitted' => 'Submitted / Complete',
+                                    'under_review' => 'Under Review',
+                                    'documents_pending' => 'Documents Pending',
+                                    'fee_pending' => 'Fee Pending',
+                                    'approved' => 'Approved / Awaiting Enrollment',
+                                    'rejected' => 'Rejected',
+                                    'cancelled' => 'Cancelled',
+                                ])
+                                ->default('submitted')
+                                ->required(),
+                        ])
+                ])->columnSpanFull()
             ]);
     }
 
@@ -319,10 +511,11 @@ class AdmissionResource extends Resource
                     ->searchable(),
                 Tables\Columns\BadgeColumn::make('status')
                     ->colors([
-                        'warning' => 'pending',
-                        'success' => 'approved',
-                        'danger' => 'rejected',
-                        'gray' => 'waitlisted',
+                        'gray' => fn ($state) => in_array($state, ['draft', 'cancelled', 'waitlisted']),
+                        'info' => 'submitted',
+                        'warning' => 'under_review',
+                        'danger' => fn ($state) => in_array($state, ['documents_pending', 'fee_pending', 'rejected']),
+                        'success' => fn ($state) => in_array($state, ['approved', 'enrolled']),
                     ]),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
@@ -338,6 +531,28 @@ class AdmissionResource extends Resource
                 Tables\Filters\SelectFilter::make('status'),
             ])
             ->actions([
+                Tables\Actions\Action::make('approveAndEnroll')
+                    ->label('Approve & Enroll')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->visible(fn ($record) => $record->status !== 'enrolled')
+                    ->action(function ($record) {
+                        try {
+                            \App\Services\EnrollmentService::enroll($record, filament()->auth()->id());
+                            \Filament\Notifications\Notification::make()
+                                ->title('Enrolled Successfully')
+                                ->body("Student has been registered and fee ledger vouchers generated.")
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Enrollment Failed')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    }),
                 Tables\Actions\Action::make('downloadForm')
                     ->label('Print Form')
                     ->icon('heroicon-o-printer')
