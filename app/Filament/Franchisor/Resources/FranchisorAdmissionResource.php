@@ -61,8 +61,27 @@ class FranchisorAdmissionResource extends Resource
                             ->live()
                             ->required(),
                         Forms\Components\Select::make('course_id')
-                            ->relationship('course', 'name')
                             ->label('Program / Course')
+                            ->options(function (Forms\Get $get) {
+                                $franchisorId = $get('franchisor_id') ?: (filament()->auth()->user()?->franchisor?->id ?? filament()->auth()->user()?->id);
+                                
+                                // Fallback: If user is connected as franchisor inbound/outbound user directly
+                                if (!$franchisorId) {
+                                    $user = filament()->auth()->user();
+                                    $franchisor = \App\Models\Franchisor::where('user_id', $user?->id)->first();
+                                    $franchisorId = $franchisor?->id;
+                                }
+
+                                if (!$franchisorId) {
+                                    return \App\Models\Course::pluck('name', 'id');
+                                }
+
+                                return \App\Models\Course::whereIn('id', function ($query) use ($franchisorId) {
+                                    $query->select('course_id')
+                                        ->from('franchisor_course_deals')
+                                        ->where('franchisor_id', $franchisorId);
+                                })->pluck('name', 'id');
+                            })
                             ->required()
                             ->searchable()
                             ->preload()
