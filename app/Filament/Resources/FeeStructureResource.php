@@ -33,10 +33,6 @@ class FeeStructureResource extends Resource
                         Forms\Components\Select::make('course_id')
                             ->relationship('course', 'name')
                             ->required(),
-                        Forms\Components\TextInput::make('academic_year')
-                            ->placeholder('e.g., 2026')
-                            ->required()
-                            ->maxLength(255),
                         Forms\Components\TextInput::make('total_fee')
                             ->numeric()
                             ->prefix('PKR')
@@ -85,8 +81,6 @@ class FeeStructureResource extends Resource
                 Tables\Columns\TextColumn::make('id')->label('S.No')->rowIndex(),
                 Tables\Columns\TextColumn::make('course.name')
                     ->sortable()
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('academic_year')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('total_fee')
                     ->money('PKR')

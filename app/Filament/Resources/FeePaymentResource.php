@@ -38,7 +38,7 @@ class FeePaymentResource extends Resource
                             ->required(),
                         Forms\Components\Select::make('fee_structure_id')
                             ->relationship('feeStructure', 'id')
-                            ->getOptionLabelFromRecordUsing(fn ($record) => "Year: {$record->academic_year} | {$record->course->name} (Total: {$record->total_fee} PKR)")
+                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->course->name} (Total Package: " . number_format($record->total_fee, 2) . " PKR)")
                             ->required(),
                         Forms\Components\TextInput::make('installment_no')
                             ->numeric()

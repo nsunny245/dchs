@@ -35,7 +35,6 @@ class CreateStudent extends CreateRecord
                         'course_id' => $student->course_id,
                     ],
                     [
-                        'academic_year' => $admission->academicSession?->name ?? date('Y'),
                         'total_fee' => collect($installments)->sum('amount'),
                         'installment_count' => count($installments),
                         'late_fee' => 50.00,

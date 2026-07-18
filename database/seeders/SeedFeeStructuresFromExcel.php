@@ -44,7 +44,6 @@ class SeedFeeStructuresFromExcel extends Seeder
             }
 
             // Extract data values
-            $academicYear = $sheet->getCell('C' . $row)->getValue() ?: '2026-2028';
             $totalFee = (float) $sheet->getCell('D' . $row)->getValue();
             $installmentsCount = (int) $sheet->getCell('E' . $row)->getValue();
             $hostelDues = (float) $sheet->getCell('F' . $row)->getValue();
@@ -63,7 +62,6 @@ class SeedFeeStructuresFromExcel extends Seeder
                         'course_id' => $course->id,
                     ],
                     [
-                        'academic_year' => $academicYear,
                         'total_fee' => $totalFee,
                         'installment_count' => $installmentsCount,
                         'late_fee' => $lateFee,
