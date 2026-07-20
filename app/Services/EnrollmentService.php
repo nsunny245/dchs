@@ -60,7 +60,7 @@ class EnrollmentService
                 'password' => bcrypt($userPassword),
                 'phone' => $admission->phone,
                 'campus_id' => $admission->campus_id,
-                'status' => 'active',
+                'status' => true,
             ]);
             $user->assignRole('Student');
 
