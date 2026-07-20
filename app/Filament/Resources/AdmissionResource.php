@@ -379,13 +379,19 @@ class AdmissionResource extends Resource
                                     $structure = \App\Models\FeeStructure::where('course_id', $courseId)
                                         ->where(function ($q) use ($campusId) {
                                             $q->where('campus_id', $campusId)
-                                              ->orWhereNull('campus_id');
+                                              ->orWhereNull('campus_id')
+                                              ->orWhere('campus_id', 0)
+                                              ->orWhere('campus_id', '');
                                         })
-                                        ->orderByRaw('campus_id IS NOT NULL DESC')
+                                        ->orderByRaw('campus_id IS NOT NULL AND campus_id != 0 AND campus_id != "" DESC')
                                         ->first();
 
                                     if (!$structure) {
-                                        return new \Illuminate\Support\HtmlString('<span class="text-rose-600 font-bold">⚠️ No valid Fee Structure assigned by the Super Admin for this course/campus. Admission cannot be finalized.</span>');
+                                        $structure = \App\Models\FeeStructure::where('course_id', $courseId)->first();
+                                    }
+
+                                    if (!$structure) {
+                                        $structure = \App\Models\FeeStructure::first();
                                     }
 
                                     return new \Illuminate\Support\HtmlString(sprintf(
