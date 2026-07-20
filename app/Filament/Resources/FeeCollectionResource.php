@@ -331,6 +331,10 @@ class FeeCollectionResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('student_fee_accounts')) {
+            return parent::getEloquentQuery()->whereRaw('1 = 0');
+        }
+
         $query = parent::getEloquentQuery();
         $user = filament()->auth()->user();
 

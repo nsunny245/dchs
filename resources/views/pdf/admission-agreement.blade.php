@@ -365,11 +365,24 @@
         </div>
 
         @php
-            $feeStructure = $admission->course->feeStructures->first();
-            $totalFee = (float)($feeStructure->total_fee ?? 0);
+            $feeStructure = \App\Models\FeeStructure::where('course_id', $admission->course_id)
+                ->where(function ($q) use ($admission) {
+                    $q->where('campus_id', $admission->campus_id)
+                      ->orWhereNull('campus_id')
+                      ->orWhere('campus_id', 0)
+                      ->orWhere('campus_id', '');
+                })
+                ->orderByRaw('campus_id IS NOT NULL AND campus_id != 0 AND campus_id != "" DESC')
+                ->first();
+
+            if (!$feeStructure) {
+                $feeStructure = \App\Models\FeeStructure::where('course_id', $admission->course_id)->first() ?? \App\Models\FeeStructure::first();
+            }
+
+            $totalFee = (float)($feeStructure?->total_fee ?? 0);
             $concession = (float)($admission->concession_amount ?? 0);
             $finalAmount = max(0, $totalFee - $concession);
-            $installmentCount = $feeStructure->installment_count ?? 12;
+            $installmentCount = (int)($feeStructure?->installment_count ?? 12);
             $perInstallment = $installmentCount > 0 ? round($finalAmount / $installmentCount, 2) : $finalAmount;
         @endphp
 
