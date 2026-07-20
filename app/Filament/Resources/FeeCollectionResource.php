@@ -16,6 +16,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class FeeCollectionResource extends Resource
 {
@@ -109,10 +110,23 @@ class FeeCollectionResource extends Resource
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('campus')
-                    ->relationship('student.campus', 'name')
-                    ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin')),
+                    ->label('Campus')
+                    ->options(fn () => \App\Models\Campus::pluck('name', 'id'))
+                    ->query(function (Builder $query, array $data) {
+                        if (!empty($data['value'])) {
+                            $query->whereHas('student', fn ($q) => $q->where('campus_id', $data['value']));
+                        }
+                    })
+                    ->hidden(fn () => !filament()->auth()->user()?->hasRole('Super Admin')),
+
                 Tables\Filters\SelectFilter::make('course')
-                    ->relationship('student.course', 'name'),
+                    ->label('Course')
+                    ->options(fn () => \App\Models\Course::pluck('name', 'id'))
+                    ->query(function (Builder $query, array $data) {
+                        if (!empty($data['value'])) {
+                            $query->whereHas('student', fn ($q) => $q->where('course_id', $data['value']));
+                        }
+                    }),
             ])
             ->actions([
                 Tables\Actions\Action::make('openFeeAccount')
