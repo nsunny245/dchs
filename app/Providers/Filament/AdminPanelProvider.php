@@ -26,6 +26,10 @@ use App\Filament\Resources\SettingResource;
 use App\Filament\Resources\UserResource;
 use App\Filament\Resources\ExpenseCategoryResource;
 use App\Filament\Resources\ExpenseResource;
+use App\Filament\Resources\FeeStructureResource;
+use App\Filament\Resources\FeeCollectionResource;
+use App\Filament\Resources\AdmissionResource;
+use App\Filament\Resources\StudentResource;
 use App\Filament\Resources\FranchisorResource;
 use App\Filament\Resources\VisitorQueryResource;
 use App\Filament\Resources\AdmissionInquiryResource;
@@ -84,18 +88,22 @@ class AdminPanelProvider extends PanelProvider
             ->favicon(asset('favicon.ico'))
             ->viteTheme('resources/css/filament/admin.css')
             ->resources([
-                AcademicSessionResource::class,
-                CampusResource::class,
-                CourseResource::class,
-                FranchisorResource::class,
-                ExpenseCategoryResource::class,
-                ExpenseResource::class,
-                UserResource::class,
-                SettingResource::class,
+                AdmissionResource::class,
+                StudentResource::class,
                 VisitorQueryResource::class,
                 AdmissionInquiryResource::class,
                 ContactSubmissionResource::class,
+                FeeStructureResource::class,
+                FeeCollectionResource::class,
+                ExpenseCategoryResource::class,
+                ExpenseResource::class,
                 SuperAdminFranchisorPaymentResource::class,
+                FranchisorResource::class,
+                AcademicSessionResource::class,
+                CampusResource::class,
+                CourseResource::class,
+                UserResource::class,
+                SettingResource::class,
             ])
             ->pages([
                 Pages\Dashboard::class,
@@ -122,8 +130,9 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             ->navigationGroups([
+                NavigationGroup::make('Student Relations')->collapsed(false),
+                NavigationGroup::make('Finance')->collapsed(false),
                 NavigationGroup::make('Academic Management')->collapsed(false),
-                NavigationGroup::make('Financial Management')->collapsed(false),
                 NavigationGroup::make('Administration')->collapsed(false),
             ])
             ->maxContentWidth('7xl');

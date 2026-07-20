@@ -27,10 +27,10 @@ use App\Filament\Resources\StaffResource;
 use App\Filament\Resources\TimetableResource;
 use App\Filament\Resources\ExamResource;
 use App\Filament\Resources\MarkResource;
-use App\Filament\Resources\FeeStructureResource;
-use App\Filament\Resources\FeePaymentResource;
+use App\Filament\Resources\FeeCollectionResource;
 use App\Filament\Resources\ExpenseResource;
 use App\Filament\Resources\AdmissionInquiryResource;
+
 use App\Filament\Widgets\OverviewStats;
 use App\Filament\Widgets\FinancialSummaryWidget;
 use App\Filament\Widgets\CampusFinancialOverviewWidget;
@@ -83,18 +83,17 @@ class CampusPanelProvider extends PanelProvider
             ->favicon(asset('favicon.ico'))
             ->viteTheme('resources/css/filament/admin.css')
             ->resources([
-                AcademicSessionResource::class,
                 VisitorQueryResource::class,
                 AdmissionInquiryResource::class,
                 AdmissionResource::class,
                 StudentResource::class,
-                StaffResource::class,
+                FeeCollectionResource::class,
+                ExpenseResource::class,
+                AcademicSessionResource::class,
                 TimetableResource::class,
                 ExamResource::class,
                 MarkResource::class,
-                FeeStructureResource::class,
-                FeePaymentResource::class,
-                ExpenseResource::class,
+                StaffResource::class,
             ])
             ->pages([
                 Pages\Dashboard::class,
@@ -122,8 +121,8 @@ class CampusPanelProvider extends PanelProvider
             ])
             ->navigationGroups([
                 NavigationGroup::make('Student Relations')->collapsed(false),
+                NavigationGroup::make('Finance')->collapsed(false),
                 NavigationGroup::make('Academic Management')->collapsed(false),
-                NavigationGroup::make('Financial Management')->collapsed(false),
                 NavigationGroup::make('Administration')->collapsed(false),
             ])
             ->maxContentWidth('7xl');
