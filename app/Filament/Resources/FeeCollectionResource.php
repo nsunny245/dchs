@@ -83,7 +83,11 @@ class FeeCollectionResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('student.course.name')
-                    ->label('Course')
+                    ->label('Fee Structure Plan Name')
+                    ->state(function ($record) {
+                        $structure = \App\Models\FeeStructure::where('course_id', $record->student?->course_id)->first();
+                        return $structure?->name ?: ($record->student?->course?->name . ' Plan');
+                    })
                     ->sortable(),
                 Tables\Columns\TextColumn::make('net_payable')
                     ->label('Total Net Fee')

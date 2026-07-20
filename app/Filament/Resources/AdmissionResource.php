@@ -396,7 +396,7 @@ class AdmissionResource extends Resource
 
                                     return new \Illuminate\Support\HtmlString(sprintf(
                                         '<div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
-                                            <div><strong>Fee Package Name:</strong> standard plan</div>
+                                            <div><strong>Fee Structure Plan Name:</strong> %s</div>
                                             <div><strong>Admission Fee:</strong> PKR %s</div>
                                             <div><strong>Tuition Fee Total:</strong> PKR %s (%d installments of PKR %s)</div>
                                             <div><strong>Verification Fee:</strong> PKR %s</div>
@@ -404,6 +404,7 @@ class AdmissionResource extends Resource
                                             <div><strong>Examination Fee:</strong> PKR %s</div>
                                             <div><strong>Total Net Package Dues:</strong> <strong class="text-emerald-700">PKR %s</strong></div>
                                         </div>',
+                                        e($structure->name ?: ($structure->course?->name . ' Standard Plan')),
                                         number_format($structure->admission_fee, 2),
                                         number_format($structure->total_fee, 2),
                                         $structure->installment_count,

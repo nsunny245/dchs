@@ -199,11 +199,11 @@ class FeeStructureResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('S.No')->rowIndex(),
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Plan Name')
+                    ->label('Fee Structure Plan Name')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('course.name')
-                    ->label('Course Program')
+                    ->label('Target Course')
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('campus.name')
