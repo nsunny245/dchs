@@ -554,9 +554,15 @@ class AdmissionResource extends Resource
                                 ->send();
                         }
                     }),
-                Tables\Actions\Action::make('downloadForm')
-                    ->label('Print Form')
+                Tables\Actions\Action::make('printAgreement')
+                    ->label('Print Agreement')
                     ->icon('heroicon-o-printer')
+                    ->color('info')
+                    ->url(fn ($record) => route('pdf.admission-agreement', $record))
+                    ->openUrlInNewTab(),
+                Tables\Actions\Action::make('downloadForm')
+                    ->label('Download PDF')
+                    ->icon('heroicon-o-arrow-down-tray')
                     ->color('success')
                     ->url(fn ($record) => route('pdf.admission-letter', $record))
                     ->openUrlInNewTab(),

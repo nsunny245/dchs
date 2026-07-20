@@ -27,6 +27,18 @@ class PdfController extends Controller
     }
 
     /**
+     * Display Web Printable Student Agreement
+     */
+    public function admissionAgreement(Admission $admission)
+    {
+        $admission->load(['campus', 'course', 'academicSession']);
+
+        return view('pdf.admission-agreement', [
+            'admission' => $admission,
+        ]);
+    }
+
+    /**
      * Generate Fee Receipt PDF
      */
     public function feeReceipt(FeePayment $feePayment)
