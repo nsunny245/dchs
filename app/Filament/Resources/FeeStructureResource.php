@@ -16,7 +16,7 @@ class FeeStructureResource extends Resource
     protected static ?string $model = FeeStructure::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
-    protected static ?string $navigationGroup = 'Financial Management';
+    protected static ?string $navigationGroup = 'Finance';
     protected static ?int $navigationSort = 1;
 
     public static function shouldRegisterNavigation(): bool

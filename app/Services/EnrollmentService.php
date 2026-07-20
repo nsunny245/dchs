@@ -62,7 +62,12 @@ class EnrollmentService
                 'campus_id' => $admission->campus_id,
                 'status' => true,
             ]);
-            $user->assignRole('Student');
+            try {
+                $studentRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Student'], ['guard_name' => 'web']);
+                $user->roles()->syncWithoutDetaching([$studentRole->id]);
+            } catch (\Throwable $e) {
+                // Ignore role assignment failure gracefully
+            }
 
             // 4. Create Student
             $student = Student::create([
