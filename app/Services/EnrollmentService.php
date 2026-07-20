@@ -17,9 +17,13 @@ class EnrollmentService
     public static function enroll(Admission $admission, $actorId = null)
     {
         return DB::transaction(function () use ($admission, $actorId) {
-            // 1. Lock the selected fee structure
+            // 1. Lock the selected fee structure (prefer campus-specific, fallback to All Campuses)
             $structure = FeeStructure::where('course_id', $admission->course_id)
-                ->where('campus_id', $admission->campus_id)
+                ->where(function ($q) use ($admission) {
+                    $q->where('campus_id', $admission->campus_id)
+                      ->orWhereNull('campus_id');
+                })
+                ->orderByRaw('campus_id IS NOT NULL DESC')
                 ->first();
 
             if (!$structure) {

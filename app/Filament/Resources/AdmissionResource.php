@@ -377,7 +377,11 @@ class AdmissionResource extends Resource
                                     }
 
                                     $structure = \App\Models\FeeStructure::where('course_id', $courseId)
-                                        ->where('campus_id', $campusId)
+                                        ->where(function ($q) use ($campusId) {
+                                            $q->where('campus_id', $campusId)
+                                              ->orWhereNull('campus_id');
+                                        })
+                                        ->orderByRaw('campus_id IS NOT NULL DESC')
                                         ->first();
 
                                     if (!$structure) {

@@ -46,45 +46,27 @@ class FeeStructureResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Section::make('A. Scope Settings')
-                    ->description('Define the naming, program, campus, and session targeting for this fee plan')
+                    ->description('Define the plan name, target course, and campus availability')
                     ->schema([
                         Forms\Components\TextInput::make('name')
                             ->label('Fee Structure Name')
-                            ->placeholder('e.g. LHV 2026 Standard Plan')
+                            ->placeholder('e.g. LHV Standard Package')
                             ->required()
                             ->maxLength(255),
                         Forms\Components\Select::make('course_id')
                             ->relationship('course', 'name')
                             ->label('Assigned Course / Program')
                             ->required(),
-                        Forms\Components\Select::make('academic_session_id')
-                            ->relationship('academicSession', 'name')
-                            ->label('Academic Session')
-                            ->required(),
                         Forms\Components\Select::make('campus_id')
-                            ->relationship('campus', 'name')
                             ->label('Assigned Campus')
-                            ->required()
-                            ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin'))
-                            ->default(filament()->auth()->user()->campus_id),
-                        Forms\Components\Select::make('shift')
-                            ->label('Shift Targeting')
-                            ->options([
-                                'both' => 'Both (Morning & Evening)',
-                                'morning' => 'Morning Shift Only',
-                                'evening' => 'Evening Shift Only',
-                            ])
-                            ->default('both')
-                            ->required(),
-                        Forms\Components\Select::make('status')
-                            ->label('Plan Status')
-                            ->options([
-                                'active' => 'Active / Visible',
-                                'inactive' => 'Inactive / Archived',
-                            ])
-                            ->default('active')
-                            ->required(),
-                    ])->columns(2),
+                            ->options(function () {
+                                return [
+                                    '' => '🌐 All Campuses (Global Access for All Campuses)',
+                                ] + \App\Models\Campus::pluck('name', 'id')->toArray();
+                            })
+                            ->placeholder('🌐 All Campuses (Global Access for All Campuses)')
+                            ->nullable(),
+                    ])->columns(3),
 
                 Forms\Components\Section::make('B. Fee Components')
                     ->description('Configure the precise breakdown of all fees. The total is calculated automatically.')
@@ -216,9 +198,18 @@ class FeeStructureResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('S.No')->rowIndex(),
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Plan Name')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('course.name')
+                    ->label('Course Program')
                     ->sortable()
                     ->searchable(),
+                Tables\Columns\TextColumn::make('campus.name')
+                    ->label('Campus')
+                    ->default('🌐 All Campuses')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('total_fee')
                     ->money('PKR')
                     ->sortable(),
