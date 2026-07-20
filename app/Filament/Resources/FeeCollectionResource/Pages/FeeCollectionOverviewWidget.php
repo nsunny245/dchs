@@ -13,15 +13,20 @@ class FeeCollectionOverviewWidget extends BaseWidget
     protected function getStats(): array
     {
         $user = filament()->auth()->user();
-        $isSuper = $user->hasRole('Super Admin');
-        $campusId = $user->campus_id;
+        $isSuper = $user && (
+            $user->email === 'admin@admin.com' ||
+            $user->hasRole('Super Admin') ||
+            $user->campus_id === null ||
+            filament()->getCurrentPanel()?->getId() === 'admin'
+        );
+        $campusId = $user?->campus_id;
 
         // Scoped queries
         $accountQuery = StudentFeeAccount::query();
         $paymentQuery = Payment::query();
         $voucherQuery = StudentVoucher::query();
 
-        if (!$isSuper) {
+        if (!$isSuper && $campusId) {
             $accountQuery->whereHas('student', fn($q) => $q->where('campus_id', $campusId));
             $paymentQuery->whereHas('student', fn($q) => $q->where('campus_id', $campusId));
             $voucherQuery->whereHas('student', fn($q) => $q->where('campus_id', $campusId));
