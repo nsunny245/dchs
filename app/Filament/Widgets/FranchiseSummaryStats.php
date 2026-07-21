@@ -10,6 +10,8 @@ use App\Models\Admission;
 
 class FranchiseSummaryStats extends BaseWidget
 {
+    protected static bool $isDiscovered = false;
+
     protected function getStats(): array
     {
         $totalSeats = Admission::whereNotNull('franchisor_id')->count();

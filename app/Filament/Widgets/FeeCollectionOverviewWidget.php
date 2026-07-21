@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Schema;
 
 class FeeCollectionOverviewWidget extends BaseWidget
 {
+    protected static bool $isDiscovered = false;
+
     protected function getStats(): array
     {
         try {
