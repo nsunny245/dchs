@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\FeeCollectionResource\Pages;
+namespace App\Filament\Widgets;
 
 use App\Models\StudentFeeAccount;
 use App\Models\Payment;
@@ -22,14 +22,9 @@ class FeeCollectionOverviewWidget extends BaseWidget
             $isSuper = false;
 
             if ($user) {
-                try {
-                    $isSuper = $user->email === 'admin@admin.com' ||
-                        $user->hasRole('Super Admin') ||
-                        $user->campus_id === null ||
-                        filament()->getCurrentPanel()?->getId() === 'admin';
-                } catch (\Throwable $t) {
-                    $isSuper = $user->campus_id === null || filament()->getCurrentPanel()?->getId() === 'admin';
-                }
+                $isSuper = $user->email === 'admin@admin.com' ||
+                    $user->campus_id === null ||
+                    filament()->getCurrentPanel()?->getId() === 'admin';
             }
 
             $campusId = $user?->campus_id;

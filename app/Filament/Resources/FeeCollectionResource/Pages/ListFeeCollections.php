@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\FeeCollectionResource\Pages;
 
 use App\Filament\Resources\FeeCollectionResource;
+use App\Filament\Widgets\FeeCollectionOverviewWidget;
 use Filament\Resources\Pages\ListRecords;
 
 class ListFeeCollections extends ListRecords
