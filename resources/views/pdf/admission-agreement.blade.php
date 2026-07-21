@@ -66,6 +66,16 @@
         }
         .doc-title-section {
             text-align: right;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .student-photo {
+            width: 75px;
+            height: 90px;
+            border-radius: 6px;
+            border: 2px solid #0A1526;
+            object-fit: cover;
         }
         .doc-title {
             font-size: 20px;
@@ -176,6 +186,31 @@
             text-transform: uppercase;
         }
 
+        /* Schedule Table */
+        .schedule-card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+        }
+        .schedule-table th {
+            background: #0A1526;
+            color: #EBB45A;
+            padding: 6px 10px;
+            text-align: left;
+            font-weight: 700;
+        }
+        .schedule-table td {
+            padding: 6px 10px;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
         /* Policy Section */
         .policy-card {
             background: #FFFFFF;
@@ -211,14 +246,29 @@
             border-top: 2px solid #0A1526;
             display: flex;
             justify-content: space-between;
+            align-items: flex-end;
         }
         .sig-box {
-            width: 42%;
+            width: 28%;
             text-align: center;
+        }
+        .thumb-box {
+            width: 75px;
+            height: 70px;
+            border: 2px dashed #0A1526;
+            border-radius: 4px;
+            margin: 0 auto 8px;
+            background: #F8FAFC;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            color: #64748B;
+            font-weight: bold;
         }
         .sig-line {
             border-top: 1px dashed #64748B;
-            margin-top: 45px;
+            margin-top: 25px;
             padding-top: 6px;
             font-weight: 700;
             color: #0A1526;
@@ -248,10 +298,6 @@
             border: none;
             cursor: pointer;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transition: all 0.2s;
-        }
-        .btn-print:hover {
-            background: #1E293B;
         }
         .btn-back {
             background: #FFFFFF;
@@ -262,10 +308,6 @@
             border-radius: 6px;
             border: 1px solid #CBD5E1;
             text-decoration: none;
-            display: inline-block;
-        }
-        .btn-back:hover {
-            background: #F8FAFC;
         }
 
         @media print {
@@ -290,8 +332,13 @@
                 </div>
             </div>
             <div class="doc-title-section">
-                <div class="doc-title">STUDENT AGREEMENT</div>
-                <div class="doc-ref">Ref: #{{ $admission->enrollment_number ?? 'ADM-' . date('Y') . '-' . str_pad($admission->id, 5, '0', STR_PAD_LEFT) }}</div>
+                <div>
+                    <div class="doc-title">STUDENT AGREEMENT</div>
+                    <div class="doc-ref">Ref: #{{ $admission->enrollment_number ?? 'ADM-' . date('Y') . '-' . str_pad($admission->id, 5, '0', STR_PAD_LEFT) }}</div>
+                </div>
+                @if($admission->student_photo)
+                    <img src="{{ asset('storage/' . $admission->student_photo) }}" class="student-photo" onerror="this.style.display='none'">
+                @endif
             </div>
         </div>
 
@@ -321,7 +368,7 @@
                     </tr>
                     <tr>
                         <td class="data-label">Date of Birth</td>
-                        <td class="data-value">{{ $admission->dob ? $admission->dob->format('Y-m-d H:i:s') : 'N/A' }}</td>
+                        <td class="data-value">{{ $admission->dob ? $admission->dob->format('Y-m-d') : 'N/A' }}</td>
                     </tr>
                     <tr>
                         <td class="data-label">Address</td>
@@ -419,6 +466,33 @@
             </div>
         </div>
 
+        <!-- Month-by-Month Payment Schedule Table -->
+        <div class="schedule-card">
+            <div class="card-header" style="margin-bottom: 10px;">
+                <span>📅</span> Month-by-Month Installment Payment Schedule
+            </div>
+            <table class="schedule-table">
+                <thead>
+                    <tr>
+                        <th>Installment #</th>
+                        <th>Payment Description / Title</th>
+                        <th>Estimated Due Date</th>
+                        <th style="text-align: right;">Amount (PKR)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for($i = 1; $i <= $installmentCount; $i++)
+                        <tr style="{{ $i % 2 === 0 ? 'background: #F8FAFC;' : '' }}">
+                            <td style="font-weight: 700; color: #0A1526;">Installment {{ $i }} of {{ $installmentCount }}</td>
+                            <td>Monthly Fee Installment {{ $i }}</td>
+                            <td>{{ now()->addMonths($i - 1)->format('10 M Y') }}</td>
+                            <td style="text-align: right; font-weight: 700; color: #0A1526;">PKR {{ number_format($perInstallment, 2) }}</td>
+                        </tr>
+                    @endfor
+                </tbody>
+            </table>
+        </div>
+
         <!-- Institute Regulation Policy -->
         <div class="policy-card">
             <div class="card-header" style="margin-bottom: 5px;">
@@ -450,7 +524,12 @@
         <!-- Signature Section -->
         <div class="signature-section">
             <div class="sig-box">
+                <div class="thumb-box">Student Thumb</div>
                 <div class="sig-line">Student Signature</div>
+                <div class="sig-date">Date: ________________________</div>
+            </div>
+            <div class="sig-box">
+                <div class="sig-line">Father / Guardian Signature</div>
                 <div class="sig-date">Date: ________________________</div>
             </div>
             <div class="sig-box">

@@ -40,6 +40,8 @@ use App\Filament\Widgets\OverviewStats;
 use App\Filament\Widgets\FinancialSummaryWidget;
 use App\Filament\Widgets\CampusFinancialOverviewWidget;
 
+use App\Filament\Resources\AttendanceResource;
+
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
@@ -90,6 +92,7 @@ class AdminPanelProvider extends PanelProvider
             ->resources([
                 AdmissionResource::class,
                 StudentResource::class,
+                AttendanceResource::class,
                 VisitorQueryResource::class,
                 AdmissionInquiryResource::class,
                 ContactSubmissionResource::class,

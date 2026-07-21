@@ -77,3 +77,18 @@ button[type="submit"].fi-btn * {
 .fi-wi-chart-canvas {
     @apply bg-white rounded-xl p-4 shadow-sm;
 }
+
+/* Filament Active Toggle Styling */
+button.fi-toggle[aria-checked="true"],
+.fi-fo-toggle button[aria-checked="true"],
+button[role="switch"][aria-checked="true"] {
+    background-color: #10B981 !important;
+    border-color: #059669 !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4) !important;
+}
+
+button.fi-toggle[aria-checked="true"] span,
+.fi-fo-toggle button[aria-checked="true"] span,
+button[role="switch"][aria-checked="true"] span {
+    background-color: #FFFFFF !important;
+}

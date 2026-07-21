@@ -46,7 +46,7 @@ class FeeStructureResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Section::make('A. Scope Settings')
-                    ->description('Define the plan name, target course, and campus availability')
+                    ->description('Define the plan name, target course, session, and campus availability')
                     ->schema([
                         Forms\Components\TextInput::make('name')
                             ->label('Fee Structure Name')
@@ -57,6 +57,11 @@ class FeeStructureResource extends Resource
                             ->relationship('course', 'name')
                             ->label('Assigned Course / Program')
                             ->required(),
+                        Forms\Components\Select::make('academic_session_id')
+                            ->relationship('academicSession', 'name')
+                            ->label('Target Academic Session')
+                            ->placeholder('Default / All Sessions')
+                            ->nullable(),
                         Forms\Components\Select::make('campus_id')
                             ->label('Assigned Campus')
                             ->options(function () {
@@ -66,7 +71,7 @@ class FeeStructureResource extends Resource
                             })
                             ->placeholder('🌐 All Campuses (Global Access for All Campuses)')
                             ->nullable(),
-                    ])->columns(3),
+                    ])->columns(2),
 
                 Forms\Components\Section::make('B. Fee Components')
                     ->description('Configure the precise breakdown of all fees. The total is calculated automatically.')
@@ -243,6 +248,32 @@ class FeeStructureResource extends Resource
                     ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin')),
             ])
             ->actions([
+                Tables\Actions\Action::make('duplicateForSession')
+                    ->label('Duplicate for Session')
+                    ->icon('heroicon-o-document-duplicate')
+                    ->color('success')
+                    ->form([
+                        Forms\Components\Select::make('academic_session_id')
+                            ->relationship('academicSession', 'name')
+                            ->label('Target New Academic Session')
+                            ->required(),
+                        Forms\Components\TextInput::make('name')
+                            ->label('New Fee Plan Name')
+                            ->default(fn ($record) => $record->name . ' (New Session)')
+                            ->required(),
+                    ])
+                    ->action(function ($record, array $data) {
+                        $newRecord = $record->replicate();
+                        $newRecord->academic_session_id = $data['academic_session_id'];
+                        $newRecord->name = $data['name'];
+                        $newRecord->save();
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Fee Structure Duplicated')
+                            ->body("Created new fee plan for target session.")
+                            ->success()
+                            ->send();
+                    }),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])

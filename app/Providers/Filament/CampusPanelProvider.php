@@ -36,6 +36,8 @@ use App\Filament\Widgets\FinancialSummaryWidget;
 use App\Filament\Widgets\CampusFinancialOverviewWidget;
 use App\Filament\Widgets\RecentAdmissionsTable;
 
+use App\Filament\Resources\AttendanceResource;
+
 class CampusPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
@@ -87,6 +89,7 @@ class CampusPanelProvider extends PanelProvider
                 AdmissionInquiryResource::class,
                 AdmissionResource::class,
                 StudentResource::class,
+                AttendanceResource::class,
                 FeeCollectionResource::class,
                 ExpenseResource::class,
                 AcademicSessionResource::class,

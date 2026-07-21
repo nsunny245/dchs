@@ -54,6 +54,12 @@
             color: #D89A34;
             text-align: right;
         }
+        .student-photo-pdf {
+            width: 70px;
+            height: 85px;
+            border: 2px solid #0A1526;
+            border-radius: 4px;
+        }
 
         /* Grid Cards using tables for DomPDF */
         .grid-table {
@@ -139,6 +145,31 @@
             text-transform: uppercase;
         }
 
+        /* Schedule Table */
+        .schedule-card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 15px;
+        }
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9px;
+        }
+        .schedule-table th {
+            background: #0A1526;
+            color: #EBB45A;
+            padding: 5px 8px;
+            text-align: left;
+            font-weight: bold;
+        }
+        .schedule-table td {
+            padding: 4px 8px;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
         /* Policy Section */
         .policy-card {
             background: #FFFFFF;
@@ -168,24 +199,37 @@
         /* Signatures */
         .signature-table {
             width: 100%;
-            margin-top: 30px;
+            margin-top: 25px;
             border-top: 2px solid #0A1526;
             padding-top: 10px;
         }
         .sig-cell {
-            width: 50%;
+            width: 33%;
             text-align: center;
+            vertical-align: bottom;
+        }
+        .thumb-box-pdf {
+            width: 65px;
+            height: 60px;
+            border: 1.5px dashed #0A1526;
+            border-radius: 4px;
+            margin: 0 auto 5px auto;
+            text-align: center;
+            font-size: 8px;
+            color: #64748B;
+            padding-top: 20px;
+            background: #F8FAFC;
         }
         .sig-line {
             border-top: 1px dashed #64748B;
-            margin: 30px auto 4px auto;
-            width: 70%;
+            margin: 15px auto 4px auto;
+            width: 80%;
             font-weight: bold;
             color: #0A1526;
-            font-size: 10px;
+            font-size: 9.5px;
         }
         .sig-date {
-            font-size: 9px;
+            font-size: 8.5px;
             color: #64748B;
         }
     </style>
@@ -197,13 +241,13 @@
         <div class="header">
             <table class="header-table">
                 <tr>
-                    <td>
+                    <td style="width: 65%;">
                         <div class="brand-text">
                             <h1>Daniyal Group of Colleges</h1>
                             <p>DANIYAL INSTITUTE OF HEALTH SCIENCES — {{ strtoupper($admission->campus->name ?? 'OKARA CAMPUS') }}</p>
                         </div>
                     </td>
-                    <td>
+                    <td style="width: 35%; text-align: right;">
                         <div class="doc-title">STUDENT AGREEMENT</div>
                         <div class="doc-ref">Ref: #{{ $admission->enrollment_number ?? 'ADM-' . date('Y') . '-' . str_pad($admission->id, 5, '0', STR_PAD_LEFT) }}</div>
                     </td>
@@ -326,6 +370,31 @@
             </table>
         </div>
 
+        <!-- Installment Schedule Table -->
+        <div class="schedule-card">
+            <div class="card-header" style="border: none; margin-bottom: 4px;">Month-by-Month Fee Installment Schedule</div>
+            <table class="schedule-table">
+                <thead>
+                    <tr>
+                        <th>Installment #</th>
+                        <th>Title / Description</th>
+                        <th>Estimated Due Date</th>
+                        <th style="text-align: right;">Amount (PKR)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for($i = 1; $i <= $installmentCount; $i++)
+                        <tr style="{{ $i % 2 === 0 ? 'background: #F8FAFC;' : '' }}">
+                            <td>Installment {{ $i }} of {{ $installmentCount }}</td>
+                            <td>Monthly Fee Installment {{ $i }}</td>
+                            <td>{{ now()->addMonths($i - 1)->format('10 M Y') }}</td>
+                            <td style="text-align: right; font-weight: bold;">PKR {{ number_format($perInstallment, 2) }}</td>
+                        </tr>
+                    @endfor
+                </tbody>
+            </table>
+        </div>
+
         <!-- Institute Policy Card -->
         <div class="policy-card">
             <div class="card-header" style="border: none; margin-bottom: 2px;">Institute Regulation Policy</div>
@@ -371,11 +440,16 @@
         <table class="signature-table">
             <tr>
                 <td class="sig-cell">
+                    <div class="thumb-box-pdf">Thumb Impression</div>
                     <div class="sig-line">Student Signature</div>
                     <div class="sig-date">Date: ________________________</div>
                 </td>
                 <td class="sig-cell">
-                    <div class="sig-line">Institute Representative</div>
+                    <div class="sig-line" style="margin-top: 65px;">Father / Guardian Signature</div>
+                    <div class="sig-date">Date: ________________________</div>
+                </td>
+                <td class="sig-cell">
+                    <div class="sig-line" style="margin-top: 65px;">Institute Representative</div>
                     <div class="sig-date">Date: ________________________</div>
                 </td>
             </tr>
