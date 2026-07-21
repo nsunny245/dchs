@@ -16,7 +16,7 @@ class OverviewStats extends BaseWidget
     protected function getStats(): array
     {
         $user = filament()->auth()->user();
-        $isSuperAdmin = $user->hasRole('Super Admin');
+        $isSuperAdmin = $user && ($user->campus_id === null || filament()->getCurrentPanel()?->getId() === 'admin');
         
         // Hierarchy-aware queries
         $studentCount = $isSuperAdmin ? Student::count() : Student::where('campus_id', $user->campus_id)->count();

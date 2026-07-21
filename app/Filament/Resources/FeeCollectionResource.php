@@ -121,7 +121,7 @@ class FeeCollectionResource extends Resource
                             $query->whereHas('student', fn ($q) => $q->where('campus_id', $data['value']));
                         }
                     })
-                    ->hidden(fn () => !filament()->auth()->user()?->hasRole('Super Admin')),
+                    ->hidden(fn () => filament()->getCurrentPanel()?->getId() === 'campus'),
 
                 Tables\Filters\SelectFilter::make('course')
                     ->label('Course')

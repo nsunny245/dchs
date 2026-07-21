@@ -146,7 +146,7 @@ class ExpenseResource extends Resource
         $query = parent::getEloquentQuery();
         $user = filament()->auth()->user();
 
-        if ($user && $user->campus_id && !$user->hasRole('Super Admin')) {
+        if ($user && $user->campus_id !== null) {
             $query->where('campus_id', $user->campus_id);
         }
 

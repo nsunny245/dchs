@@ -17,7 +17,7 @@ class RecentAdmissionsTable extends BaseWidget
     {
         return $table
             ->query(
-                fn () => filament()->auth()->user()->hasRole('Super Admin')
+                fn () => filament()->auth()->user()?->campus_id === null
                     ? Admission::query()->latest()
                     : Admission::query()->where('campus_id', filament()->auth()->user()->campus_id)->latest()
             )

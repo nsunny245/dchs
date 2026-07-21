@@ -245,7 +245,7 @@ class FeeStructureResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('campus')
                     ->relationship('campus', 'name')
-                    ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin')),
+                    ->hidden(fn () => filament()->getCurrentPanel()?->getId() === 'campus'),
             ])
             ->actions([
                 Tables\Actions\Action::make('duplicateForSession')

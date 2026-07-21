@@ -78,7 +78,7 @@ class StaffResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('campus')
                     ->relationship('campus', 'name')
-                    ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin')),
+                    ->hidden(fn () => filament()->getCurrentPanel()?->getId() === 'campus'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -94,9 +94,10 @@ class StaffResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-        
-        if (!filament()->auth()->user()->hasRole('Super Admin')) {
-            $query->where('campus_id', filament()->auth()->user()->campus_id);
+        $user = filament()->auth()->user();
+
+        if ($user && $user->campus_id !== null) {
+            $query->where('campus_id', $user->campus_id);
         }
 
         return $query;

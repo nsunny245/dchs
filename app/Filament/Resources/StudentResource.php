@@ -97,9 +97,10 @@ class StudentResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-        
-        if (!filament()->auth()->user()->hasRole('Super Admin')) {
-            $query->where('campus_id', filament()->auth()->user()->campus_id);
+        $user = filament()->auth()->user();
+
+        if ($user && $user->campus_id !== null) {
+            $query->where('campus_id', $user->campus_id);
         }
 
         return $query;
