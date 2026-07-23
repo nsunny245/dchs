@@ -18,6 +18,12 @@ class Admission extends Model
         'admission_date' => 'date',
         'applied_at' => 'datetime',
         'academic_details' => 'array',
+        'custom_installments' => 'array',
+        'finalized_at' => 'datetime',
+        'is_document_deficient' => 'boolean',
+        'concession_requested_at' => 'datetime',
+        'concession_approved_at' => 'datetime',
+        'workflow_metadata' => 'array',
     ];
 
     protected static function booted()
@@ -49,7 +55,7 @@ class Admission extends Model
                 $admission->grad_obtained_marks = null;
                 $admission->grad_total_marks = null;
                 $admission->grad_grade = null;
-                
+
                 foreach ($admission->academic_details as $record) {
                     if (($record['level'] ?? '') === 'matric') {
                         $admission->matric_degree = $record['degree_title'] ?? null;
@@ -163,5 +169,20 @@ class Admission extends Model
     public function visitorQuery(): BelongsTo
     {
         return $this->belongsTo(VisitorQuery::class, 'visitor_query_id');
+    }
+
+    public function drafts()
+    {
+        return $this->hasMany(AdmissionDraft::class);
+    }
+
+    public function concessions()
+    {
+        return $this->hasMany(Concession::class);
+    }
+
+    public function auditLogs()
+    {
+        return $this->morphMany(AdmissionAuditLog::class, 'subject');
     }
 }

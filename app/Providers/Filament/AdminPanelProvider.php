@@ -2,6 +2,29 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\FranchiseReport;
+use App\Filament\Resources\AcademicSessionResource;
+use App\Filament\Resources\AdmissionInquiryResource;
+use App\Filament\Resources\AdmissionResource;
+use App\Filament\Resources\AttendanceResource;
+use App\Filament\Resources\CampusResource;
+use App\Filament\Resources\ContactSubmissionResource;
+use App\Filament\Resources\CourseResource;
+use App\Filament\Resources\ExpenseCategoryResource;
+use App\Filament\Resources\ExpenseResource;
+use App\Filament\Resources\FeeCollectionResource;
+use App\Filament\Resources\FeeHeadResource;
+use App\Filament\Resources\FeeStructureResource;
+use App\Filament\Resources\FeeVoucherResource;
+use App\Filament\Resources\FranchisorResource;
+use App\Filament\Resources\SettingResource;
+use App\Filament\Resources\StudentResource;
+use App\Filament\Resources\SuperAdminFranchisorPaymentResource;
+use App\Filament\Resources\UserResource;
+use App\Filament\Resources\VisitorQueryResource;
+use App\Filament\Widgets\CampusFinancialOverviewWidget;
+use App\Filament\Widgets\FinancialSummaryWidget;
+use App\Filament\Widgets\OverviewStats;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -17,32 +40,8 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-
-use App\Filament\Resources\AcademicSessionResource;
-use App\Filament\Resources\CampusResource;
-use App\Filament\Resources\CourseResource;
-use App\Filament\Resources\SettingResource;
-use App\Filament\Resources\UserResource;
-use App\Filament\Resources\ExpenseCategoryResource;
-use App\Filament\Resources\ExpenseResource;
-use App\Filament\Resources\FeeStructureResource;
-use App\Filament\Resources\FeeCollectionResource;
-use App\Filament\Resources\AdmissionResource;
-use App\Filament\Resources\StudentResource;
-use App\Filament\Resources\FranchisorResource;
-use App\Filament\Resources\VisitorQueryResource;
-use App\Filament\Resources\AdmissionInquiryResource;
-use App\Filament\Resources\ContactSubmissionResource;
-use App\Filament\Resources\SuperAdminFranchisorPaymentResource;
-
-use App\Filament\Widgets\OverviewStats;
-use App\Filament\Widgets\FinancialSummaryWidget;
-use App\Filament\Widgets\CampusFinancialOverviewWidget;
-
-use App\Filament\Resources\AttendanceResource;
-use App\Filament\Resources\FeeHeadResource;
-use App\Filament\Resources\FeeVoucherResource;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -86,10 +85,10 @@ class AdminPanelProvider extends PanelProvider
                     950 => '#0A1526',
                 ],
             ])
-            ->brandName('DCHS Super Admin')
-            ->brandLogo(asset('images/dchs-logo.png'))
+            ->brandName('Daniyal Group of Colleges')
+            ->brandLogo(fn () => new HtmlString(view('components.sidebar-brand')->render()))
             ->brandLogoHeight('3.5rem')
-            ->favicon(asset('favicon.ico'))
+            ->favicon(asset('images/branding/daniyal-group-of-colleges-logo.png'))
             ->viteTheme('resources/css/filament/admin.css')
             ->resources([
                 AdmissionResource::class,
@@ -114,7 +113,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->pages([
                 Pages\Dashboard::class,
-                \App\Filament\Pages\FranchiseReport::class,
+                FranchiseReport::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([

@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 class RoleAndPermissionSeeder extends Seeder
@@ -28,17 +28,34 @@ class RoleAndPermissionSeeder extends Seeder
             'view any report', 'view dashboard', 'manage settings',
             'view own profile', 'view own fee', 'view own attendance',
             'view own result', 'view own timetable',
+            'manage master fee structures', 'request concession', 'approve concession',
+            'finalize admission', 'view admission audit', 'record fee payment',
         ];
 
-        foreach ($permissions as $perm) {
-            Permission::firstOrCreate(['name' => $perm, 'guard_name' => 'web']);
+        foreach (['web', 'campus'] as $guard) {
+            foreach ($permissions as $perm) {
+                Permission::firstOrCreate(['name' => $perm, 'guard_name' => $guard]);
+            }
         }
 
+        $assign = function (string $roleName, array $permissionNames) {
+            foreach (['web', 'campus'] as $guard) {
+                $role = Role::firstOrCreate(['name' => $roleName, 'guard_name' => $guard]);
+                $role->givePermissionTo(Permission::query()
+                    ->where('guard_name', $guard)
+                    ->whereIn('name', $permissionNames)
+                    ->get());
+            }
+        };
+
         // 1. Super Admin / Group Admin
-        Role::firstOrCreate(['name' => 'Super Admin'])->givePermissionTo(Permission::all());
+        foreach (['web', 'campus'] as $guard) {
+            Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => $guard])
+                ->givePermissionTo(Permission::where('guard_name', $guard)->get());
+        }
 
         // 2. Campus Principal
-        Role::firstOrCreate(['name' => 'Campus Principal'])->givePermissionTo([
+        $assign('Campus Principal', [
             'view any user', 'create user', 'update user',
             'view any campus', 'view any course',
             'view any admission', 'create admission', 'update admission',
@@ -47,33 +64,33 @@ class RoleAndPermissionSeeder extends Seeder
             'view any timetable', 'create timetable',
             'view any exam', 'create exam',
             'view any result', 'create result',
-            'view any report', 'view dashboard'
+            'view any report', 'view dashboard', 'request concession', 'finalize admission',
         ]);
 
         // 3. Academic Head / Faculty
-        Role::firstOrCreate(['name' => 'Faculty'])->givePermissionTo([
+        $assign('Faculty', [
             'view any student', 'view any timetable',
             'view any exam', 'create result', 'update result',
-            'view dashboard'
+            'view dashboard',
         ]);
 
         // 4. Admission Officer
-        Role::firstOrCreate(['name' => 'Admission Officer'])->givePermissionTo([
+        $assign('Admission Officer', [
             'view any admission', 'create admission', 'update admission', 'delete admission',
             'view any student', 'create student',
-            'view dashboard'
+            'view dashboard', 'request concession', 'finalize admission',
         ]);
 
         // 5. Accounts / Finance
-        Role::firstOrCreate(['name' => 'Finance'])->givePermissionTo([
+        $assign('Finance', [
             'view any student', 'view any fee', 'create fee', 'update fee', 'delete fee',
-            'view any report', 'view dashboard'
+            'view any report', 'view dashboard', 'record fee payment',
         ]);
 
         // 6. Student (Frontend + Portal)
-        Role::firstOrCreate(['name' => 'Student'])->givePermissionTo([
+        $assign('Student', [
             'view own profile', 'view own fee', 'view own attendance',
-            'view own result', 'view own timetable'
+            'view own result', 'view own timetable',
         ]);
 
         // Clear cache

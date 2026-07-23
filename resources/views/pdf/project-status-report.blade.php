@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>DCHS – Project Status Report</title>
+    <title>Daniyal Group of Colleges – Project Status Report</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'DejaVu Sans', Arial, sans-serif; color: #1a1a2e; font-size: 11px; line-height: 1.5; }
@@ -72,13 +72,13 @@
 </head>
 <body>
 
-<div class="watermark">DCHS</div>
+<div class="watermark">DGC</div>
 
 <div class="page-border">
 
     <!-- ══════════════ COVER HEADER ══════════════ -->
     <div class="cover-header">
-        <h1>Daniyal College of Health Sciences</h1>
+        <h1>Daniyal Group of Colleges</h1>
         <div class="subtitle">College Management System – Project Status Report</div>
         <div class="tagline">Prepared for Client Review Meeting</div>
     </div>
@@ -91,7 +91,7 @@
                 <td><span class="label">Version:</span> <span class="value">1.0</span></td>
             </tr>
             <tr>
-                <td><span class="label">Project:</span> <span class="value">DCHS Management System</span></td>
+                <td><span class="label">Project:</span> <span class="value">Daniyal Group of Colleges Management System</span></td>
                 <td><span class="label">Status:</span> <span class="badge badge-progress">In Development</span></td>
             </tr>
             <tr>
@@ -104,7 +104,7 @@
     <!-- ══════════════ EXECUTIVE SUMMARY ══════════════ -->
     <div class="section-title">1. Executive Summary</div>
     <p style="font-size:11px; text-align:justify; margin-bottom:10px;">
-        The <strong>Daniyal College of Health Sciences (DCHS) Management System</strong> is a comprehensive, multi-campus
+        The <strong>Daniyal Group of Colleges (DGC) Management System</strong> is a comprehensive, multi-campus
         college administration platform built to centralize and automate the day-to-day operations of all four campuses.
         The system covers the full student lifecycle — from admission applications through enrollment, fee management,
         timetable scheduling, examinations, and result generation — with role-based access control across 6 distinct user roles.
@@ -193,7 +193,7 @@
 
     <div class="section-title">4. System Modules – Detailed Breakdown</div>
     <p style="font-size:10.5px; margin-bottom:10px;">
-        The following table provides a module-by-module overview of every feature implemented in the DCHS Management System.
+        The following table provides a module-by-module overview of every feature implemented in the DGC Management System.
         Each module includes full CRUD (Create, Read, Update, Delete) operations, campus-level data isolation,
         and role-based access control.
     </p>
@@ -387,9 +387,9 @@
         <tr><td>Primary Color</td><td>#1e3a5f (Deep Navy Blue)</td></tr>
         <tr><td>Accent Color</td><td>#d4af37 (Gold)</td></tr>
         <tr><td>Alert / Highlight</td><td>#e94560 (Coral Red)</td></tr>
-        <tr><td>Logo</td><td>DCHS branded logo on dashboard & login</td></tr>
+        <tr><td>Logo</td><td>DGC branded logo on dashboard & login</td></tr>
         <tr><td>Custom CSS</td><td>Admin dashboard theme with branded sidebar, stats cards, and buttons</td></tr>
-        <tr><td>PDF Documents</td><td>Double-border layout, DCHS watermark, professional signature blocks</td></tr>
+        <tr><td>PDF Documents</td><td>Double-border layout, DGC watermark, professional signature blocks</td></tr>
     </table>
 
     <!-- ══════════════ NEXT STEPS ══════════════ -->
@@ -406,7 +406,7 @@
 
     <!-- Footer -->
     <div class="footer">
-        CONFIDENTIAL – Daniyal College of Health Sciences &bull; Project Status Report &bull;
+        CONFIDENTIAL – Daniyal Group of Colleges &bull; Project Status Report &bull;
         Generated on {{ now()->format('d M, Y \\a\\t h:i A') }} &bull; Page 3 of 3
     </div>
 

@@ -125,11 +125,11 @@
     <div class="receipt-container">
         <div class="header">
             <div class="logo-section">
-                <img src="{{ public_path('images/logo.png') }}" class="logo" onerror="this.src='https://dchs.edu.pk/wp-content/uploads/2022/05/crest-300x300.png'">
+                <img src="{{ public_path('images/branding/daniyal-group-of-colleges-logo.png') }}" class="logo">
             </div>
             <div class="title-section">
                 <div class="college-name">Daniyal Group of Colleges</div>
-                <div class="campus-name">{{ $payment->student->campus->name ?? 'DCHS Campus' }}</div>
+                <div class="campus-name">{{ $payment->student->campus->name ?? 'Daniyal Group Campus' }}</div>
             </div>
             <div class="receipt-title">
                 <h2>Official Receipt</h2>

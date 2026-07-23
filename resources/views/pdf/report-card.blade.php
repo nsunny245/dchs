@@ -244,12 +244,12 @@
 </head>
 <body>
 
-<div class="watermark">DCHS</div>
+<div class="watermark">DGC</div>
 
 <div class="page-border">
     <!-- Header -->
     <div class="header">
-        <h1>Daniyal College of Health Sciences</h1>
+        <h1>Daniyal Group of Colleges</h1>
         <div class="tagline">Excellence in Healthcare Education</div>
         <div class="campus-name">{{ $student->campus->name ?? 'Main Campus' }}</div>
     </div>
@@ -423,7 +423,7 @@
 
     <!-- Footer -->
     <div class="footer">
-        This is a computer-generated report card. &bull; Daniyal College of Health Sciences &bull;
+        This is a computer-generated report card. &bull; Daniyal Group of Colleges &bull;
         Generated on {{ now()->format('d M, Y \\a\\t h:i A') }}
     </div>
 </div>

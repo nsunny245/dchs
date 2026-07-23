@@ -242,9 +242,10 @@
             <table class="header-table">
                 <tr>
                     <td style="width: 65%;">
+                        <img src="{{ public_path('images/branding/daniyal-group-of-colleges-logo.png') }}" alt="Daniyal Group of Colleges" style="width: 58px; height: 58px; object-fit: contain; float: left; margin-right: 12px;">
                         <div class="brand-text">
                             <h1>Daniyal Group of Colleges</h1>
-                            <p>DANIYAL INSTITUTE OF HEALTH SCIENCES — {{ strtoupper($admission->campus->name ?? 'OKARA CAMPUS') }}</p>
+                            <p>WHERE SUCCESS IS A TRADITION — {{ strtoupper($admission->campus->name ?? 'CAMPUS PENDING') }}</p>
                         </div>
                     </td>
                     <td style="width: 35%; text-align: right;">

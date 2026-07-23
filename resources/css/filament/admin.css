@@ -27,6 +27,35 @@
     --color-brand-info: #12365D;
 }
 
+:root {
+    --dgc-navy-950: #06192E;
+    --dgc-navy-900: #082245;
+    --dgc-navy-800: #10345D;
+    --dgc-navy-700: #1B4775;
+    --dgc-gold-700: #B97708;
+    --dgc-gold-600: #C98D18;
+    --dgc-gold-500: #E0A126;
+    --dgc-gold-400: #E7B65A;
+    --dgc-gold-200: #F3D79F;
+    --dgc-gold-100: #FCF5E6;
+    --dgc-page-bg: #F4F7FB;
+    --dgc-surface: #FFFFFF;
+    --dgc-surface-soft: #F8FAFC;
+    --dgc-border: #D9E2EC;
+    --dgc-border-strong: #BAC8D8;
+    --dgc-text-primary: #102033;
+    --dgc-text-secondary: #5E6D7E;
+    --dgc-text-muted: #8290A3;
+    --dgc-success: #16855B;
+    --dgc-success-bg: #EAF8F2;
+    --dgc-warning: #B7791F;
+    --dgc-warning-bg: #FFF7E8;
+    --dgc-danger: #C43D4B;
+    --dgc-danger-bg: #FFF0F2;
+    --dgc-info: #2563A8;
+    --dgc-info-bg: #EEF6FF;
+}
+
 /* Global Font Assignment */
 body,
 .fi-layout,
@@ -82,6 +111,56 @@ body,
 .fi-sidebar {
     background: linear-gradient(180deg, #081F35 0%, #12365D 100%) !important;
     border-right: 1px solid #081F35 !important;
+}
+
+.fi-sidebar .fi-logo {
+    width: 100%;
+}
+
+.dgc-sidebar-brand {
+    align-items: center;
+    display: flex;
+    gap: .65rem;
+    height: 100%;
+    min-width: 0;
+}
+
+.dgc-sidebar-brand__crest {
+    flex: 0 0 auto;
+    height: 3.25rem;
+    object-fit: contain;
+    width: 3.25rem;
+}
+
+.dgc-sidebar-brand__copy {
+    color: var(--dgc-navy-950);
+    display: flex;
+    flex-direction: column;
+    line-height: 1.05;
+    white-space: nowrap;
+}
+
+.dgc-sidebar-brand__copy strong {
+    font-size: .95rem;
+    letter-spacing: .08em;
+}
+
+.dgc-sidebar-brand__copy > span {
+    font-size: .62rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    margin-top: .12rem;
+}
+
+.dgc-sidebar-brand__copy small {
+    color: var(--dgc-gold-700);
+    font-size: .48rem;
+    font-weight: 700;
+    margin-top: .25rem;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .dgc-sidebar-brand__copy {
+    display: none;
 }
 
 /* Navigation Group Labels styling */
@@ -219,10 +298,9 @@ select,
     box-shadow: 0 0 0 3px rgba(201, 150, 60, 0.2) !important;
 }
 
-/* Correct the select-field bug showing repeated chevrons */
-select,
-.fi-select-input,
-.fi-select select {
+/* Native Filament selects own exactly one arrow. Enhanced Choices.js selects
+   retain their component-provided indicator. */
+.fi-fo-select select.fi-select-input {
     appearance: none !important;
     -webkit-appearance: none !important;
     -moz-appearance: none !important;
@@ -233,9 +311,8 @@ select,
     padding-right: 2.5rem !important;
 }
 
-.fi-select-input-wrp .fi-select-input-icon-wrapper,
-.fi-select-wrp .fi-select-icon {
-    display: none !important;
+.fi-fo-select .choices select {
+    background-image: none !important;
 }
 
 /* Buttons Styling */
@@ -288,7 +365,7 @@ ol.fi-fo-wizard-header,
 /* Base style for step chevrons (Upcoming Steps) */
 .fi-fo-wizard-header-step {
     flex: 1 1 0% !important;
-    min-width: 140px !important;
+    min-width: 110px !important;
     background-color: #F4F7FB !important; /* Pale background */
     color: #5E6D7E !important; /* Grey-blue text */
     border: 1px solid #D9E2EC !important; /* Soft border */
@@ -422,6 +499,13 @@ ol.fi-fo-wizard-header,
     color: #5E6D7E !important;
 }
 
+.fi-fo-wizard-header-step[aria-invalid="true"],
+.fi-fo-wizard-header-step.fi-error {
+    color: var(--dgc-danger) !important;
+    background: var(--dgc-danger-bg) !important;
+    border-color: var(--dgc-danger) !important;
+}
+
 /* Style label text with dynamic step numbers */
 .fi-fo-wizard-header,
 ol.fi-fo-wizard-header,
@@ -436,6 +520,10 @@ ol.fi-fo-wizard-header,
 .fi-fo-wizard-header-step-label {
     font-size: 11px !important;
     font-weight: 700 !important;
+    line-height: 1.15 !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
 }
 
 .fi-fo-wizard-header-step-label::before {
@@ -451,6 +539,19 @@ ol.fi-fo-wizard-header,
     grid-template-columns: 3fr 1fr !important;
     gap: 24px !important;
     align-items: start !important;
+}
+
+.admission-split-grid > * {
+    grid-column: auto !important;
+    min-width: 0 !important;
+}
+
+@media (min-width: 1025px) {
+    .fi-fo-wizard-header,
+    ol.fi-fo-wizard-header,
+    .fi-fo-wizard-steps {
+        overflow-x: hidden !important;
+    }
 }
 
 @media (max-width: 1024px) {
@@ -469,13 +570,38 @@ ol.fi-fo-wizard-header,
         padding: 4px !important;
     }
     .fi-fo-wizard-header-step {
-        flex: 0 0 auto !important;
-        min-width: 120px !important;
+        display: none !important;
+        flex: 1 1 100% !important;
+        min-width: 100% !important;
         padding: 8px 10px 8px 18px !important;
     }
-    .fi-fo-wizard-header-step::after {
-        display: none !important;
+    .fi-fo-wizard-header-step.fi-active,
+    .fi-fo-wizard-header-step[aria-current="step"] {
+        display: flex !important;
+        clip-path: none !important;
+        border-radius: 12px !important;
+        margin: 0 !important;
     }
+    .fi-fo-wizard-header-step.fi-active::after,
+    .fi-fo-wizard-header-step[aria-current="step"]::after {
+        display: block !important;
+        content: "Current Step" !important;
+    }
+}
+
+.admission-page {
+    margin-inline: auto;
+    max-width: 1440px;
+    width: 100%;
+}
+
+.admission-page .fi-form,
+.admission-page .fi-fo-component-ctn,
+.admission-page .fi-fo-component-ctn > *,
+.admission-page .fi-fo-wizard {
+    max-width: 100% !important;
+    min-width: 0 !important;
+    width: 100% !important;
 }
 
 /* Admission Form & Wizard Step Content Card Wrap */
@@ -543,6 +669,27 @@ div[role="tabpanel"].fi-fo-wizard-step {
     margin-top: 24px !important;
     padding-top: 16px !important;
     border-top: 1px solid #D9E2EC !important;
+}
+
+.fi-form-actions {
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 30 !important;
+    padding: 14px 18px !important;
+    border: 1px solid var(--dgc-border) !important;
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, .96) !important;
+    box-shadow: 0 -8px 24px rgba(6, 25, 46, .08) !important;
+    backdrop-filter: blur(10px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+    }
 }
 
 /* Fix Tailwind v4 compilation bugs on Filament arbitrary column spans */

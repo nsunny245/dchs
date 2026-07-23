@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
 use App\Models\Admission;
 use App\Models\Campus;
 use App\Models\Course;
+use App\Models\FeeVoucher;
+use App\Models\StudentFeeSnapshot;
+use App\Models\VisitorQuery;
+use Illuminate\Http\Request;
 
 class AdmissionController extends Controller
 {
@@ -19,6 +21,7 @@ class AdmissionController extends Controller
     {
         $courses = Course::where('is_active', true)->orderBy('name')->get();
         $campuses = Campus::where('is_active', true)->orderBy('city')->get();
+
         return view('pages.apply', compact('courses', 'campuses'));
     }
 
@@ -42,7 +45,7 @@ class AdmissionController extends Controller
         $campus = Campus::where('city', $validated['campus'])->firstOrFail();
         $course = Course::where('code', $validated['program'])->firstOrFail();
 
-        \App\Models\VisitorQuery::create([
+        VisitorQuery::create([
             'campus_id' => $campus->id,
             'visitor_name' => $validated['name'],
             'phone' => $validated['phone'],
@@ -60,5 +63,19 @@ class AdmissionController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Your online admission inquiry has been submitted successfully! The campus administration will contact you shortly to verify your details.');
+    }
+
+    public function complete(Admission $admission)
+    {
+        $user = auth()->user();
+        abort_unless($user && ($user->hasRole('Super Admin') || $user->campus_id === $admission->campus_id), 403);
+
+        $admission->load(['student', 'campus', 'course', 'academicSession']);
+        $vouchers = FeeVoucher::where('admission_id', $admission->id)->orderBy('sequence_no')->get();
+        $feeSnapshot = $admission->student
+            ? StudentFeeSnapshot::where('student_id', $admission->student->id)->with('feeStructure')->first()
+            : null;
+
+        return view('admissions.complete', compact('admission', 'vouchers', 'feeSnapshot'));
     }
 }

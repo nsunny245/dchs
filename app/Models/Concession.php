@@ -9,6 +9,12 @@ class Concession extends Model
 {
     protected $guarded = [];
 
+    protected $casts = [
+        'requested_at' => 'datetime',
+        'decided_at' => 'datetime',
+        'calculation_snapshot' => 'array',
+    ];
+
     public function admission(): BelongsTo
     {
         return $this->belongsTo(Admission::class);

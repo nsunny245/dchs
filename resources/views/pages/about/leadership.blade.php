@@ -43,7 +43,7 @@
                 <!-- <!-- [PLACEHOLDER — confirm academic director name with client] --> -->
                 <h3 class="text-lg font-bold text-navy-900 font-display">Prof. Dr. M. Iqbal</h3>
                 <p class="text-gold-700 text-xs font-semibold uppercase tracking-wider mt-1">Director Academics</p>
-                <p class="text-navy-400 text-xs mt-1">DCHS Allied Health Programs</p>
+                <p class="text-navy-400 text-xs mt-1">Daniyal Group of Colleges Allied Health Programs</p>
             </div>
 
             <!-- Placeholder Registrar -->

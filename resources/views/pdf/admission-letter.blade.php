@@ -189,12 +189,12 @@
 </head>
 <body>
 
-<div class="watermark">DCHS</div>
+<div class="watermark">DGC</div>
 
 <div class="page-border">
     <!-- Header -->
     <div class="header">
-        <h1>Daniyal College of Health Sciences</h1>
+        <h1>Daniyal Group of Colleges</h1>
         <div class="tagline">Excellence in Healthcare Education</div>
         <div class="campus-name">{{ $admission->campus->name ?? 'Main Campus' }}</div>
     </div>
@@ -203,7 +203,7 @@
     <div class="ref-bar">
         <table>
             <tr>
-                <td><strong>Ref No:</strong> DCHS/ADM/{{ str_pad($admission->id, 5, '0', STR_PAD_LEFT) }}/{{ date('Y') }}</td>
+                <td><strong>Ref No:</strong> DGC/ADM/{{ str_pad($admission->id, 5, '0', STR_PAD_LEFT) }}/{{ date('Y') }}</td>
                 <td><strong>Date:</strong> {{ now()->format('d M, Y') }}</td>
             </tr>
             <tr>
@@ -223,17 +223,17 @@
 
     <div class="body-text">
         @if($admission->status === 'approved')
-            We are pleased to inform you that your application for admission to <strong>Daniyal College of Health Sciences</strong>
+            We are pleased to inform you that your application for admission to <strong>Daniyal Group of Colleges</strong>
             has been <strong>approved</strong>. Congratulations on your acceptance! We look forward to welcoming you to our institution
             and supporting you throughout your academic journey.
         @elseif($admission->status === 'pending')
-            We acknowledge receipt of your application for admission to <strong>Daniyal College of Health Sciences</strong>.
+            We acknowledge receipt of your application for admission to <strong>Daniyal Group of Colleges</strong>.
             Your application is currently under review. We will notify you of the decision at the earliest.
         @elseif($admission->status === 'waitlisted')
-            We acknowledge receipt of your application for admission to <strong>Daniyal College of Health Sciences</strong>.
+            We acknowledge receipt of your application for admission to <strong>Daniyal Group of Colleges</strong>.
             Your application has been placed on the <strong>waiting list</strong>. You will be notified if a seat becomes available.
         @else
-            We regret to inform you that your application for admission to <strong>Daniyal College of Health Sciences</strong>
+            We regret to inform you that your application for admission to <strong>Daniyal Group of Colleges</strong>
             could not be accepted at this time. We encourage you to re-apply in the next admission cycle.
         @endif
     </div>
@@ -313,7 +313,7 @@
                     <br><br><br>
                     <div class="sig-line"></div>
                     <div class="sig-label">Registrar</div>
-                    <div class="sig-label">Daniyal College of Health Sciences</div>
+                    <div class="sig-label">Daniyal Group of Colleges</div>
                 </td>
                 <td class="sig-block" style="width:50%;">
                     <br><br><br>
@@ -327,7 +327,7 @@
 
     <!-- Footer -->
     <div class="footer">
-        This is a computer-generated document. &bull; Daniyal College of Health Sciences &bull;
+        This is a computer-generated document. &bull; Daniyal Group of Colleges &bull;
         Generated on {{ now()->format('d M, Y \\a\\t h:i A') }}
     </div>
 </div>

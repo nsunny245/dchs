@@ -354,7 +354,7 @@
         <!-- Header -->
         <div class="header">
             <div class="brand-section">
-                <img src="{{ public_path('images/branding/daniyal-group-of-colleges-logo.png') }}" class="brand-logo" onerror="this.src='{{ asset('images/logo.png') }}'">
+                <img src="{{ public_path('images/branding/daniyal-group-of-colleges-logo.png') }}" class="brand-logo">
                 <div class="brand-text">
                     <h1>Daniyal Group of Colleges</h1>
                     <p>DANIYAL INSTITUTE OF HEALTH SCIENCES — {{ strtoupper($admission->campus->name ?? 'OKARA CAMPUS') }}</p>

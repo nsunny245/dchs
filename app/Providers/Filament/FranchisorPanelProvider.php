@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Franchisor\Widgets\FranchisorOverviewStats;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -9,12 +10,14 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class FranchisorPanelProvider extends PanelProvider
@@ -58,10 +61,10 @@ class FranchisorPanelProvider extends PanelProvider
                     950 => '#0A1526',
                 ],
             ])
-            ->brandName('DCHS Franchisor Portal')
-            ->brandLogo(asset('images/dchs-logo.png'))
+            ->brandName('Daniyal Group of Colleges')
+            ->brandLogo(fn () => new HtmlString(view('components.sidebar-brand')->render()))
             ->brandLogoHeight('3.5rem')
-            ->favicon(asset('favicon.ico'))
+            ->favicon(asset('images/branding/daniyal-group-of-colleges-logo.png'))
             ->viteTheme('resources/css/filament/admin.css')
             ->discoverResources(in: app_path('Filament/Franchisor/Resources'), for: 'App\\Filament\\Franchisor\\Resources')
             ->discoverPages(in: app_path('Filament/Franchisor/Pages'), for: 'App\\Filament\\Franchisor\\Pages')
@@ -70,8 +73,8 @@ class FranchisorPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Franchisor/Widgets'), for: 'App\\Filament\\Franchisor\\Widgets')
             ->widgets([
-                \Filament\Widgets\AccountWidget::class,
-                \App\Filament\Franchisor\Widgets\FranchisorOverviewStats::class,
+                AccountWidget::class,
+                FranchisorOverviewStats::class,
             ])
             ->middleware([
                 EncryptCookies::class,

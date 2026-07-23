@@ -15,7 +15,9 @@ class FranchisorResource extends Resource
     protected static ?string $model = Franchisor::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
+
     protected static ?string $navigationGroup = 'Franchise Management';
+
     protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
@@ -30,8 +32,8 @@ class FranchisorResource extends Resource
                     ->maxLength(255),
                 Forms\Components\Select::make('type')
                     ->options([
-                        'inbound' => 'Inbound (External inst. enrolling via DCHS)',
-                        'outbound' => 'Outbound (DCHS enrolling via External inst.)',
+                        'inbound' => 'Inbound (External institution enrolling via DGC)',
+                        'outbound' => 'Outbound (DGC enrolling via external institution)',
                     ])
                     ->required()
                     ->default('inbound'),

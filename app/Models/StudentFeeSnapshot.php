@@ -11,6 +11,8 @@ class StudentFeeSnapshot extends Model
 
     protected $casts = [
         'fee_structure_data' => 'array',
+        'installment_schedule' => 'array',
+        'concession_approval' => 'array',
     ];
 
     public function student(): BelongsTo

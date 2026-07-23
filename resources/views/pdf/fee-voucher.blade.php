@@ -140,11 +140,11 @@
             <table class="header-table">
                 <tr>
                     <td style="width: 50px;">
-                        <img src="{{ public_path('images/logo.png') }}" class="logo" onerror="this.src='https://dchs.edu.pk/wp-content/uploads/2022/05/crest-300x300.png'">
+                        <img src="{{ public_path('images/branding/daniyal-group-of-colleges-logo.png') }}" class="logo">
                     </td>
                     <td>
                         <div class="college-title">Daniyal Group of Colleges</div>
-                        <div class="campus-title">{{ strtoupper($voucher->student->campus->name ?? 'DCHS CAMPUS') }}</div>
+                        <div class="campus-title">{{ strtoupper($voucher->student->campus->name ?? 'DGC CAMPUS') }}</div>
                     </td>
                     <td style="text-align: right;">
                         <div class="copy-badge">{{ $copy }}</div>

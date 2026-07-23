@@ -272,20 +272,31 @@
             font-size: 7pt;
             margin-top: 3.5mm;
         }
+        .voucher-page {
+            page-break-after: always;
+        }
+        .voucher-page:last-child {
+            page-break-after: auto;
+        }
     </style>
 </head>
 <body>
 
     @php
         $copies = ['Bank Copy', 'Accounts Office Copy', 'Student Copy'];
+        $printVouchers = $vouchers ?? collect([$voucher]);
     @endphp
 
-    @foreach($copies as $copy)
-        @include('fees.vouchers.partials.voucher-content', [
-            'copyLabel' => $copy,
-            'voucher' => $voucher,
-            'layout' => 'horizontal'
-        ])
+    @foreach($printVouchers as $printVoucher)
+        <div class="voucher-page">
+            @foreach($copies as $copy)
+                @include('fees.vouchers.partials.voucher-content', [
+                    'copyLabel' => $copy,
+                    'voucher' => $printVoucher,
+                    'layout' => 'horizontal'
+                ])
+            @endforeach
+        </div>
     @endforeach
 
 </body>

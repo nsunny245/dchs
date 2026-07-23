@@ -2,6 +2,24 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Resources\AcademicSessionResource;
+use App\Filament\Resources\AdmissionInquiryResource;
+use App\Filament\Resources\AdmissionResource;
+use App\Filament\Resources\AttendanceResource;
+use App\Filament\Resources\ExamResource;
+use App\Filament\Resources\ExpenseResource;
+use App\Filament\Resources\FeeCollectionResource;
+use App\Filament\Resources\FeeHeadResource;
+use App\Filament\Resources\FeeVoucherResource;
+use App\Filament\Resources\MarkResource;
+use App\Filament\Resources\StaffResource;
+use App\Filament\Resources\StudentResource;
+use App\Filament\Resources\TimetableResource;
+use App\Filament\Resources\VisitorQueryResource;
+use App\Filament\Widgets\CampusFinancialOverviewWidget;
+use App\Filament\Widgets\FinancialSummaryWidget;
+use App\Filament\Widgets\OverviewStats;
+use App\Filament\Widgets\RecentAdmissionsTable;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -17,28 +35,8 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-
-use App\Filament\Resources\AcademicSessionResource;
-use App\Filament\Resources\VisitorQueryResource;
-use App\Filament\Resources\AdmissionResource;
-use App\Filament\Resources\StudentResource;
-use App\Filament\Resources\StaffResource;
-use App\Filament\Resources\TimetableResource;
-use App\Filament\Resources\ExamResource;
-use App\Filament\Resources\MarkResource;
-use App\Filament\Resources\FeeCollectionResource;
-use App\Filament\Resources\ExpenseResource;
-use App\Filament\Resources\AdmissionInquiryResource;
-
-use App\Filament\Widgets\OverviewStats;
-use App\Filament\Widgets\FinancialSummaryWidget;
-use App\Filament\Widgets\CampusFinancialOverviewWidget;
-use App\Filament\Widgets\RecentAdmissionsTable;
-
-use App\Filament\Resources\AttendanceResource;
-use App\Filament\Resources\FeeHeadResource;
-use App\Filament\Resources\FeeVoucherResource;
 
 class CampusPanelProvider extends PanelProvider
 {
@@ -81,10 +79,10 @@ class CampusPanelProvider extends PanelProvider
                     950 => '#0A1526',
                 ],
             ])
-            ->brandName('DCHS Campus Portal')
-            ->brandLogo(asset('images/dchs-logo.png'))
+            ->brandName('Daniyal Group of Colleges')
+            ->brandLogo(fn () => new HtmlString(view('components.sidebar-brand')->render()))
             ->brandLogoHeight('3.5rem')
-            ->favicon(asset('favicon.ico'))
+            ->favicon(asset('images/branding/daniyal-group-of-colleges-logo.png'))
             ->viteTheme('resources/css/filament/admin.css')
             ->resources([
                 VisitorQueryResource::class,

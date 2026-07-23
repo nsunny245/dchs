@@ -238,12 +238,12 @@
 </head>
 <body>
 
-<div class="watermark">DCHS</div>
+<div class="watermark">DGC</div>
 
 <div class="page-border">
     <!-- Header -->
     <div class="header">
-        <h1>Daniyal College of Health Sciences</h1>
+        <h1>Daniyal Group of Colleges</h1>
         <div class="tagline">Excellence in Healthcare Education</div>
         <div class="campus-name">{{ $payment->student->campus->name ?? 'Main Campus' }}</div>
     </div>
@@ -257,7 +257,7 @@
     <div class="meta-row">
         <table>
             <tr>
-                <td><span class="label">Receipt No:</span> <span class="value">DCHS/FEE/{{ str_pad($payment->id, 6, '0', STR_PAD_LEFT) }}</span></td>
+                <td><span class="label">Receipt No:</span> <span class="value">DGC/FEE/{{ str_pad($payment->id, 6, '0', STR_PAD_LEFT) }}</span></td>
                 <td><span class="label">Date:</span> <span class="value">{{ $payment->paid_date ? $payment->paid_date->format('d M, Y') : now()->format('d M, Y') }}</span></td>
             </tr>
             <tr>
@@ -372,7 +372,7 @@
 
     <!-- Footer -->
     <div class="footer">
-        This is a computer-generated receipt. &bull; Daniyal College of Health Sciences &bull;
+        This is a computer-generated receipt. &bull; Daniyal Group of Colleges &bull;
         Generated on {{ now()->format('d M, Y \\a\\t h:i A') }}
     </div>
 </div>

@@ -2,12 +2,31 @@
 
 namespace App\Services\Fees;
 
+use App\Models\Admission;
 use App\Models\FeeVoucher;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Http\Response;
 
 class FeeVoucherPdfService
 {
+    public static function streamBook(Admission $admission)
+    {
+        $vouchers = FeeVoucher::query()
+            ->where('admission_id', $admission->id)
+            ->with(['student.admission', 'student.campus', 'student.course', 'campus', 'course', 'academicSession', 'items.feeHead'])
+            ->orderBy('due_date')
+            ->orderBy('id')
+            ->get();
+
+        abort_if($vouchers->isEmpty(), 404, 'No vouchers have been generated for this admission.');
+
+        $pdf = Pdf::loadView('fees.vouchers.horizontal-three-part', [
+            'voucher' => $vouchers->first(),
+            'vouchers' => $vouchers,
+        ])->setPaper('A4', 'portrait');
+
+        return $pdf->stream("voucher-book-{$admission->enrollment_no}.pdf");
+    }
+
     public static function streamHorizontal(FeeVoucher $voucher)
     {
         $voucher->load(['student', 'student.campus', 'student.course', 'items.feeHead']);

@@ -14,7 +14,7 @@
 @endphp
 
 @if($size === 'hero-watermark')
-    <img src="{{ asset('images/dchs-logo.png') }}" alt="" class="{{ $class }} absolute z-0">
+    <img src="{{ asset('images/branding/daniyal-group-of-colleges-logo.png') }}" alt="" class="{{ $class }} absolute z-0">
 @else
-    <img src="{{ asset('images/dchs-logo.png') }}" alt="Daniyal Group of Colleges Logo" class="{{ $class }} transition-transform duration-300">
+    <img src="{{ asset('images/branding/daniyal-group-of-colleges-logo.png') }}" alt="Daniyal Group of Colleges — Where Success Is a Tradition" class="{{ $class }} transition-transform duration-300">
 @endif

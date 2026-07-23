@@ -8,7 +8,7 @@
     <div class="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
     <div class="container mx-auto px-6 relative z-10">
         <span class="text-gold-500 font-bold text-xs uppercase tracking-widest font-display">Get in Touch</span>
-        <h1 class="text-3xl md:text-4xl font-extrabold font-display text-white mt-2">Contact DCHS</h1>
+        <h1 class="text-3xl md:text-4xl font-extrabold font-display text-white mt-2">Contact Daniyal Group of Colleges</h1>
         <div class="h-1 w-12 bg-gold-500 mt-4 rounded-full"></div>
     </div>
 </section>

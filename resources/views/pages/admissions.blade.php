@@ -7,7 +7,7 @@
 <section class="bg-navy-900 text-white py-16 relative overflow-hidden">
     <div class="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
     <div class="container mx-auto px-6 relative z-10">
-        <span class="text-gold-500 font-bold text-xs uppercase tracking-widest font-display">Join DCHS</span>
+        <span class="text-gold-500 font-bold text-xs uppercase tracking-widest font-display">Join Daniyal Group of Colleges</span>
         <h1 class="text-3xl md:text-4xl font-extrabold font-display text-white mt-2">Admissions Process 2026</h1>
         <div class="h-1 w-12 bg-gold-500 mt-4 rounded-full"></div>
     </div>
@@ -105,7 +105,7 @@
                         </div>
                         <div>
                             <h4 class="text-xs font-bold text-navy-900">Online Registrations Open</h4>
-                            <p class="text-[11px] text-navy-400 mt-0.5">Submit applications through the public DCHS portal.</p>
+                            <p class="text-[11px] text-navy-400 mt-0.5">Submit applications through the Daniyal Group of Colleges portal.</p>
                         </div>
                     </div>
                     <div class="flex items-start gap-4">
@@ -151,11 +151,11 @@
             
             <x-faq-accordion 
                 question="Are installment plans available for fees payment?" 
-                answer="Yes, DCHS supports flexible monthly fee structures to ensure healthcare education is financially accessible for everyone." 
+                answer="Yes, Daniyal Group of Colleges supports flexible monthly fee structures to make education more accessible."
                 index="3" />
 
             <x-faq-accordion 
-                question="How do I verify if DCHS is officially accredited?" 
+                question="How do I verify a Daniyal Group of Colleges program’s accreditation?"
                 answer="Daniyal Group of Colleges is fully accredited and affiliated with Punjab Medical Faculty (PMF) and the Pharmacy Council of Pakistan. All diploma certificates are registered and recognized." 
                 index="4" />
         </div>

@@ -3,16 +3,19 @@
 namespace App\Services;
 
 use App\Models\Admission;
+use App\Models\FeeHead;
+use App\Models\FeeVoucher;
+use App\Models\FeeVoucherAudit;
+use App\Models\FeeVoucherItem;
 use App\Models\Student;
 use App\Models\StudentFeeAccount;
 use App\Models\StudentFeeSnapshot;
-use App\Models\FeeVoucher;
-use App\Models\FeeVoucherItem;
-use App\Models\FeeHead;
-use App\Models\FeeStructure;
-use App\Models\FeeVoucherAudit;
+use App\Models\User;
+use App\Services\Fees\FeeVoucherService;
+use App\Services\Fees\OfficialFeeStructureResolver;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Models\Role;
 
 class EnrollmentService
 {
@@ -20,23 +23,22 @@ class EnrollmentService
     {
         return DB::transaction(function () use ($admission, $actorId) {
             // 1. Lock the selected fee structure
-            $structure = FeeStructure::where('course_id', $admission->course_id)->first();
+            $structure = app(OfficialFeeStructureResolver::class)->resolve(
+                $admission->course_id,
+                $admission->campus_id,
+                $admission->academic_session_id,
+                $admission->admission_date,
+            );
 
-            if (!$structure) {
-                $structure = FeeStructure::first();
-            }
-
-            if (!$structure) {
-                $structure = FeeStructure::create([
-                    'course_id' => $admission->course_id,
-                    'total_fee' => 120000.00,
-                    'installment_count' => 12,
+            if (! $structure) {
+                throw ValidationException::withMessages([
+                    'course_id' => 'No active official fee plan exists for the selected campus, session, course, and admission date.',
                 ]);
             }
 
             // Check if already enrolled
             if ($admission->status === 'enrolled' || Student::where('admission_id', $admission->id)->exists()) {
-                throw new \Exception("This applicant is already enrolled.");
+                throw new \Exception('This applicant is already enrolled.');
             }
 
             $campus = $admission->campus;
@@ -49,20 +51,20 @@ class EnrollmentService
             $sequence = Student::where('campus_id', $admission->campus_id)
                 ->where('course_id', $admission->course_id)
                 ->count() + 1;
-            
+
             $seqFormatted = str_pad($sequence, 6, '0', STR_PAD_LEFT);
-            $enrollmentNumber = "DCHS-{$campusCode}-{$courseCode}-{$year}-{$seqFormatted}";
+            $enrollmentNumber = "DGC-{$campusCode}-{$courseCode}-{$year}-{$seqFormatted}";
 
             // 3. Create Corresponding User Account for Student login
             $email = $admission->email;
-            if (!$email || \App\Models\User::where('email', $email)->exists()) {
+            if (! $email || User::where('email', $email)->exists()) {
                 $sanitizedName = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $admission->applicant_name));
-                $email = $sanitizedName . rand(1000, 9999) . '@student.dchs.edu.pk';
+                $email = $sanitizedName.rand(1000, 9999).'@student.dgc.edu.pk';
             }
 
             $userPassword = str_replace('-', '', $admission->cnic) ?: 'password';
 
-            $user = \App\Models\User::create([
+            $user = User::create([
                 'name' => $admission->applicant_name,
                 'email' => $email,
                 'password' => bcrypt($userPassword),
@@ -71,7 +73,7 @@ class EnrollmentService
                 'status' => true,
             ]);
             try {
-                $studentRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Student'], ['guard_name' => 'web']);
+                $studentRole = Role::firstOrCreate(['name' => 'Student'], ['guard_name' => 'web']);
                 $user->roles()->syncWithoutDetaching([$studentRole->id]);
             } catch (\Throwable $e) {
                 // Ignore role assignment failure gracefully
@@ -97,13 +99,17 @@ class EnrollmentService
                 'student_id' => $student->id,
                 'fee_structure_id' => $structure->id,
                 'fee_structure_data' => $structure->toArray(),
+                'admission_id' => $admission->id,
+                'campus_id' => $admission->campus_id,
+                'academic_session_id' => $admission->academic_session_id,
+                'structure_version' => $structure->version,
             ]);
 
             // 6. Calculate Financial Dues
-            $tuitionTotal = $admission->custom_installment_count !== null 
-                ? (float) $admission->custom_tuition_fee 
+            $tuitionTotal = $admission->custom_installment_count !== null
+                ? (float) $admission->custom_tuition_fee
                 : (float) $structure->total_fee;
-            
+
             if ($admission->custom_installment_count !== null) {
                 $admissionFee = (float) $admission->custom_admission_fee;
                 $enrollmentFee = (float) $admission->custom_enrollment_fee;
@@ -111,20 +117,20 @@ class EnrollmentService
                 $examinationFee = (float) $admission->custom_examination_fee;
                 $otherMisc = (float) $admission->custom_other_misc;
             } else {
-                $admissionHead = \App\Models\FeeHead::where('course_id', $admission->course_id)->where('category', 'admission')->first();
+                $admissionHead = FeeHead::where('course_id', $admission->course_id)->where('category', 'admission')->first();
                 $admissionFee = (float) ($admissionHead?->default_amount ?: 0.00);
 
-                $endowmentHead = \App\Models\FeeHead::where('course_id', $admission->course_id)->where('category', 'affiliation')->first();
+                $endowmentHead = FeeHead::where('course_id', $admission->course_id)->where('category', 'affiliation')->first();
                 $enrollmentFee = (float) ($endowmentHead?->default_amount ?: 0.00);
 
-                $verificationHead = \App\Models\FeeHead::where('course_id', $admission->course_id)->where('code', 'like', 'VERIFICATION_%')->first();
+                $verificationHead = FeeHead::where('course_id', $admission->course_id)->where('code', 'like', 'VERIFICATION_%')->first();
                 $verificationFee = (float) ($verificationHead?->default_amount ?: 0.00);
 
-                $examHead = \App\Models\FeeHead::where('course_id', $admission->course_id)->where('code', 'like', 'EXAM_%')->first();
+                $examHead = FeeHead::where('course_id', $admission->course_id)->where('code', 'like', 'EXAM_%')->first();
                 $examinationFee = (float) ($examHead?->default_amount ?: 0.00);
 
-                $miscHead = \App\Models\FeeHead::where('course_id', $admission->course_id)->where('category', 'miscellaneous')->first();
-                $hostelHead = \App\Models\FeeHead::where('course_id', $admission->course_id)->where('category', 'hostel')->first();
+                $miscHead = FeeHead::where('course_id', $admission->course_id)->where('category', 'miscellaneous')->first();
+                $hostelHead = FeeHead::where('course_id', $admission->course_id)->where('category', 'hostel')->first();
                 $otherMisc = (float) ($miscHead?->default_amount ?: 0.00) + (float) ($hostelHead?->default_amount ?: 0.00);
             }
 
@@ -145,8 +151,8 @@ class EnrollmentService
             ]);
 
             // 7. Generate Vouchers
-            $installmentCount = $admission->custom_installment_count !== null 
-                ? (int) $admission->custom_installment_count 
+            $installmentCount = $admission->custom_installment_count !== null
+                ? (int) $admission->custom_installment_count
                 : ($structure->installment_count ?: 12);
             $monthlyTuition = $installmentCount > 0 ? ($tuitionTotal / $installmentCount) : 0.00;
 
@@ -155,6 +161,11 @@ class EnrollmentService
             $appliedConcession = min($concession, $firstVoucherAmount);
             $firstVoucherAmount -= $appliedConcession;
             $remainingConcession = $concession - $appliedConcession;
+            $firstVoucherNumber = FeeVoucherService::generateVoucherNumber(
+                $campus,
+                'new_enrollment',
+                $year,
+            );
 
             $firstVoucher = FeeVoucher::create([
                 'student_id' => $student->id,
@@ -165,13 +176,13 @@ class EnrollmentService
                 'academic_session_id' => $admission->academic_session_id,
                 'fee_structure_id' => $structure->id,
                 'student_fee_account_id' => $feeAccount->id,
-                'voucher_number' => "DGC-{$campusCode}-{$year}-ENR-" . str_pad(1, 6, '0', STR_PAD_LEFT),
+                'voucher_number' => $firstVoucherNumber['number'],
                 'voucher_type' => 'new_enrollment',
                 'orientation' => 'horizontal_three_part',
                 'issue_date' => now(),
                 'due_date' => $admission->admission_date ?: now(),
-                'status' => $firstVoucherAmount <= 0 ? 'paid' : 'issued',
-                'sequence_no' => 1,
+                'status' => 'issued',
+                'sequence_no' => $firstVoucherNumber['sequence'],
                 'subtotal' => $monthlyTuition + $admissionFee + $enrollmentFee + $verificationFee + $otherMisc,
                 'discount_amount' => $appliedConcession,
                 'total_amount' => $firstVoucherAmount,
@@ -228,6 +239,11 @@ class EnrollmentService
                 }
 
                 $dueDate = now()->parse($admission->admission_date ?: now())->addMonths($i - 1);
+                $installmentVoucherNumber = FeeVoucherService::generateVoucherNumber(
+                    $campus,
+                    'monthly_installment',
+                    $year,
+                );
 
                 $instVoucher = FeeVoucher::create([
                     'student_id' => $student->id,
@@ -237,15 +253,15 @@ class EnrollmentService
                     'course_id' => $student->course_id,
                     'academic_session_id' => $admission->academic_session_id,
                     'fee_structure_id' => $structure->id,
-                    'installment_id' => $i,
+                    'installment_id' => null,
                     'student_fee_account_id' => $feeAccount->id,
-                    'voucher_number' => "DGC-{$campusCode}-{$year}-INS-" . str_pad($i, 6, '0', STR_PAD_LEFT),
+                    'voucher_number' => $installmentVoucherNumber['number'],
                     'voucher_type' => 'monthly_installment',
                     'orientation' => 'horizontal_three_part',
                     'issue_date' => now(),
                     'due_date' => $dueDate,
-                    'status' => $voucherAmount <= 0 ? 'paid' : 'upcoming',
-                    'sequence_no' => $i,
+                    'status' => 'upcoming',
+                    'sequence_no' => $installmentVoucherNumber['sequence'],
                     'subtotal' => $monthlyTuition,
                     'discount_amount' => $discountForThisVoucher,
                     'total_amount' => $voucherAmount,
@@ -277,11 +293,18 @@ class EnrollmentService
                 ]);
             }
 
-            // Voucher N+1: Examination Fee (typically due in 5 months)
+            // Examination registration is a separately due charge and therefore
+            // remains an additional voucher outside the tuition installment count.
             if ($examinationFee > 0) {
                 $examDueDate = now()->parse($admission->admission_date ?: now())->addMonths(5);
-                $examSeq = $installmentCount + 1;
-                
+                $examVoucherNumber = FeeVoucherService::generateVoucherNumber(
+                    $campus,
+                    'monthly_installment',
+                    $year,
+                );
+                $examDiscount = min($remainingConcession, $examinationFee);
+                $examAmount = $examinationFee - $examDiscount;
+
                 $examVoucher = FeeVoucher::create([
                     'student_id' => $student->id,
                     'admission_id' => $admission->id,
@@ -291,17 +314,18 @@ class EnrollmentService
                     'academic_session_id' => $admission->academic_session_id,
                     'fee_structure_id' => $structure->id,
                     'student_fee_account_id' => $feeAccount->id,
-                    'voucher_number' => "DGC-{$campusCode}-{$year}-INS-EXAM",
+                    'voucher_number' => $examVoucherNumber['number'],
                     'voucher_type' => 'monthly_installment',
                     'orientation' => 'horizontal_three_part',
                     'issue_date' => now(),
                     'due_date' => $examDueDate,
                     'status' => 'upcoming',
-                    'sequence_no' => $examSeq,
+                    'sequence_no' => $examVoucherNumber['sequence'],
                     'subtotal' => $examinationFee,
-                    'total_amount' => $examinationFee,
+                    'discount_amount' => $examDiscount,
+                    'total_amount' => $examAmount,
                     'paid_amount' => 0.00,
-                    'balance_amount' => $examinationFee,
+                    'balance_amount' => $examAmount,
                     'generated_by' => $actorId ?: 1,
                 ]);
 
@@ -314,7 +338,7 @@ class EnrollmentService
                         'applies_to' => 'both',
                         'is_active' => true,
                         'sort_order' => 1,
-                    ]
+                    ],
                 );
 
                 FeeVoucherItem::create([

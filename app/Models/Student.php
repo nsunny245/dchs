@@ -49,4 +49,14 @@ class Student extends Model
     {
         return $this->belongsTo(Franchisor::class);
     }
+
+    public function installments(): HasMany
+    {
+        return $this->hasMany(StudentInstallment::class);
+    }
+
+    public function ledgerEntries(): HasMany
+    {
+        return $this->hasMany(StudentLedgerEntry::class);
+    }
 }

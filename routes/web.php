@@ -1,11 +1,12 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\CourseController;
-use App\Http\Controllers\CampusController;
 use App\Http\Controllers\AdmissionController;
+use App\Http\Controllers\CampusController;
+use App\Http\Controllers\CourseController;
+use App\Http\Controllers\FeeVoucherPrintController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PdfController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/about/chairmans-message', [HomeController::class, 'chairmansMessage'])->name('about.chairmans-message');
@@ -30,15 +31,21 @@ Route::get('/project-status-report', [PdfController::class, 'projectStatusReport
 Route::middleware('auth:admin,campus')->prefix('pdf')->name('pdf.')->group(function () {
     Route::get('/admission-letter/{admission}', [PdfController::class, 'admissionLetter'])->name('admission-letter');
     Route::get('/admission-agreement/{admission}', [PdfController::class, 'admissionAgreement'])->name('admission-agreement');
+    Route::get('/installment-schedule/{admission}', [PdfController::class, 'installmentSchedule'])->name('installment-schedule');
     Route::get('/fee-receipt/{feePayment}', [PdfController::class, 'feeReceipt'])->name('fee-receipt');
     Route::get('/report-card/{student}', [PdfController::class, 'reportCard'])->name('report-card');
     Route::get('/fee-voucher/{voucher}', [PdfController::class, 'feeVoucher'])->name('fee-voucher');
     Route::get('/payment-receipt/{payment}', [PdfController::class, 'paymentReceipt'])->name('payment-receipt');
 });
 
+Route::middleware('auth:admin,campus')
+    ->get('/admissions/{admission}/complete', [AdmissionController::class, 'complete'])
+    ->name('admissions.complete');
+
 Route::middleware('auth:admin,campus')->prefix('admin/fee-vouchers')->name('fee-vouchers.')->group(function () {
-    Route::get('/{feeVoucher}/print/horizontal', [\App\Http\Controllers\FeeVoucherPrintController::class, 'printHorizontal'])->name('print.horizontal');
-    Route::get('/{feeVoucher}/print/portrait', [\App\Http\Controllers\FeeVoucherPrintController::class, 'printPortrait'])->name('print.portrait');
-    Route::get('/{feeVoucher}/pdf/horizontal', [\App\Http\Controllers\FeeVoucherPrintController::class, 'downloadHorizontal'])->name('pdf.horizontal');
-    Route::get('/{feeVoucher}/pdf/portrait', [\App\Http\Controllers\FeeVoucherPrintController::class, 'downloadPortrait'])->name('pdf.portrait');
+    Route::get('/admission/{admission}/book', [FeeVoucherPrintController::class, 'printBook'])->name('print.book');
+    Route::get('/{feeVoucher}/print/horizontal', [FeeVoucherPrintController::class, 'printHorizontal'])->name('print.horizontal');
+    Route::get('/{feeVoucher}/print/portrait', [FeeVoucherPrintController::class, 'printPortrait'])->name('print.portrait');
+    Route::get('/{feeVoucher}/pdf/horizontal', [FeeVoucherPrintController::class, 'downloadHorizontal'])->name('pdf.horizontal');
+    Route::get('/{feeVoucher}/pdf/portrait', [FeeVoucherPrintController::class, 'downloadPortrait'])->name('pdf.portrait');
 });

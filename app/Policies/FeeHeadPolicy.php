@@ -27,12 +27,13 @@ class FeeHeadPolicy
         if ($user->campus_id && $feeHead->campus_id && $feeHead->campus_id !== $user->campus_id) {
             return false;
         }
+
         return $user->hasAnyRole(['Super Admin', 'Campus Principal', 'Finance']);
     }
 
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['Super Admin', 'Campus Principal', 'Finance']);
+        return $user->hasRole('Super Admin');
     }
 
     public function update(User $user, FeeHead $feeHead): bool
@@ -40,7 +41,8 @@ class FeeHeadPolicy
         if ($user->campus_id && $feeHead->campus_id && $feeHead->campus_id !== $user->campus_id) {
             return false;
         }
-        return $user->hasAnyRole(['Super Admin', 'Campus Principal', 'Finance']);
+
+        return $user->hasRole('Super Admin');
     }
 
     public function delete(User $user, FeeHead $feeHead): bool
@@ -48,6 +50,7 @@ class FeeHeadPolicy
         if ($user->campus_id && $feeHead->campus_id && $feeHead->campus_id !== $user->campus_id) {
             return false;
         }
-        return $user->hasAnyRole(['Super Admin', 'Campus Principal', 'Finance']);
+
+        return $user->hasRole('Super Admin');
     }
 }
