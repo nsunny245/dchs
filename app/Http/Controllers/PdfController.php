@@ -93,7 +93,7 @@ class PdfController extends Controller
     /**
      * Generate Fee Voucher PDF (3-part voucher copy layout)
      */
-    public function feeVoucher(\App\Models\StudentVoucher $voucher)
+    public function feeVoucher(\App\Models\FeeVoucher $voucher)
     {
         $voucher->load(['student', 'student.campus', 'student.course']);
 
@@ -109,7 +109,7 @@ class PdfController extends Controller
     /**
      * Generate Payment Receipt PDF
      */
-    public function paymentReceipt(\App\Models\Payment $payment)
+    public function paymentReceipt(\App\Models\FeePayment $payment)
     {
         $payment->load(['student', 'student.campus', 'student.course', 'collectedBy']);
 

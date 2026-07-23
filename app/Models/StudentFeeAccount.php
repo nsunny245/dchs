@@ -22,11 +22,11 @@ class StudentFeeAccount extends Model
 
     public function vouchers(): HasMany
     {
-        return $this->hasMany(StudentVoucher::class);
+        return $this->hasMany(FeeVoucher::class, 'student_fee_account_id');
     }
 
     public function payments(): HasMany
     {
-        return $this->hasMany(Payment::class);
+        return $this->hasMany(FeePayment::class, 'student_fee_account_id');
     }
 }

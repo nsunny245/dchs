@@ -26,12 +26,12 @@ class FinancialSummaryWidget extends BaseWidget
         $isSuperAdmin = $user->hasRole('Super Admin');
 
         $totalPaidFee = $isSuperAdmin 
-            ? FeePayment::where('status', 'paid')->sum('amount')
-            : FeePayment::where('campus_id', $user->campus_id)->where('status', 'paid')->sum('amount');
+            ? FeePayment::sum('amount')
+            : FeePayment::whereHas('student', fn ($q) => $q->where('campus_id', $user->campus_id))->sum('amount');
             
         $totalPendingFee = $isSuperAdmin 
-            ? FeePayment::whereIn('status', ['unpaid', 'overdue', 'partial'])->sum('amount')
-            : FeePayment::where('campus_id', $user->campus_id)->whereIn('status', ['unpaid', 'overdue', 'partial'])->sum('amount');
+            ? \App\Models\FeeVoucher::whereNotIn('status', ['paid', 'cancelled', 'void'])->sum('balance_amount')
+            : \App\Models\FeeVoucher::where('campus_id', $user->campus_id)->whereNotIn('status', ['paid', 'cancelled', 'void'])->sum('balance_amount');
             
         $totalExpenses = $isSuperAdmin 
             ? Expense::sum('college_revenue_amount')

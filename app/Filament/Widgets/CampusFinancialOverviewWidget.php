@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Models\Campus;
 use App\Models\FeePayment;
+use App\Models\FeeVoucher;
 use App\Models\Expense;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -41,13 +42,16 @@ class CampusFinancialOverviewWidget extends BaseWidget
                     ->sortable(),
                 Tables\Columns\TextColumn::make('collected_fee')
                     ->label('Collected Fee')
-                    ->state(fn (Campus $record) => FeePayment::where('campus_id', $record->id)->where('status', 'paid')->sum('amount'))
+                    ->state(fn (Campus $record) => FeePayment::whereHas('student', fn ($q) => $q->where('campus_id', $record->id))
+                        ->sum('amount'))
                     ->money('PKR')
                     ->alignRight()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('pending_fee')
                     ->label('Pending Fee')
-                    ->state(fn (Campus $record) => FeePayment::where('campus_id', $record->id)->whereIn('status', ['unpaid', 'overdue', 'partial'])->sum('amount'))
+                    ->state(fn (Campus $record) => FeeVoucher::where('campus_id', $record->id)
+                        ->whereNotIn('status', ['paid', 'cancelled', 'void'])
+                        ->sum('balance_amount'))
                     ->money('PKR')
                     ->color(fn ($state) => $state > 0 ? 'warning' : 'gray')
                     ->alignRight()

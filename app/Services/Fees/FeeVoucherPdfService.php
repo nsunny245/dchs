@@ -1,0 +1,62 @@
+<?php
+
+namespace App\Services\Fees;
+
+use App\Models\FeeVoucher;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Response;
+
+class FeeVoucherPdfService
+{
+    public static function streamHorizontal(FeeVoucher $voucher)
+    {
+        $voucher->load(['student', 'student.campus', 'student.course', 'items.feeHead']);
+
+        $pdf = Pdf::loadView('fees.vouchers.horizontal-three-part', [
+            'voucher' => $voucher,
+        ]);
+
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->stream("fee-voucher-horizontal-{$voucher->voucher_number}.pdf");
+    }
+
+    public static function downloadHorizontal(FeeVoucher $voucher)
+    {
+        $voucher->load(['student', 'student.campus', 'student.course', 'items.feeHead']);
+
+        $pdf = Pdf::loadView('fees.vouchers.horizontal-three-part', [
+            'voucher' => $voucher,
+        ]);
+
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->download("fee-voucher-horizontal-{$voucher->voucher_number}.pdf");
+    }
+
+    public static function streamPortrait(FeeVoucher $voucher)
+    {
+        $voucher->load(['student', 'student.campus', 'student.course', 'items.feeHead']);
+
+        $pdf = Pdf::loadView('fees.vouchers.portrait-three-part', [
+            'voucher' => $voucher,
+        ]);
+
+        $pdf->setPaper('A4', 'landscape');
+
+        return $pdf->stream("fee-voucher-portrait-{$voucher->voucher_number}.pdf");
+    }
+
+    public static function downloadPortrait(FeeVoucher $voucher)
+    {
+        $voucher->load(['student', 'student.campus', 'student.course', 'items.feeHead']);
+
+        $pdf = Pdf::loadView('fees.vouchers.portrait-three-part', [
+            'voucher' => $voucher,
+        ]);
+
+        $pdf->setPaper('A4', 'landscape');
+
+        return $pdf->download("fee-voucher-portrait-{$voucher->voucher_number}.pdf");
+    }
+}

@@ -41,6 +41,8 @@ use App\Filament\Widgets\FinancialSummaryWidget;
 use App\Filament\Widgets\CampusFinancialOverviewWidget;
 
 use App\Filament\Resources\AttendanceResource;
+use App\Filament\Resources\FeeHeadResource;
+use App\Filament\Resources\FeeVoucherResource;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -98,6 +100,8 @@ class AdminPanelProvider extends PanelProvider
                 ContactSubmissionResource::class,
                 FeeStructureResource::class,
                 FeeCollectionResource::class,
+                FeeHeadResource::class,
+                FeeVoucherResource::class,
                 ExpenseCategoryResource::class,
                 ExpenseResource::class,
                 SuperAdminFranchisorPaymentResource::class,

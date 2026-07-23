@@ -35,3 +35,10 @@ Route::middleware('auth:admin,campus')->prefix('pdf')->name('pdf.')->group(funct
     Route::get('/fee-voucher/{voucher}', [PdfController::class, 'feeVoucher'])->name('fee-voucher');
     Route::get('/payment-receipt/{payment}', [PdfController::class, 'paymentReceipt'])->name('payment-receipt');
 });
+
+Route::middleware('auth:admin,campus')->prefix('admin/fee-vouchers')->name('fee-vouchers.')->group(function () {
+    Route::get('/{feeVoucher}/print/horizontal', [\App\Http\Controllers\FeeVoucherPrintController::class, 'printHorizontal'])->name('print.horizontal');
+    Route::get('/{feeVoucher}/print/portrait', [\App\Http\Controllers\FeeVoucherPrintController::class, 'printPortrait'])->name('print.portrait');
+    Route::get('/{feeVoucher}/pdf/horizontal', [\App\Http\Controllers\FeeVoucherPrintController::class, 'downloadHorizontal'])->name('pdf.horizontal');
+    Route::get('/{feeVoucher}/pdf/portrait', [\App\Http\Controllers\FeeVoucherPrintController::class, 'downloadPortrait'])->name('pdf.portrait');
+});

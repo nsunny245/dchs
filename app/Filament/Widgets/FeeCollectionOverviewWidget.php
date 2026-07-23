@@ -3,8 +3,8 @@
 namespace App\Filament\Widgets;
 
 use App\Models\StudentFeeAccount;
-use App\Models\Payment;
-use App\Models\StudentVoucher;
+use App\Models\FeePayment;
+use App\Models\FeeVoucher;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Schema;
@@ -16,7 +16,7 @@ class FeeCollectionOverviewWidget extends BaseWidget
     protected function getStats(): array
     {
         try {
-            if (!Schema::hasTable('student_fee_accounts') || !Schema::hasTable('payments') || !Schema::hasTable('student_vouchers')) {
+            if (!Schema::hasTable('student_fee_accounts') || !Schema::hasTable('fee_payments') || !Schema::hasTable('fee_vouchers')) {
                 return $this->getEmptyStats();
             }
 
@@ -33,8 +33,8 @@ class FeeCollectionOverviewWidget extends BaseWidget
 
             // Scoped queries
             $accountQuery = StudentFeeAccount::query();
-            $paymentQuery = Payment::query();
-            $voucherQuery = StudentVoucher::query();
+            $paymentQuery = FeePayment::query();
+            $voucherQuery = FeeVoucher::query();
 
             if (!$isSuper && $campusId) {
                 $accountQuery->whereHas('student', fn($q) => $q->where('campus_id', $campusId));
@@ -45,7 +45,7 @@ class FeeCollectionOverviewWidget extends BaseWidget
             $outstanding = (float) $accountQuery->sum('balance');
             $collectedToday = (float) $paymentQuery->clone()->whereDate('payment_date', now()->toDateString())->sum('amount');
             $collectedMonth = (float) $paymentQuery->clone()->whereMonth('payment_date', now()->month)->whereYear('payment_date', now()->year)->sum('amount');
-            $overdue = (float) $voucherQuery->where('due_date', '<', now()->toDateString())->whereNotIn('status', ['paid', 'waived', 'cancelled'])->sum('balance');
+            $overdue = (float) $voucherQuery->where('due_date', '<', now()->toDateString())->whereNotIn('status', ['paid', 'waived', 'cancelled'])->sum('balance_amount');
 
             return [
                 Stat::make('Collected Today', 'PKR ' . number_format($collectedToday, 2))

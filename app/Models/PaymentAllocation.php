@@ -11,11 +11,11 @@ class PaymentAllocation extends Model
 
     public function payment(): BelongsTo
     {
-        return $this->belongsTo(Payment::class);
+        return $this->belongsTo(FeePayment::class, 'payment_id');
     }
 
     public function voucher(): BelongsTo
     {
-        return $this->belongsTo(StudentVoucher::class, 'student_voucher_id');
+        return $this->belongsTo(FeeVoucher::class, 'fee_voucher_id');
     }
 }

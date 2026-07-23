@@ -36,4 +36,9 @@ class CreateAdmission extends CreateRecord
             }
         }
     }
+
+    protected function getFormActions(): array
+    {
+        return [];
+    }
 }

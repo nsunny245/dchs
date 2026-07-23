@@ -4,10 +4,10 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\FeeCollectionResource\Pages;
 use App\Models\StudentFeeAccount;
-use App\Models\StudentVoucher;
-use App\Models\Payment;
+use App\Models\FeeVoucher;
+use App\Models\FeePayment;
 use App\Models\PaymentAllocation;
-use App\Models\RebuildAuditLog;
+use App\Models\FeeVoucherAudit;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -84,10 +84,7 @@ class FeeCollectionResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('student.course.name')
                     ->label('Fee Structure Plan Name')
-                    ->state(function ($record) {
-                        $structure = \App\Models\FeeStructure::where('course_id', $record->student?->course_id)->first();
-                        return $structure?->name ?: ($record->student?->course?->name . ' Plan');
-                    })
+                    ->state(fn ($record) => ($record->student?->course?->name ?? 'N/A') . ' Standard Plan')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('net_payable')
                     ->label('Total Net Fee')
@@ -105,10 +102,10 @@ class FeeCollectionResource extends Resource
                     ->label('Overdue')
                     ->money('PKR')
                     ->state(function ($record) {
-                        return StudentVoucher::where('student_fee_account_id', $record->id)
+                        return FeeVoucher::where('student_fee_account_id', $record->id)
                             ->where('due_date', '<', now())
                             ->whereNotIn('status', ['paid', 'waived', 'cancelled'])
-                            ->sum('balance');
+                            ->sum('balance_amount');
                     })
                     ->color('danger'),
             ])
@@ -199,9 +196,9 @@ class FeeCollectionResource extends Resource
                                 Forms\Components\Select::make('selected_voucher_id')
                                     ->label('Target Voucher')
                                     ->options(function ($record) {
-                                        return StudentVoucher::where('student_fee_account_id', $record->id)
-                                            ->whereNotIn('status', ['paid', 'waived', 'cancelled'])
-                                            ->pluck('title', 'id');
+                                         return FeeVoucher::where('student_fee_account_id', $record->id)
+                                             ->whereNotIn('status', ['paid', 'waived', 'cancelled'])
+                                             ->pluck('title', 'id');
                                     })
                                     ->visible(fn (Forms\Get $get) => $get('allocation_rule') === 'selected_voucher')
                                     ->required(fn (Forms\Get $get) => $get('allocation_rule') === 'selected_voucher'),
@@ -213,51 +210,30 @@ class FeeCollectionResource extends Resource
                     ->action(function ($record, array $data) {
                         DB::transaction(function () use ($record, $data) {
                             $amount = (float)$data['amount'];
-                            $method = $data['payment_method'];
-                            $ref = $data['transaction_reference'];
-                            $bank = $data['bank_account'];
-                            $date = $data['payment_date'];
-                            $notes = $data['notes'];
                             $rule = $data['allocation_rule'];
-
-                            // Generate receipt number
-                            $receiptNumber = 'REC-' . strtoupper(Str::random(10));
-
-                            // Create Payment transaction
-                            $payment = Payment::create([
-                                'student_id' => $record->student_id,
-                                'student_fee_account_id' => $record->id,
-                                'receipt_number' => $receiptNumber,
-                                'amount' => $amount,
-                                'payment_date' => $date,
-                                'payment_method' => $method,
-                                'transaction_reference' => $ref,
-                                'bank_account' => $bank,
-                                'notes' => $notes,
-                                'collected_by' => filament()->auth()->id(),
-                            ]);
 
                             $remainingAmount = $amount;
 
                             if ($rule === 'selected_voucher') {
-                                $voucher = StudentVoucher::find($data['selected_voucher_id']);
+                                $voucher = FeeVoucher::find($data['selected_voucher_id']);
                                 if ($voucher) {
-                                    $allocated = min($remainingAmount, (float)$voucher->balance);
-                                    $voucher->paid_amount += $allocated;
-                                    $voucher->balance -= $allocated;
-                                    $voucher->status = $voucher->balance <= 0 ? 'paid' : 'partially_paid';
-                                    $voucher->save();
-
+                                    $allocated = min($remainingAmount, (float)$voucher->balance_amount);
+                                    
+                                    $paymentData = $data;
+                                    $paymentData['amount'] = $allocated;
+                                    
+                                    $payment = FeeVoucherService::recordPayment($voucher, $paymentData);
+                                    
                                     PaymentAllocation::create([
                                         'payment_id' => $payment->id,
-                                        'student_voucher_id' => $voucher->id,
+                                        'fee_voucher_id' => $voucher->id,
                                         'amount' => $allocated,
                                     ]);
                                     $remainingAmount -= $allocated;
                                 }
                             } else {
                                 // Default Allocation: Oldest outstanding first
-                                $vouchers = StudentVoucher::where('student_fee_account_id', $record->id)
+                                $vouchers = FeeVoucher::where('student_fee_account_id', $record->id)
                                     ->whereNotIn('status', ['paid', 'waived', 'cancelled'])
                                     ->orderBy('due_date', 'asc')
                                     ->orderBy('sequence_no', 'asc')
@@ -266,15 +242,16 @@ class FeeCollectionResource extends Resource
                                 foreach ($vouchers as $voucher) {
                                     if ($remainingAmount <= 0) break;
 
-                                    $allocated = min($remainingAmount, (float)$voucher->balance);
-                                    $voucher->paid_amount += $allocated;
-                                    $voucher->balance -= $allocated;
-                                    $voucher->status = $voucher->balance <= 0 ? 'paid' : 'partially_paid';
-                                    $voucher->save();
+                                    $allocated = min($remainingAmount, (float)$voucher->balance_amount);
+                                    
+                                    $paymentData = $data;
+                                    $paymentData['amount'] = $allocated;
+
+                                    $payment = FeeVoucherService::recordPayment($voucher, $paymentData);
 
                                     PaymentAllocation::create([
                                         'payment_id' => $payment->id,
-                                        'student_voucher_id' => $voucher->id,
+                                        'fee_voucher_id' => $voucher->id,
                                         'amount' => $allocated,
                                     ]);
 
@@ -282,10 +259,9 @@ class FeeCollectionResource extends Resource
                                 }
                             }
 
-                            // If there is any leftover amount, it is stored as credit (advance payment)
-                            // We can deduct it directly from future upcoming vouchers
+                            // If there is any leftover amount, it is applied to future upcoming vouchers
                             if ($remainingAmount > 0) {
-                                $upcomingVouchers = StudentVoucher::where('student_fee_account_id', $record->id)
+                                $upcomingVouchers = FeeVoucher::where('student_fee_account_id', $record->id)
                                     ->where('status', 'upcoming')
                                     ->orderBy('due_date', 'asc')
                                     ->get();
@@ -293,35 +269,22 @@ class FeeCollectionResource extends Resource
                                 foreach ($upcomingVouchers as $voucher) {
                                     if ($remainingAmount <= 0) break;
 
-                                    $allocated = min($remainingAmount, (float)$voucher->balance);
-                                    $voucher->paid_amount += $allocated;
-                                    $voucher->balance -= $allocated;
-                                    $voucher->status = $voucher->balance <= 0 ? 'paid' : 'partially_paid';
-                                    $voucher->save();
+                                    $allocated = min($remainingAmount, (float)$voucher->balance_amount);
+                                    
+                                    $paymentData = $data;
+                                    $paymentData['amount'] = $allocated;
+
+                                    $payment = FeeVoucherService::recordPayment($voucher, $paymentData);
 
                                     PaymentAllocation::create([
                                         'payment_id' => $payment->id,
-                                        'student_voucher_id' => $voucher->id,
+                                        'fee_voucher_id' => $voucher->id,
                                         'amount' => $allocated,
                                     ]);
 
                                     $remainingAmount -= $allocated;
                                 }
                             }
-
-                            // Update StudentFeeAccount balances
-                            $record->amount_paid += $amount;
-                            $record->balance = max(0, $record->net_payable - $record->amount_paid);
-                            $record->status = $record->balance <= 0 ? 'paid' : 'active';
-                            $record->save();
-
-                            // Audit Log
-                            RebuildAuditLog::create([
-                                'user_id' => filament()->auth()->id(),
-                                'action' => 'fee_collection',
-                                'description' => "Collected payment of PKR {$amount} (Receipt: {$receiptNumber}) for student {$record->student->full_name} ({$record->student->enrollment_number}).",
-                                'ip_address' => request()->ip(),
-                            ]);
                         });
 
                         Notification::make()

@@ -1,3 +1,5 @@
+/* Import Premium Google Fonts for modern typography */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 /* Point Tailwind v4 to Filament vendor views */
@@ -5,61 +7,93 @@
 
 /* Brand Colors Integration (Tailwind v4) */
 @theme {
-    --color-navy-50: #EAEDF2;
-    --color-navy-100: #D2D8E3;
-    --color-navy-200: #A6B0C4;
-    --color-navy-400: #4C5C7A;
-    --color-navy-700: #1A2E4F;
-    --color-navy-900: #12223C;
-    --color-navy-950: #0A1526;
+    --color-navy-50: #FAF3E6;
+    --color-navy-100: #D9E2EC;
+    --color-navy-200: #12365D;
+    --color-navy-400: #5E6D7E;
+    --color-navy-700: #082245;
+    --color-navy-900: #081F35;
+    --color-navy-950: #081F35;
 
-    --color-gold-50: #FDF4E4;
-    --color-gold-100: #FBE7C4;
-    --color-gold-300: #F3CD8B;
-    --color-gold-500: #EBB45A;
-    --color-gold-600: #D89A34;
-    --color-gold-700: #B37B22;
+    --color-gold-50: #FAF3E6;
+    --color-gold-100: #DCB371;
+    --color-gold-500: #C9963C;
+    --color-gold-600: #C9963C;
+    --color-gold-700: #081F35;
 
-    --color-brand-success: #1E8A5F;
-    --color-brand-warning: #EBB45A;
-    --color-brand-danger: #C0392B;
-    --color-brand-info: #2C6FAD;
+    --color-brand-success: #16855B;
+    --color-brand-warning: #B7791F;
+    --color-brand-danger: #C43D4B;
+    --color-brand-info: #12365D;
+}
+
+/* Global Font Assignment */
+body,
+.fi-layout,
+.fi-main,
+.fi-sidebar,
+.fi-topbar,
+.fi-section,
+.fi-card,
+input,
+select,
+textarea,
+button {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
 }
 
 /* Page Background Reset */
 body,
 .fi-layout,
 .fi-main {
-    background-color: #F7F8FA !important;
+    background-color: #F4F7FB !important;
+    color: #102033 !important;
 }
 
-/* Cards & Section Styling Alignment */
+/* Cards & Section Styling Alignment - Glassmorphism & Depth */
 .fi-section,
 .fi-card,
 .fi-ta-ctn,
 .fi-wi-widget {
-    border: 1px solid #E1E4EA !important;
-    border-radius: 8px !important;
-    box-shadow: 0 1px 2px rgba(18, 34, 60, 0.06) !important;
+    border: 1px solid #D9E2EC !important;
+    border-top: 4px solid #082245 !important; /* Premium navy top bar */
+    border-radius: 12px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
     background-color: #FFFFFF !important;
+    overflow: hidden !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Section Header Styling - Accent Tints */
+.fi-section-header {
+    background-color: #FAF3E6 !important; /* Pale gold header background */
+    border-bottom: 1px solid #D9E2EC !important;
+    padding: 14px 20px !important;
+}
+
+.fi-section-header-title,
+.fi-section-header h3 {
+    color: #081F35 !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
 }
 
 /* Sidebar Branding & Navigation Customization */
 .fi-sidebar {
-    background-color: #0A1526 !important;
-    border-right: 1px solid #12223C !important;
+    background: linear-gradient(180deg, #081F35 0%, #12365D 100%) !important;
+    border-right: 1px solid #081F35 !important;
 }
 
 /* Navigation Group Labels styling */
 .fi-sidebar-nav-group-label,
 .fi-sidebar-group-label {
-    color: #A6B0C4 !important;
+    color: #DCB371 !important; /* Soft gold navigation headers */
     font-size: 11px !important;
     text-transform: uppercase !important;
     letter-spacing: 0.075em !important;
-    font-weight: 600 !important;
-    padding-left: 12px !important;
-    margin-top: 16px !important;
+    font-weight: 700 !important;
+    padding-left: 14px !important;
+    margin-top: 18px !important;
     margin-bottom: 8px !important;
 }
 
@@ -73,24 +107,20 @@ body,
 .fi-sidebar-item-button {
     transition: all 0.2s ease !important;
     border-left: 4px solid transparent !important;
+    padding: 8px 12px !important;
+    margin: 2px 8px !important;
+    border-radius: 6px !important;
 }
 
 .fi-sidebar-item-button:hover {
-    background-color: #1A2E4F !important;
-}
-
-.fi-sidebar-item-button:hover *,
-.fi-sidebar-item-button:hover .fi-sidebar-item-icon {
-    color: #FFFFFF !important;
+    background-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 /* Active Nav Item Indicator & Left Gold Bar */
 .fi-sidebar-item-active .fi-sidebar-item-button,
 .fi-sidebar-item-button[aria-current="page"] {
-    background-color: #1A2E4F !important;
-    border-left-color: #EBB45A !important;
-    border-top-left-radius: 0px !important;
-    border-bottom-left-radius: 0px !important;
+    background-color: rgba(201, 150, 60, 0.15) !important; /* Gold tint background */
+    border-left-color: #C9963C !important;
     font-weight: 700 !important;
 }
 
@@ -98,145 +128,421 @@ body,
 .fi-sidebar-item-button[aria-current="page"] *,
 .fi-sidebar-item-active .fi-sidebar-item-icon,
 .fi-sidebar-item-button[aria-current="page"] .fi-sidebar-item-icon {
-    color: #EBB45A !important; /* Gold */
-}
-
-.fi-sidebar-collapse-button {
-    color: #A6B0C4 !important;
+    color: #C9963C !important; /* Gold */
 }
 
 /* User Account Menu Avatar styling */
 .fi-user-avatar {
-    background-color: #12223C !important;
-    color: #EBB45A !important;
-    border: 2px solid #EBB45A !important;
+    background-color: #081F35 !important;
+    color: #C9963C !important;
+    border: 2px solid #C9963C !important;
     font-weight: 700 !important;
 }
 
-/* Stat Cards Top Borders using CSS :has() */
+/* Stat Cards Overview - Vibrant alerts backgrounds & borders */
 .fi-wi-stats-overview-stat {
-    border-top: 3px solid #EBB45A !important; /* fallback to gold brand accent */
+    border-top: 4px solid #C9963C !important;
 }
 
 .fi-wi-stats-overview-stat:has(.text-success-600),
 .fi-wi-stats-overview-stat:has(.fi-color-success) {
-    border-top-color: #1E8A5F !important;
+    border-top-color: #16855B !important;
+    background-color: #F0FDF4 !important;
 }
 
 .fi-wi-stats-overview-stat:has(.text-danger-600),
 .fi-wi-stats-overview-stat:has(.fi-color-danger) {
-    border-top-color: #C0392B !important;
+    border-top-color: #C43D4B !important;
+    background-color: #FEF2F2 !important;
 }
 
 .fi-wi-stats-overview-stat:has(.text-warning-600),
 .fi-wi-stats-overview-stat:has(.fi-color-warning) {
-    border-top-color: #EBB45A !important;
+    border-top-color: #B7791F !important;
+    background-color: #FFFDF5 !important;
 }
 
 .fi-wi-stats-overview-stat:has(.text-info-600),
 .fi-wi-stats-overview-stat:has(.fi-color-info) {
-    border-top-color: #2C6FAD !important;
+    border-top-color: #12365D !important;
+    background-color: #F0F9FF !important;
 }
 
-/* Stat Content layout tweaks */
-.fi-wi-stats-overview-stat-label {
-    color: #12223C !important;
-    font-weight: 700 !important;
+/* Table Headers Styling - Navy and gold bottom line */
+.fi-ta-header-cell {
+    background-color: #082245 !important;
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
+    padding: 14px 16px !important;
+    border-bottom: 3px solid #C9963C !important;
 }
 
-/* Table Design Customization */
-.fi-ta-header,
-.fi-ta-header-cell,
-thead tr {
-    background-color: #EAEDF2 !important;
+.fi-ta-header-cell *,
+.fi-ta-header-cell span {
+    color: #FFFFFF !important;
 }
 
-thead th span,
-thead th {
-    color: #12223C !important;
-    font-weight: 700 !important;
+/* Table Rows - Smooth hover transitions */
+.fi-ta-row {
+    transition: all 0.2s ease !important;
 }
 
-/* Table row hover and zebra striping */
-tbody tr:hover,
 .fi-ta-row:hover {
-    background-color: #FDF4E4 !important;
+    background-color: #F1F7FC !important;
 }
 
-tbody tr:nth-child(even),
-.fi-ta-row:nth-child(even) {
-    background-color: #F7F8FA !important;
-}
-
-/* Topbar logo height tweak */
-.fi-logo {
-    max-height: 3.5rem !important;
-}
-
-/* Login Page & Global Button Styling overrides */
-.fi-simple-main {
+/* Forms Input Customization - 46px heights, 10px radii, visible gold rings */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+input[type="password"],
+input[type="date"],
+select,
+.fi-input-wrp {
+    height: 46px !important;
+    border-radius: 10px !important;
+    border: 1px solid #D9E2EC !important;
     background-color: #FFFFFF !important;
-    border: 1px solid #E1E4EA !important;
-    box-shadow: 0 12px 32px rgba(18, 34, 60, 0.16) !important;
-    border-radius: 12px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02) !important;
 }
 
-.fi-simple-layout {
-    background: radial-gradient(circle at top right, #EAEDF2, #D2D8E3) !important;
-}
-
-/* Primary Button Override for Sign In */
-.fi-btn.fi-btn-color-primary,
-button[type="submit"].fi-btn,
-.fi-simple-main button[type="submit"] {
-    background-color: #EBB45A !important; /* Gold */
-    color: #0A1526 !important; /* Dark Navy text */
-    font-weight: 700 !important;
-    transition: all 0.3s ease !important;
-    border-radius: 9999px !important;
+.fi-input-wrp input {
+    height: 100% !important;
     border: none !important;
-    display: inline-flex !important;
-    justify-content: center !important;
-    align-items: center !important;
+    box-shadow: none !important;
 }
 
-.fi-btn.fi-btn-color-primary:hover,
-button[type="submit"].fi-btn:hover,
-.fi-simple-main button[type="submit"]:hover {
-    background-color: #D89A34 !important; /* Darker gold */
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 12px rgba(235, 180, 90, 0.3) !important;
-}
-
-/* Make sure inner text of button is readable */
-.fi-btn.fi-btn-color-primary *,
-button[type="submit"].fi-btn *,
-.fi-simple-main button[type="submit"] * {
-    color: #0A1526 !important;
-}
-
-/* Input borders focus ring colors */
 .fi-input-wrp:focus-within {
-    border-color: #12223C !important;
-    box-shadow: 0 0 0 1px #12223C !important;
+    border-color: #C9963C !important;
+    box-shadow: 0 0 0 3px rgba(201, 150, 60, 0.2) !important;
 }
 
-/* Global Select Input Dropdown Arrow repeating fix */
+/* Correct the select-field bug showing repeated chevrons */
 select,
 .fi-select-input,
-.fi-select select,
-.fi-fo-select select {
+.fi-select select {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%235E6D7E' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E") !important;
     background-repeat: no-repeat !important;
     background-position: right 0.75rem center !important;
     background-size: 1.25rem 1.25rem !important;
     padding-right: 2.5rem !important;
 }
 
-/* Center main content container next to the sidebar with equal left/right margins */
+.fi-select-input-wrp .fi-select-input-icon-wrapper,
+.fi-select-wrp .fi-select-icon {
+    display: none !important;
+}
+
+/* Buttons Styling */
+.fi-btn.fi-btn-color-primary,
+button[type="submit"].fi-btn {
+    background-color: #082245 !important;
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border: 1px solid #082245 !important;
+}
+
+.fi-btn.fi-btn-color-primary:hover,
+button[type="submit"].fi-btn:hover {
+    background-color: #081F35 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(8, 31, 53, 0.15) !important;
+}
+
+.fi-btn.fi-btn-color-primary *,
+button[type="submit"].fi-btn * {
+    color: #FFFFFF !important;
+}
+
+/* Limit content area width globally to 1280px */
+.fi-main-ctn,
 .fi-main {
+    max-width: 1280px !important;
     margin-left: auto !important;
     margin-right: auto !important;
     width: 100% !important;
+}
+
+/* Connected Infographic Chevrons Stepper */
+.fi-fo-wizard-header,
+ol.fi-fo-wizard-header,
+.fi-fo-wizard-steps {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    gap: 0px !important;
+    border: none !important;
+    padding: 0px !important;
+    margin-bottom: 24px !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Base style for step chevrons (Upcoming Steps) */
+.fi-fo-wizard-header-step {
+    flex: 1 1 0% !important;
+    min-width: 140px !important;
+    background-color: #F4F7FB !important; /* Pale background */
+    color: #5E6D7E !important; /* Grey-blue text */
+    border: 1px solid #D9E2EC !important; /* Soft border */
+    border-radius: 0px !important;
+    clip-path: polygon(0% 0%, calc(100% - 16px) 0%, 100% 50%, calc(100% - 16px) 100%, 0% 100%, 16px 50%) !important;
+    padding: 14px 12px 14px 28px !important;
+    margin-right: -14px !important;
+    display: inline-flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    transition: all 0.3s ease !important;
+    position: relative !important;
+    box-shadow: none !important;
+}
+
+.fi-fo-wizard-header-step-button {
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+}
+
+/* First step left edge */
+.fi-fo-wizard-header-step:first-child {
+    clip-path: polygon(0% 0%, calc(100% - 16px) 0%, 100% 50%, calc(100% - 16px) 100%, 0% 100%) !important;
+    padding-left: 16px !important;
+}
+
+/* Last step right edge */
+.fi-fo-wizard-header-step:last-child {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 16px 50%) !important;
+    margin-right: 0px !important;
+}
+
+/* Completed Steps Chevron: Navy background, White text */
+.fi-fo-wizard-header-step.fi-completed {
+    background-color: #082245 !important;
+    color: #FFFFFF !important;
+    border-color: #082245 !important;
+    z-index: 5 !important;
+}
+
+.fi-fo-wizard-header-step.fi-completed *,
+.fi-fo-wizard-header-step.fi-completed span {
+    color: #FFFFFF !important;
+}
+
+.fi-fo-wizard-header-step.fi-completed::after {
+    content: "Completed" !important;
+    font-size: 8px !important;
+    color: #DCB371 !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    margin-top: 1px !important;
+}
+
+/* Current Step Chevron: Gold background, Deep navy text */
+.fi-fo-wizard-header-step.fi-active {
+    background-color: #C9963C !important;
+    color: #081F35 !important;
+    border-color: #C9963C !important;
+    font-weight: 700 !important;
+    z-index: 10 !important;
+    box-shadow: 0 4px 12px rgba(201, 150, 60, 0.25) !important;
+}
+
+.fi-fo-wizard-header-step.fi-active *,
+.fi-fo-wizard-header-step.fi-active span {
+    color: #081F35 !important;
+}
+
+.fi-fo-wizard-header-step.fi-active::after {
+    content: "Current Step" !important;
+    font-size: 8px !important;
+    color: #081F35 !important;
+    opacity: 0.8 !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    margin-top: 1px !important;
+}
+
+/* Hide default description / divider svgs */
+.fi-fo-wizard-header-step-description,
+.fi-fo-wizard-header-step-separator {
+    display: none !important;
+}
+
+/* Stepper Indicator Circles */
+.fi-fo-wizard-header-step-icon-ctn {
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    transition: all 0.3s ease !important;
+}
+
+.fi-fo-wizard-header-step-icon {
+    width: 16px !important;
+    height: 16px !important;
+}
+
+/* Completed circle indicator: white border, navy background, checkmark */
+.fi-fo-wizard-header-step.fi-completed .fi-fo-wizard-header-step-icon-ctn {
+    background-color: #082245 !important;
+    border: 2px solid #FFFFFF !important;
+}
+.fi-fo-wizard-header-step.fi-completed .fi-fo-wizard-header-step-icon-ctn * {
+    color: #FFFFFF !important;
+}
+
+/* Current circle indicator: white circle, navy icon/number */
+.fi-fo-wizard-header-step.fi-active .fi-fo-wizard-header-step-icon-ctn {
+    background-color: #FFFFFF !important;
+    border: none !important;
+}
+.fi-fo-wizard-header-step.fi-active .fi-fo-wizard-header-step-icon-ctn * {
+    color: #081F35 !important;
+}
+
+/* Upcoming circle indicator: white background, grey border */
+.fi-fo-wizard-header-step:not(.fi-active):not(.fi-completed) .fi-fo-wizard-header-step-icon-ctn {
+    background-color: #FFFFFF !important;
+    border: 2px solid #D9E2EC !important;
+}
+.fi-fo-wizard-header-step:not(.fi-active):not(.fi-completed) .fi-fo-wizard-header-step-icon-ctn * {
+    color: #5E6D7E !important;
+}
+
+/* Style label text with dynamic step numbers */
+.fi-fo-wizard-header,
+ol.fi-fo-wizard-header,
+.fi-fo-wizard-steps {
+    counter-reset: step-counter !important;
+}
+
+.fi-fo-wizard-header-step {
+    counter-increment: step-counter !important;
+}
+
+.fi-fo-wizard-header-step-label {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+}
+
+.fi-fo-wizard-header-step-label::before {
+    content: "0" counter(step-counter) "  " !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    display: inline !important;
+}
+
+/* Fail-safe Grid styling for the split layout */
+.admission-split-grid {
+    display: grid !important;
+    grid-template-columns: 3fr 1fr !important;
+    gap: 24px !important;
+    align-items: start !important;
+}
+
+@media (max-width: 1024px) {
+    .admission-split-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Mobile Stepper Adjustments */
+@media (max-width: 640px) {
+    .fi-fo-wizard-header,
+    ol.fi-fo-wizard-header,
+    .fi-fo-wizard-steps {
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        padding: 4px !important;
+    }
+    .fi-fo-wizard-header-step {
+        flex: 0 0 auto !important;
+        min-width: 120px !important;
+        padding: 8px 10px 8px 18px !important;
+    }
+    .fi-fo-wizard-header-step::after {
+        display: none !important;
+    }
+}
+
+/* Admission Form & Wizard Step Content Card Wrap */
+.fi-fo-field-wrp-label label,
+.fi-fo-field-wrp label {
+    color: #102033 !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    letter-spacing: 0.01em !important;
+}
+
+.fi-fo-wizard-step,
+.fi-fo-wizard-step-container,
+div[role="tabpanel"].fi-fo-wizard-step {
+    padding: 24px 32px !important;
+    background-color: #FFFFFF !important;
+    border: 1px solid #D9E2EC !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+    margin-top: 16px !important;
+}
+
+/* Repeater Item (Academic Details) Expandable Cards */
+.fi-fo-repeater-item {
+    border-left: 5px solid #C9963C !important; /* Gold border prefix */
+    border-radius: 10px !important;
+    background-color: #FAF3E6 !important; /* Pale gold background tint */
+    margin-bottom: 16px !important;
+    padding: 16px 20px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.2s ease !important;
+}
+
+.fi-fo-repeater-item:hover {
+    border-left-color: #082245 !important;
+    background-color: #FFFFFF !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* File Upload Dropzones */
+.fi-fo-fileupload,
+.fi-fo-file-input,
+.fi-fo-fileupload-wrp {
+    border: 2px dashed #D9E2EC !important;
+    border-radius: 10px !important;
+    background-color: #F4F7FB !important;
+    transition: all 0.2s ease !important;
+}
+
+.fi-fo-fileupload:hover,
+.fi-fo-fileupload-wrp:hover {
+    border-color: #C9963C !important;
+    background-color: #FAF3E6 !important;
+}
+
+/* Toggle switch styling */
+.fi-fo-toggle button[aria-checked="true"],
+.fi-fo-toggle button.bg-primary-600 {
+    background-color: #16855B !important; /* Success Green */
+}
+
+/* Wizard navigation actions styling overrides */
+.fi-fo-wizard-navigation,
+.fi-fo-wizard-nav-actions {
+    margin-top: 24px !important;
+    padding-top: 16px !important;
+    border-top: 1px solid #D9E2EC !important;
 }
 
 /* Fix Tailwind v4 compilation bugs on Filament arbitrary column spans */

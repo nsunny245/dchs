@@ -37,6 +37,8 @@ use App\Filament\Widgets\CampusFinancialOverviewWidget;
 use App\Filament\Widgets\RecentAdmissionsTable;
 
 use App\Filament\Resources\AttendanceResource;
+use App\Filament\Resources\FeeHeadResource;
+use App\Filament\Resources\FeeVoucherResource;
 
 class CampusPanelProvider extends PanelProvider
 {
@@ -91,6 +93,8 @@ class CampusPanelProvider extends PanelProvider
                 StudentResource::class,
                 AttendanceResource::class,
                 FeeCollectionResource::class,
+                FeeHeadResource::class,
+                FeeVoucherResource::class,
                 ExpenseResource::class,
                 AcademicSessionResource::class,
                 TimetableResource::class,

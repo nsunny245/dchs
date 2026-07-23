@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\FeeCollectionResource\Pages;
 
 use App\Filament\Resources\FeeCollectionResource;
-use App\Models\StudentVoucher;
-use App\Models\Payment;
+use App\Models\FeeVoucher;
+use App\Models\FeePayment;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewStudentFeeAccount extends ViewRecord
@@ -20,25 +20,25 @@ class ViewStudentFeeAccount extends ViewRecord
 
     protected function getViewData(): array
     {
-        $vouchers = StudentVoucher::where('student_fee_account_id', $this->record->id)
+        $vouchers = FeeVoucher::where('student_fee_account_id', $this->record->id)
             ->orderBy('sequence_no', 'asc')
             ->orderBy('due_date', 'asc')
             ->get();
 
-        $payments = Payment::where('student_fee_account_id', $this->record->id)
+        $payments = FeePayment::where('student_fee_account_id', $this->record->id)
             ->orderBy('payment_date', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $nextVoucher = StudentVoucher::where('student_fee_account_id', $this->record->id)
+        $nextVoucher = FeeVoucher::where('student_fee_account_id', $this->record->id)
             ->whereNotIn('status', ['paid', 'waived', 'cancelled'])
             ->orderBy('due_date', 'asc')
             ->first();
 
-        $overdue = StudentVoucher::where('student_fee_account_id', $this->record->id)
+        $overdue = FeeVoucher::where('student_fee_account_id', $this->record->id)
             ->where('due_date', '<', now()->toDateString())
             ->whereNotIn('status', ['paid', 'waived', 'cancelled'])
-            ->sum('balance');
+            ->sum('balance_amount');
 
         return [
             'vouchers' => $vouchers,
