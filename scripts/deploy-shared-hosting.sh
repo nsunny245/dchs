@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="${DGC_APP_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
 DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
 PHP_BIN="${PHP_BIN:-php}"
-COMPOSER_BIN="${COMPOSER_BIN:-composer}"
+COMPOSER_BIN="${COMPOSER_BIN:-}"
 
 cd "${APP_DIR}"
 
@@ -20,8 +20,30 @@ if ! command -v "${PHP_BIN}" >/dev/null 2>&1 && [[ ! -x "${PHP_BIN}" ]]; then
     exit 1
 fi
 
-if ! command -v "${COMPOSER_BIN}" >/dev/null 2>&1 && [[ ! -x "${COMPOSER_BIN}" ]]; then
-    echo "Deployment stopped: Composer binary '${COMPOSER_BIN}' was not found." >&2
+declare -a COMPOSER_COMMAND
+
+if [[ -n "${COMPOSER_BIN}" ]]; then
+    if command -v "${COMPOSER_BIN}" >/dev/null 2>&1 || [[ -x "${COMPOSER_BIN}" ]]; then
+        COMPOSER_COMMAND=("${COMPOSER_BIN}")
+    elif [[ -f "${COMPOSER_BIN}" ]]; then
+        COMPOSER_COMMAND=("${PHP_BIN}" "${COMPOSER_BIN}")
+    else
+        echo "Deployment stopped: configured Composer path '${COMPOSER_BIN}' was not found." >&2
+        exit 1
+    fi
+elif command -v composer >/dev/null 2>&1; then
+    COMPOSER_COMMAND=("composer")
+elif [[ -x /opt/cpanel/composer/bin/composer ]]; then
+    COMPOSER_COMMAND=("/opt/cpanel/composer/bin/composer")
+elif [[ -f "${APP_DIR}/composer.phar" ]]; then
+    COMPOSER_COMMAND=("${PHP_BIN}" "${APP_DIR}/composer.phar")
+elif [[ -f "${APP_DIR}/../composer.phar" ]]; then
+    COMPOSER_COMMAND=("${PHP_BIN}" "${APP_DIR}/../composer.phar")
+elif [[ -f "${HOME}/composer.phar" ]]; then
+    COMPOSER_COMMAND=("${PHP_BIN}" "${HOME}/composer.phar")
+else
+    echo "Deployment stopped: Composer was not found." >&2
+    echo "Install composer.phar once, or set COMPOSER_BIN to its full path." >&2
     exit 1
 fi
 
@@ -45,7 +67,7 @@ git checkout "${DEPLOY_BRANCH}"
 git pull --ff-only origin "${DEPLOY_BRANCH}"
 
 echo "Installing production PHP dependencies..."
-"${COMPOSER_BIN}" install \
+"${COMPOSER_COMMAND[@]}" install \
     --no-dev \
     --prefer-dist \
     --no-interaction \
