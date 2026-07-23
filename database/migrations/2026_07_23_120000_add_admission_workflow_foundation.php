@@ -75,28 +75,71 @@ return new class extends Migration
 
         // Keep a supporting index in place while replacing the legacy unique
         // course index, because the existing course foreign key depends on it.
-        Schema::table('fee_structures', function (Blueprint $table) {
-            $table->index('course_id', 'fee_structures_course_id_index');
-        });
+        // Every operation is guarded because MySQL DDL is not transactional:
+        // a shared-host migration can stop after applying only part of this block.
+        if (! Schema::hasIndex('fee_structures', 'fee_structures_course_id_index')) {
+            Schema::table('fee_structures', function (Blueprint $table) {
+                $table->index('course_id', 'fee_structures_course_id_index');
+            });
+        }
+
+        if (Schema::hasIndex('fee_structures', 'fee_structures_course_id_unique')) {
+            Schema::table('fee_structures', function (Blueprint $table) {
+                $table->dropUnique('fee_structures_course_id_unique');
+            });
+        }
 
         Schema::table('fee_structures', function (Blueprint $table) {
-            $table->dropUnique(['course_id']);
-            $table->string('name')->nullable();
-            $table->foreignId('campus_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('academic_session_id')->nullable()->constrained('academic_sessions')->nullOnDelete();
-            $table->string('shift')->nullable();
-            $table->unsignedInteger('version')->default(1);
-            $table->date('effective_date')->nullable();
-            $table->date('expiry_date')->nullable();
-            $table->string('status')->default('active');
-            $table->text('notes')->nullable();
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->index(
-                ['course_id', 'campus_id', 'academic_session_id', 'status', 'effective_date'],
-                'fee_structures_official_plan_lookup',
-            );
+            if (! Schema::hasColumn('fee_structures', 'name')) {
+                $table->string('name')->nullable();
+            }
+            if (! Schema::hasColumn('fee_structures', 'campus_id')) {
+                $table->foreignId('campus_id')->nullable()->constrained()->nullOnDelete();
+            }
+            if (! Schema::hasColumn('fee_structures', 'academic_session_id')) {
+                $table->foreignId('academic_session_id')->nullable()->constrained('academic_sessions')->nullOnDelete();
+            }
+            if (! Schema::hasColumn('fee_structures', 'shift')) {
+                $table->string('shift')->nullable();
+            }
+            if (! Schema::hasColumn('fee_structures', 'version')) {
+                $table->unsignedInteger('version')->default(1);
+            }
+            if (! Schema::hasColumn('fee_structures', 'effective_date')) {
+                $table->date('effective_date')->nullable();
+            }
+            if (! Schema::hasColumn('fee_structures', 'expiry_date')) {
+                $table->date('expiry_date')->nullable();
+            }
+            if (! Schema::hasColumn('fee_structures', 'status')) {
+                $table->string('status', 32)->default('active');
+            }
+            if (! Schema::hasColumn('fee_structures', 'notes')) {
+                $table->text('notes')->nullable();
+            }
+            if (! Schema::hasColumn('fee_structures', 'created_by')) {
+                $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            }
+            if (! Schema::hasColumn('fee_structures', 'updated_by')) {
+                $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            }
         });
+
+        // A default VARCHAR(255) under utf8mb4 can consume 1020 bytes by itself,
+        // exceeding the 1000-byte index limit used by some shared-host tables.
+        // The workflow only stores compact states such as active and inactive.
+        Schema::table('fee_structures', function (Blueprint $table) {
+            $table->string('status', 32)->default('active')->change();
+        });
+
+        if (! Schema::hasIndex('fee_structures', 'fee_structures_official_plan_lookup')) {
+            Schema::table('fee_structures', function (Blueprint $table) {
+                $table->index(
+                    ['course_id', 'campus_id', 'academic_session_id', 'status', 'effective_date'],
+                    'fee_structures_official_plan_lookup',
+                );
+            });
+        }
 
         Schema::table('student_fee_snapshots', function (Blueprint $table) {
             $table->foreignId('admission_id')->nullable()->constrained()->nullOnDelete();
