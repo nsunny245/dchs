@@ -87,7 +87,9 @@ echo "Synchronizing the production fee catalog..."
 "${PHP_BIN}" artisan db:seed --class=ProductionFeeCatalogSeeder --force
 
 echo "Ensuring the public storage link exists..."
-"${PHP_BIN}" artisan storage:link || true
+if [ ! -e public/storage ]; then
+    "${PHP_BIN}" artisan storage:link || true
+fi
 
 echo "Rebuilding production caches..."
 "${PHP_BIN}" artisan config:cache
