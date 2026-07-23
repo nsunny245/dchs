@@ -193,7 +193,9 @@ return new class extends Migration
             $table->uuid('entry_uuid')->unique();
             $table->foreignId('student_id')->constrained()->cascadeOnDelete();
             $table->foreignId('student_fee_account_id')->constrained()->cascadeOnDelete();
-            $table->nullableMorphs('source');
+            $table->string('source_type', 191)->nullable();
+            $table->unsignedBigInteger('source_id')->nullable();
+            $table->index(['source_type', 'source_id']);
             $table->string('entry_type');
             $table->bigInteger('debit_paisa')->default(0);
             $table->bigInteger('credit_paisa')->default(0);
@@ -210,7 +212,9 @@ return new class extends Migration
             $table->uuid('request_uuid')->nullable()->index();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('campus_id')->nullable()->constrained()->nullOnDelete();
-            $table->nullableMorphs('subject');
+            $table->string('subject_type', 191)->nullable();
+            $table->unsignedBigInteger('subject_id')->nullable();
+            $table->index(['subject_type', 'subject_id']);
             $table->string('action');
             $table->json('old_values')->nullable();
             $table->json('new_values')->nullable();
