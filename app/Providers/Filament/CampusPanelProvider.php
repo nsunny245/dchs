@@ -28,6 +28,7 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -84,6 +85,8 @@ class CampusPanelProvider extends PanelProvider
             ->brandLogoHeight('3.5rem')
             ->favicon(asset('images/branding/daniyal-group-of-colleges-logo.png'))
             ->viteTheme('resources/css/filament/admin.css')
+            ->renderHook(PanelsRenderHook::USER_MENU_BEFORE, fn () => view('components.topbar-notification'))
+            ->renderHook(PanelsRenderHook::USER_MENU_AFTER, fn () => view('components.topbar-user-copy'))
             ->resources([
                 VisitorQueryResource::class,
                 AdmissionInquiryResource::class,

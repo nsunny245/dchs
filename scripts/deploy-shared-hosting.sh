@@ -83,6 +83,9 @@ echo "Synchronizing application roles and permissions..."
 "${PHP_BIN}" artisan db:seed --class=RoleAndPermissionSeeder --force
 "${PHP_BIN}" artisan permission:cache-reset
 
+echo "Synchronizing the production fee catalog..."
+"${PHP_BIN}" artisan db:seed --class=ProductionFeeCatalogSeeder --force
+
 echo "Ensuring the public storage link exists..."
 "${PHP_BIN}" artisan storage:link || true
 

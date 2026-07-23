@@ -26,12 +26,12 @@ class CreateAdmission extends CreateRecord
 
     public function getHeading(): string
     {
-        return 'Create Student Admission';
+        return 'Create Admission';
     }
 
     public function getSubheading(): ?string
     {
-        return 'Complete the seven-step admission, fee-plan, and voucher workflow.';
+        return 'Add a new student admission record. Complete all steps and submit to generate documents.';
     }
 
     public function mount(): void
@@ -167,21 +167,25 @@ class CreateAdmission extends CreateRecord
                 ->label(fn () => $this->autosaveStatus)
                 ->icon('heroicon-o-cloud')
                 ->disabled()
-                ->color('gray'),
+                ->color('gray')
+                ->extraAttributes(['class' => 'admission-action admission-action--autosave']),
             Actions\Action::make('saveDraft')
                 ->label('Save Draft')
                 ->icon('heroicon-o-bookmark')
                 ->action('saveDraft')
-                ->color('gray'),
+                ->color('gray')
+                ->extraAttributes(['class' => 'admission-action admission-action--draft']),
             Actions\Action::make('submitAdmission')
                 ->label('Submit Admission')
                 ->icon('heroicon-o-check')
                 ->submit('create')
-                ->color('gray'),
+                ->color('gray')
+                ->extraAttributes(['class' => 'admission-action admission-action--final admission-action--submit']),
             Actions\Action::make('submitAndGenerate')
-                ->label('Submit and Generate Documents')
+                ->label('Submit & Generate Documents')
                 ->icon('heroicon-o-check-circle')
-                ->submit('create'),
+                ->submit('create')
+                ->extraAttributes(['class' => 'admission-action admission-action--final admission-action--generate']),
         ];
     }
 

@@ -33,96 +33,81 @@ class AdmissionResource extends Resource
 
     protected static function getSidebarPlaceholder(int $stepIndex, int $percentage): Forms\Components\Placeholder
     {
-        $stepNames = [
-            1 => 'Student Photo',
-            2 => 'Student Information',
-            3 => 'Parent or Guardian',
-            4 => 'Academic Details',
-            5 => 'Documents Vault',
-            6 => 'Course & Fee Plan',
-            7 => 'Review & Confirm',
-        ];
-
-        $stepName = $stepNames[$stepIndex] ?? 'Student Information';
-
         return Forms\Components\Placeholder::make("admission_sidebar_step_{$stepIndex}")
             ->label('')
             ->content(function (Forms\Get $get) use ($stepIndex, $percentage) {
-                $name = $get('applicant_name') ?: 'Not entered yet';
                 $courseId = $get('course_id');
-                $course = $courseId ? (Course::find($courseId)?->name ?: 'Not selected yet') : 'Not selected yet';
                 $campusId = $get('campus_id');
-                $campus = $campusId ? (Campus::find($campusId)?->name ?: 'Not selected yet') : 'Not selected yet';
                 $sessionId = $get('academic_session_id');
-                $session = $sessionId ? (AcademicSession::find($sessionId)?->name ?: 'Not selected yet') : 'Not selected yet';
 
-                $completedText = 'Step '.$stepIndex.' of 7 Active';
+                return view('filament.admissions.components.context-panel', [
+                    'stepIndex' => $stepIndex,
+                    'percentage' => $percentage,
+                    'studentName' => $get('applicant_name') ?: 'Not entered yet',
+                    'course' => $courseId ? (Course::find($courseId)?->name ?: 'Not selected yet') : 'Not selected yet',
+                    'campus' => $campusId ? (Campus::find($campusId)?->name ?: 'Not selected yet') : 'Not selected yet',
+                    'session' => $sessionId ? (AcademicSession::find($sessionId)?->name ?: 'Not selected yet') : 'Not selected yet',
+                    'shift' => filled($get('shift')) ? ucfirst((string) $get('shift')) : 'Not selected yet',
+                ]);
+            })
+            ->extraAttributes(['class' => 'admission-context-placeholder']);
+    }
 
-                return new HtmlString("
-                    <div class='space-y-4'>
-                        <!-- Progress Overview -->
-                        <div class='p-5 bg-white border border-slate-200 rounded-xl shadow-sm'>
-                            <div class='flex items-center gap-2 mb-2'>
-                                <span class='text-emerald-600 font-bold'>🛡️</span>
-                                <span class='text-sm font-bold text-slate-800'>Progress Overview</span>
-                            </div>
-                            <div class='text-xs text-slate-500 mb-2'>{$completedText}</div>
-                            <div class='w-full bg-slate-100 rounded-full h-2.5 mb-1'>
-                                <div class='bg-[#C9963C] h-2.5 rounded-full' style='width: {$percentage}%'></div>
-                            </div>
-                            <div class='text-right text-xs font-bold text-[#C9963C]'>{$percentage}%</div>
-                        </div>
-                        
-                        <!-- Admission Summary -->
-                        <div class='p-5 bg-white border border-slate-200 rounded-xl shadow-sm'>
-                            <div class='text-sm font-bold text-slate-800 border-b border-slate-100 pb-2 mb-3'>Admission Summary</div>
-                            <div class='space-y-3'>
-                                <div class='flex items-start gap-3'>
-                                    <div class='p-2 bg-slate-50 rounded-lg text-slate-500 text-xs'>👤</div>
-                                    <div>
-                                        <div class='text-[10px] text-slate-400 font-semibold uppercase'>Student Name</div>
-                                        <div class='text-xs font-bold text-slate-700'>{$name}</div>
-                                    </div>
-                                </div>
-                                <div class='flex items-start gap-3'>
-                                    <div class='p-2 bg-slate-50 rounded-lg text-slate-500 text-xs'>🎓</div>
-                                    <div>
-                                        <div class='text-[10px] text-slate-400 font-semibold uppercase'>Course</div>
-                                        <div class='text-xs font-bold text-slate-700'>{$course}</div>
-                                    </div>
-                                </div>
-                                <div class='flex items-start gap-3'>
-                                    <div class='p-2 bg-slate-50 rounded-lg text-slate-500 text-xs'>🏢</div>
-                                    <div>
-                                        <div class='text-[10px] text-slate-400 font-semibold uppercase'>Campus</div>
-                                        <div class='text-xs font-bold text-slate-700'>{$campus}</div>
-                                    </div>
-                                </div>
-                                <div class='flex items-start gap-3'>
-                                    <div class='p-2 bg-slate-50 rounded-lg text-slate-500 text-xs'>📅</div>
-                                    <div>
-                                        <div class='text-[10px] text-slate-400 font-semibold uppercase'>Session</div>
-                                        <div class='text-xs font-bold text-slate-700'>{$session}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+    protected static function getStepIntroPlaceholder(int $stepIndex): Forms\Components\Placeholder
+    {
+        $steps = [
+            1 => ['Student Photo', 'Upload a clear passport-size photograph of the applicant.', 'heroicon-o-camera'],
+            2 => ['Student Information', "Enter the applicant's personal and contact details.", 'heroicon-o-user'],
+            3 => ['Parent or Guardian', "Add the applicant's parent, guardian, and emergency contact details.", 'heroicon-o-users'],
+            4 => ['Academic Details', "Record the applicant's previous qualifications and results.", 'heroicon-o-academic-cap'],
+            5 => ['Documents Vault', "Upload and verify the applicant's required documents.", 'heroicon-o-folder-open'],
+            6 => ['Course & Fee Plan', 'Assign course details and configure the student fee plan.', 'heroicon-o-banknotes'],
+            7 => ['Review & Confirm', 'Review all details before submitting the admission.', 'heroicon-o-shield-check'],
+        ];
 
-                        <!-- Quick Tips -->
-                        <div class='p-5 bg-amber-50 border border-amber-200 rounded-xl shadow-sm'>
-                            <div class='flex items-start gap-2.5'>
-                                <div class='text-[#C9963C] text-lg'>💡</div>
-                                <div>
-                                    <div class='text-xs font-bold text-amber-800'>Quick Tips</div>
-                                    <div class='text-[11px] text-amber-700 leading-normal mt-1'>
-                                        Double-check CNIC/B-Form and Date of Birth. These details must match official records.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                ");
-            });
+        [$title, $description, $icon] = $steps[$stepIndex];
+
+        return Forms\Components\Placeholder::make("admission_step_intro_{$stepIndex}")
+            ->label('')
+            ->content(view('filament.admissions.components.step-intro', compact('title', 'description', 'icon')))
+            ->columnSpanFull()
+            ->extraAttributes(['class' => 'admission-step-intro-placeholder']);
+    }
+
+    protected static function getDocumentCard(
+        string $fileField,
+        string $statusField,
+        string $label,
+        string $statusLabel,
+        string $placeholder,
+    ): Forms\Components\Group {
+        return Forms\Components\Group::make([
+            Forms\Components\FileUpload::make($fileField)
+                ->label($label)
+                ->directory('student-docs')
+                ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                ->maxSize(5120)
+                ->downloadable()
+                ->openable()
+                ->placeholder($placeholder)
+                ->columnSpan(3),
+            Forms\Components\Select::make($statusField)
+                ->label($statusLabel)
+                ->options([
+                    'missing' => 'Missing',
+                    'uploaded' => 'Uploaded',
+                    'pending' => 'Pending',
+                    'under_review' => 'Under Review',
+                    'not_required' => 'Not Required',
+                    'verified' => 'Verified',
+                    'rejected' => 'Rejected',
+                ])
+                ->default('pending')
+                ->columnSpan(1),
+        ])
+            ->columns(4)
+            ->extraAttributes(['class' => 'admission-document-card'])
+            ->columnSpan(1);
     }
 
     public static function form(Form $form): Form
@@ -145,6 +130,7 @@ class AdmissionResource extends Resource
                                 ->extraAttributes(['class' => 'admission-split-grid'])
                                 ->schema([
                                     Forms\Components\Group::make([
+                                        self::getStepIntroPlaceholder(1),
                                         Forms\Components\FileUpload::make('student_photo')
                                             ->label('Student Profile Photo')
                                             ->directory('student-photos')
@@ -158,10 +144,10 @@ class AdmissionResource extends Resource
                                             ->helperText('Use a clear passport-style photograph with a white or light-blue background. JPG or PNG, maximum 4 MB.')
                                             ->required()
                                             ->columnSpanFull(),
-                                    ])->columnSpan(9),
+                                    ])->extraAttributes(['class' => 'admission-main-column admission-photo-step'])->columnSpan(9),
                                     Forms\Components\Group::make([
                                         self::getSidebarPlaceholder(1, 14),
-                                    ])->columnSpan(3),
+                                    ])->extraAttributes(['class' => 'admission-context-column'])->columnSpan(3),
                                 ]),
                         ]),
 
@@ -173,6 +159,7 @@ class AdmissionResource extends Resource
                                 ->extraAttributes(['class' => 'admission-split-grid'])
                                 ->schema([
                                     Forms\Components\Group::make([
+                                        self::getStepIntroPlaceholder(2),
                                         Forms\Components\Section::make('Personal Identity')
                                             ->schema([
                                                 Forms\Components\TextInput::make('applicant_name')
@@ -304,10 +291,10 @@ class AdmissionResource extends Resource
                                                     ->label('Session')
                                                     ->required(),
                                             ])->columns(4),
-                                    ])->columnSpan(9),
+                                    ])->extraAttributes(['class' => 'admission-main-column admission-student-step'])->columnSpan(9),
                                     Forms\Components\Group::make([
                                         self::getSidebarPlaceholder(2, 28),
-                                    ])->columnSpan(3),
+                                    ])->extraAttributes(['class' => 'admission-context-column'])->columnSpan(3),
                                 ]),
                         ]),
 
@@ -319,6 +306,7 @@ class AdmissionResource extends Resource
                                 ->extraAttributes(['class' => 'admission-split-grid'])
                                 ->schema([
                                     Forms\Components\Group::make([
+                                        self::getStepIntroPlaceholder(3),
                                         Forms\Components\Section::make('Parent & Guardian Information')
                                             ->schema([
                                                 Forms\Components\TextInput::make('father_name')
@@ -374,10 +362,10 @@ class AdmissionResource extends Resource
                                                     ->dehydrated()
                                                     ->columnSpanFull(),
                                             ])->columns(3),
-                                    ])->columnSpan(9),
+                                    ])->extraAttributes(['class' => 'admission-main-column admission-guardian-step'])->columnSpan(9),
                                     Forms\Components\Group::make([
                                         self::getSidebarPlaceholder(3, 42),
-                                    ])->columnSpan(3),
+                                    ])->extraAttributes(['class' => 'admission-context-column'])->columnSpan(3),
                                 ]),
                         ]),
 
@@ -389,6 +377,7 @@ class AdmissionResource extends Resource
                                 ->extraAttributes(['class' => 'admission-split-grid'])
                                 ->schema([
                                     Forms\Components\Group::make([
+                                        self::getStepIntroPlaceholder(4),
                                         Forms\Components\Section::make('Academic Qualifications')
                                             ->description('Add academic details of the applicant')
                                             ->schema([
@@ -505,10 +494,10 @@ class AdmissionResource extends Resource
                                                     ->grid(1)
                                                     ->default([]),
                                             ]),
-                                    ])->columnSpan(9),
+                                    ])->extraAttributes(['class' => 'admission-main-column admission-academic-step'])->columnSpan(9),
                                     Forms\Components\Group::make([
                                         self::getSidebarPlaceholder(4, 57),
-                                    ])->columnSpan(3),
+                                    ])->extraAttributes(['class' => 'admission-context-column'])->columnSpan(3),
                                 ]),
                         ]),
 
@@ -520,135 +509,18 @@ class AdmissionResource extends Resource
                                 ->extraAttributes(['class' => 'admission-split-grid'])
                                 ->schema([
                                     Forms\Components\Group::make([
+                                        self::getStepIntroPlaceholder(5),
                                         Forms\Components\Section::make('Upload Credentials')
                                             ->schema([
                                                 Forms\Components\Grid::make(2)
+                                                    ->extraAttributes(['class' => 'admission-document-grid'])
                                                     ->schema([
-                                                        Forms\Components\FileUpload::make('cnic_copy')
-                                                            ->label('Student CNIC / B-Form Copy')
-                                                            ->directory('student-docs')
-                                                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
-                                                            ->maxSize(5120)
-                                                            ->downloadable()
-                                                            ->openable()
-                                                            ->placeholder('Drag & drop or Click to upload student CNIC copy'),
-                                                        Forms\Components\Select::make('cnic_copy_status')
-                                                            ->label('CNIC Status')
-                                                            ->options([
-                                                                'missing' => 'Missing',
-                                                                'uploaded' => 'Uploaded',
-                                                                'pending' => 'Pending',
-                                                                'under_review' => 'Under Review',
-                                                                'not_required' => 'Not Required',
-                                                                'verified' => 'Verified',
-                                                                'rejected' => 'Rejected',
-                                                            ])
-                                                            ->default('pending'),
-
-                                                        Forms\Components\FileUpload::make('father_cnic_copy')
-                                                            ->label('Father / Guardian CNIC Copy')
-                                                            ->directory('student-docs')
-                                                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
-                                                            ->maxSize(5120)
-                                                            ->downloadable()
-                                                            ->openable()
-                                                            ->placeholder('Drag & drop or Click to upload father CNIC copy'),
-                                                        Forms\Components\Select::make('father_cnic_copy_status')
-                                                            ->label('Father CNIC Status')
-                                                            ->options([
-                                                                'missing' => 'Missing',
-                                                                'uploaded' => 'Uploaded',
-                                                                'pending' => 'Pending',
-                                                                'under_review' => 'Under Review',
-                                                                'not_required' => 'Not Required',
-                                                                'verified' => 'Verified',
-                                                                'rejected' => 'Rejected',
-                                                            ])
-                                                            ->default('pending'),
-
-                                                        Forms\Components\FileUpload::make('matric_copy')
-                                                            ->label('Matric Result Card / Certificate Copy')
-                                                            ->directory('student-docs')
-                                                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
-                                                            ->maxSize(5120)
-                                                            ->downloadable()
-                                                            ->openable()
-                                                            ->placeholder('Drag & drop or Click to upload matric certificate'),
-                                                        Forms\Components\Select::make('matric_copy_status')
-                                                            ->label('Matric Doc Status')
-                                                            ->options([
-                                                                'missing' => 'Missing',
-                                                                'uploaded' => 'Uploaded',
-                                                                'pending' => 'Pending',
-                                                                'under_review' => 'Under Review',
-                                                                'not_required' => 'Not Required',
-                                                                'verified' => 'Verified',
-                                                                'rejected' => 'Rejected',
-                                                            ])
-                                                            ->default('pending'),
-
-                                                        Forms\Components\FileUpload::make('inter_copy')
-                                                            ->label('Intermediate Certificate Copy')
-                                                            ->directory('student-docs')
-                                                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
-                                                            ->maxSize(5120)
-                                                            ->downloadable()
-                                                            ->openable()
-                                                            ->placeholder('Drag & drop or Click to upload intermediate certificate'),
-                                                        Forms\Components\Select::make('inter_copy_status')
-                                                            ->label('Inter Doc Status')
-                                                            ->options([
-                                                                'missing' => 'Missing',
-                                                                'uploaded' => 'Uploaded',
-                                                                'pending' => 'Pending',
-                                                                'under_review' => 'Under Review',
-                                                                'not_required' => 'Not Required',
-                                                                'verified' => 'Verified',
-                                                                'rejected' => 'Rejected',
-                                                            ])
-                                                            ->default('pending'),
-
-                                                        Forms\Components\FileUpload::make('domicile_copy')
-                                                            ->label('Domicile Certificate Copy')
-                                                            ->directory('student-docs')
-                                                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
-                                                            ->maxSize(5120)
-                                                            ->downloadable()
-                                                            ->openable()
-                                                            ->placeholder('Drag & drop or Click to upload domicile copy'),
-                                                        Forms\Components\Select::make('domicile_copy_status')
-                                                            ->label('Domicile Status')
-                                                            ->options([
-                                                                'missing' => 'Missing',
-                                                                'uploaded' => 'Uploaded',
-                                                                'pending' => 'Pending',
-                                                                'under_review' => 'Under Review',
-                                                                'not_required' => 'Not Required',
-                                                                'verified' => 'Verified',
-                                                                'rejected' => 'Rejected',
-                                                            ])
-                                                            ->default('pending'),
-
-                                                        Forms\Components\FileUpload::make('character_certificate_copy')
-                                                            ->label('Character Certificate Copy')
-                                                            ->directory('student-docs')
-                                                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
-                                                            ->maxSize(5120)
-                                                            ->downloadable()
-                                                            ->openable()
-                                                            ->placeholder('Drag & drop or Click to upload character certificate'),
-                                                        Forms\Components\Select::make('character_certificate_copy_status')
-                                                            ->label('Character Cert Status')
-                                                            ->options([
-                                                                'missing' => 'Missing',
-                                                                'uploaded' => 'Uploaded',
-                                                                'pending' => 'Pending',
-                                                                'under_review' => 'Under Review',
-                                                                'not_required' => 'Not Required',
-                                                                'verified' => 'Verified',
-                                                                'rejected' => 'Rejected',
-                                                            ])
-                                                            ->default('pending'),
+                                                        self::getDocumentCard('cnic_copy', 'cnic_copy_status', '1. Student CNIC / B-Form', 'CNIC Status', 'Drop file here or click to upload'),
+                                                        self::getDocumentCard('father_cnic_copy', 'father_cnic_copy_status', '2. Father / Guardian CNIC', 'Father CNIC Status', 'Drop file here or click to upload'),
+                                                        self::getDocumentCard('matric_copy', 'matric_copy_status', '3. Matric Certificate', 'Matric Status', 'Drop file here or click to upload'),
+                                                        self::getDocumentCard('inter_copy', 'inter_copy_status', '4. Intermediate Certificate', 'Intermediate Status', 'Drop file here or click to upload'),
+                                                        self::getDocumentCard('domicile_copy', 'domicile_copy_status', '5. Domicile Certificate', 'Domicile Status', 'Drop file here or click to upload'),
+                                                        self::getDocumentCard('character_certificate_copy', 'character_certificate_copy_status', '6. Character Certificate', 'Character Status', 'Drop file here or click to upload'),
                                                     ]),
 
                                                 Forms\Components\Textarea::make('missing_documents')
@@ -657,10 +529,10 @@ class AdmissionResource extends Resource
                                                     ->rows(3)
                                                     ->columnSpanFull(),
                                             ]),
-                                    ])->columnSpan(9),
+                                    ])->extraAttributes(['class' => 'admission-main-column admission-documents-step'])->columnSpan(9),
                                     Forms\Components\Group::make([
                                         self::getSidebarPlaceholder(5, 71),
-                                    ])->columnSpan(3),
+                                    ])->extraAttributes(['class' => 'admission-context-column'])->columnSpan(3),
                                 ]),
                         ]),
 
@@ -672,6 +544,7 @@ class AdmissionResource extends Resource
                                 ->extraAttributes(['class' => 'admission-split-grid'])
                                 ->schema([
                                     Forms\Components\Group::make([
+                                        self::getStepIntroPlaceholder(6),
                                         Forms\Components\Section::make('Course Assignment')
                                             ->schema([
                                                 Forms\Components\Grid::make(4)
@@ -786,7 +659,8 @@ class AdmissionResource extends Resource
                                                             ->disabled(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
                                                             ->dehydrated()
                                                             ->required(),
-                                                    ]),
+                                                    ])
+                                                    ->columnSpan(1),
 
                                                 Forms\Components\Section::make('Recurring Tuition')
                                                     ->schema([
@@ -813,7 +687,8 @@ class AdmissionResource extends Resource
 
                                                                 return new HtmlString("<div class='p-3 bg-amber-50 rounded-lg text-center font-bold text-amber-700'>PKR ".number_format($perInstallment, 2).'</div>');
                                                             }),
-                                                    ]),
+                                                    ])
+                                                    ->columnSpan(1),
 
                                                 Forms\Components\Section::make('Additional Charges')
                                                     ->schema([
@@ -836,7 +711,8 @@ class AdmissionResource extends Resource
                                                         Forms\Components\TextInput::make('reference')
                                                             ->label('Other Charge Description')
                                                             ->placeholder('e.g. ID Card, Library Fee'),
-                                                    ]),
+                                                    ])
+                                                    ->columnSpan(1),
                                             ]),
 
                                         Forms\Components\Section::make('Scholarship / Fee Concession')
@@ -974,10 +850,10 @@ class AdmissionResource extends Resource
                                                     return view('admissions.voucher-preview', compact('schedule'));
                                                 }),
                                         ])->columnSpanFull(),
-                                    ])->columnSpan(9),
+                                    ])->extraAttributes(['class' => 'admission-main-column admission-fee-step'])->columnSpan(9),
                                     Forms\Components\Group::make([
                                         self::getSidebarPlaceholder(6, 85),
-                                    ])->columnSpan(3),
+                                    ])->extraAttributes(['class' => 'admission-context-column'])->columnSpan(3),
                                 ]),
                         ]),
 
@@ -989,65 +865,46 @@ class AdmissionResource extends Resource
                                 ->extraAttributes(['class' => 'admission-split-grid'])
                                 ->schema([
                                     Forms\Components\Group::make([
+                                        self::getStepIntroPlaceholder(7),
                                         Forms\Components\Placeholder::make('review_summary')
                                             ->label('')
                                             ->content(function (Forms\Get $get) {
-                                                $name = e($get('applicant_name') ?: 'Not entered yet');
-                                                $cnic = e($get('cnic') ?: 'Not entered yet');
-                                                $dob = e($get('dob') ?: 'Not entered yet');
-                                                $gender = e($get('gender') ?: 'Not entered yet');
-                                                $phone = e($get('phone') ?: 'Not entered yet');
-                                                $email = e($get('email') ?: 'Not entered yet');
-                                                $city = e($get('city') ?: 'Not entered yet');
-                                                $domicile = e($get('domicile_district') ?: 'Not entered yet');
+                                                $courseId = $get('course_id');
+                                                $campusId = $get('campus_id');
+                                                $sessionId = $get('academic_session_id');
+                                                $documents = collect([
+                                                    $get('cnic_copy'),
+                                                    $get('father_cnic_copy'),
+                                                    $get('matric_copy'),
+                                                    $get('inter_copy'),
+                                                    $get('domicile_copy'),
+                                                    $get('character_certificate_copy'),
+                                                ])->filter()->count();
+                                                $totalFee = collect([
+                                                    $get('custom_tuition_fee'),
+                                                    $get('custom_admission_fee'),
+                                                    $get('custom_enrollment_fee'),
+                                                    $get('custom_verification_fee'),
+                                                    $get('custom_examination_fee'),
+                                                    $get('custom_other_misc'),
+                                                ])->sum(fn ($amount) => (float) $amount);
 
-                                                return new HtmlString("
-                                                    <div class='space-y-4'>
-                                                        <div class='p-4 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center gap-3 text-emerald-800 text-sm'>
-                                                            <span class='text-lg'>✅</span>
-                                                            <div>
-                                                                <div class='font-bold'>Review Summary: All steps completed successfully!</div>
-                                                                <div class='text-xs opacity-90'>You are about to submit the admission for {$name}.</div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class='p-5 bg-white border border-slate-200 rounded-xl space-y-4 shadow-sm'>
-                                                            <div class='border-b pb-2 font-bold text-slate-800 text-sm flex items-center justify-between'>
-                                                                <span>Student Profile</span>
-                                                                <span class='px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-bold'>Completed</span>
-                                                            </div>
-                                                            <div class='grid grid-cols-2 gap-4 text-xs'>
-                                                                <div><span class='text-slate-400 font-semibold'>Student Name:</span> <span class='font-bold text-slate-700'>{$name}</span></div>
-                                                                <div><span class='text-slate-400 font-semibold'>CNIC / B-Form #:</span> <span class='font-bold text-slate-700'>{$cnic}</span></div>
-                                                                <div><span class='text-slate-400 font-semibold'>Date of Birth:</span> <span class='font-bold text-slate-700'>{$dob}</span></div>
-                                                                <div><span class='text-slate-400 font-semibold'>Gender:</span> <span class='font-bold text-slate-700'>{$gender}</span></div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class='p-5 bg-white border border-slate-200 rounded-xl space-y-4 shadow-sm'>
-                                                            <div class='border-b pb-2 font-bold text-slate-800 text-sm flex items-center justify-between'>
-                                                                <span>Contact Information</span>
-                                                                <span class='px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-bold'>Completed</span>
-                                                            </div>
-                                                            <div class='grid grid-cols-2 gap-4 text-xs'>
-                                                                <div><span class='text-slate-400 font-semibold'>Mobile Number:</span> <span class='font-bold text-slate-700'>{$phone}</span></div>
-                                                                <div><span class='text-slate-400 font-semibold'>Email:</span> <span class='font-bold text-slate-700'>{$email}</span></div>
-                                                                <div><span class='text-slate-400 font-semibold'>City:</span> <span class='font-bold text-slate-700'>{$city}</span></div>
-                                                                <div><span class='text-slate-400 font-semibold'>Domicile:</span> <span class='font-bold text-slate-700'>{$domicile}</span></div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class='p-5 bg-white border border-slate-200 rounded-xl space-y-4 shadow-sm'>
-                                                            <div class='border-b pb-2 font-bold text-slate-800 text-sm flex items-center justify-between'>
-                                                                <span>Terms & Declaration</span>
-                                                                <span class='px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-full text-[10px] font-bold'>Pending Declaration</span>
-                                                            </div>
-                                                            <div class='text-xs text-slate-500 leading-relaxed'>
-                                                                Please check the declaration box below confirming that you have reviewed all academic credentials, uploaded document statuses, and final concession fee structures before submitting the application.
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ");
+                                                return view('filament.admissions.components.review-summary', [
+                                                    'studentName' => $get('applicant_name') ?: 'Not entered yet',
+                                                    'cnic' => $get('cnic') ?: 'Not entered yet',
+                                                    'dob' => $get('dob') ?: 'Not entered yet',
+                                                    'gender' => filled($get('gender')) ? ucfirst((string) $get('gender')) : 'Not entered yet',
+                                                    'guardian' => $get('father_name') ?: 'Not entered yet',
+                                                    'guardianPhone' => $get('father_phone') ?: 'Not entered yet',
+                                                    'qualificationCount' => count($get('academic_details') ?: []),
+                                                    'documentCount' => $documents,
+                                                    'course' => $courseId ? (Course::find($courseId)?->name ?: 'Not selected yet') : 'Not selected yet',
+                                                    'campus' => $campusId ? (Campus::find($campusId)?->name ?: 'Not selected yet') : 'Not selected yet',
+                                                    'session' => $sessionId ? (AcademicSession::find($sessionId)?->name ?: 'Not selected yet') : 'Not selected yet',
+                                                    'shift' => filled($get('shift')) ? ucfirst((string) $get('shift')) : 'Not selected yet',
+                                                    'totalFee' => $totalFee,
+                                                    'installments' => (int) ($get('custom_installment_count') ?: 0),
+                                                ]);
                                             })
                                             ->columnSpanFull(),
 
@@ -1070,13 +927,24 @@ class AdmissionResource extends Resource
                                             ->accepted()
                                             ->dehydrated(false)
                                             ->columnSpanFull(),
-                                    ])->columnSpan(9),
+                                    ])->extraAttributes(['class' => 'admission-main-column admission-review-step'])->columnSpan(9),
                                     Forms\Components\Group::make([
                                         self::getSidebarPlaceholder(7, 100),
-                                    ])->columnSpan(3),
+                                    ])->extraAttributes(['class' => 'admission-context-column'])->columnSpan(3),
                                 ]),
                         ]),
-                ])->columnSpanFull(),
+                ])
+                    ->nextAction(fn (Forms\Components\Actions\Action $action) => $action
+                        ->label('Save & Continue')
+                        ->icon('heroicon-o-arrow-right')
+                        ->extraAttributes(['class' => 'admission-next-action']))
+                    ->previousAction(fn (Forms\Components\Actions\Action $action) => $action
+                        ->label('Back')
+                        ->icon('heroicon-o-arrow-left')
+                        ->extraAttributes(['class' => 'admission-back-action']))
+                    ->persistStepInQueryString()
+                    ->extraAttributes(['class' => 'admission-wizard'])
+                    ->columnSpanFull(),
             ]);
     }
 
