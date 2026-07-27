@@ -1,8 +1,3 @@
 <x-filament-panels::page>
-    @if ($this->getHeaderWidgets())
-        <x-filament-widgets::widgets
-            :widgets="$this->getHeaderWidgets()"
-            :columns="$this->getHeaderWidgetsColumns()"
-        />
-    @endif
+    <!-- The header widgets are rendered automatically by the parent page component -->
 </x-filament-panels::page>

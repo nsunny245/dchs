@@ -1,30 +1,30 @@
-<div class="fi-wi-widget bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm mb-6">
-    <div class="flex justify-between items-center mb-6">
-        <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-            <x-heroicon-o-printer class="w-6 h-6 text-primary-500" />
+<div class="fi-wi-widget bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-8 shadow-sm mb-6">
+    <div class="flex justify-between items-center mb-8">
+        <h3 class="text-xl font-extrabold text-slate-800 dark:text-slate-200 flex items-center gap-3">
+            <x-heroicon-o-printer class="w-7 h-7 text-primary-500" />
             Course-wise Bulk Voucher Printing
         </h3>
     </div>
 
-    <!-- Courses Grid (Bigger and More Prominent) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Courses Grid (Spacious 3-in-a-row, large cards) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         @foreach($courses as $course)
-            <div wire:key="course-card-{{ $course->id }}" class="flex flex-col justify-between p-6 bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100/70 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-800/80 transition shadow-sm hover:shadow-md">
-                <div class="mb-4 flex items-start gap-4">
-                    <div class="p-3 bg-primary-50 dark:bg-primary-950 rounded-xl text-primary-600 dark:text-primary-400 shrink-0">
-                        <x-heroicon-o-academic-cap class="w-6 h-6" />
+            <div wire:key="course-card-{{ $course->id }}" class="flex flex-col justify-between p-8 bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100/70 dark:hover:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-800 transition-all duration-200 shadow-sm hover:shadow-md">
+                <div class="mb-6 flex items-start gap-4">
+                    <div class="p-4 bg-primary-50 dark:bg-primary-950 rounded-xl text-primary-600 dark:text-primary-400 shrink-0 shadow-sm">
+                        <x-heroicon-o-academic-cap class="w-8 h-8" />
                     </div>
-                    <div>
-                        <h4 class="text-base font-bold text-slate-800 dark:text-slate-200 line-clamp-2" title="{{ $course->name }}">
+                    <div class="space-y-1">
+                        <h4 class="text-lg font-bold text-slate-800 dark:text-slate-200 leading-snug line-clamp-2" title="{{ $course->name }}">
                             {{ $course->name }}
                         </h4>
-                        <span class="text-xs text-slate-400 dark:text-slate-500 font-semibold uppercase tracking-wider block mt-1">DCHS Academic Program</span>
+                        <span class="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">DCHS Academic Program</span>
                     </div>
                 </div>
                 <div>
                     <button type="button" 
                             wire:click="openPrintModal({{ $course->id }})" 
-                            class="w-full text-center px-4 py-2.5 text-sm font-bold text-white bg-[#082245] hover:bg-[#10345D] rounded-xl shadow transition cursor-pointer">
+                            class="w-full text-center px-4 py-3 text-sm font-bold text-white bg-[#082245] hover:bg-[#10345D] rounded-xl shadow-md transition-all duration-150 cursor-pointer hover:-translate-y-0.5 active:translate-y-0">
                         Print Vouchers
                     </button>
                 </div>
