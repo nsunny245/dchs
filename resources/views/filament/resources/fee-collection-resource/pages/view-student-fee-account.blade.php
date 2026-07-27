@@ -122,6 +122,7 @@
                                     <th class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 text-right">Balance</th>
                                     <th class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 text-center">Status</th>
                                     <th class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 text-center">Actions</th>
+                                    <th class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 text-center">Collect Fee</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
@@ -231,10 +232,23 @@
                                                  @endif
                                              @endif
                                          </td>
+                                         <td class="px-4 py-3 text-center">
+                                             @if($voucher->status !== 'paid' && $voucher->status !== 'waived' && $voucher->status !== 'cancelled')
+                                                 <button type="button" 
+                                                         wire:click="mountAction('collectPayment', { voucher_id: {{ $voucher->id }} })" 
+                                                         class="inline-flex items-center text-xs font-bold text-emerald-600 hover:text-emerald-800 hover:underline border-none bg-transparent p-0 cursor-pointer">
+                                                     Collect Now
+                                                 </button>
+                                             @else
+                                                 <span class="text-xs text-slate-400 font-semibold cursor-not-allowed">
+                                                     Paid
+                                                 </span>
+                                             @endif
+                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="px-4 py-6 text-center text-slate-400">
+                                        <td colspan="8" class="px-4 py-6 text-center text-slate-400">
                                             No vouchers generated for this account.
                                         </td>
                                     </tr>
@@ -350,4 +364,5 @@
             form.submit();
         }
     </script>
+    <x-filament-actions::modals />
 </x-filament-panels::page>
