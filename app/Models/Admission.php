@@ -3,13 +3,27 @@
 namespace App\Models;
 
 use App\Traits\ScopedByCampus;
+use App\Traits\ConvertsImagesToWebp;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Admission extends Model
 {
-    use ScopedByCampus;
+    use ScopedByCampus, ConvertsImagesToWebp;
+
+    public function webpImageFields(): array
+    {
+        return [
+            'student_photo',
+            'cnic_copy',
+            'father_cnic_copy',
+            'matric_copy',
+            'inter_copy',
+            'domicile_copy',
+            'other_docs',
+        ];
+    }
 
     protected $guarded = [];
 

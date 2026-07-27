@@ -205,6 +205,13 @@ class FeeCollectionResource extends Resource
                                 Forms\Components\Textarea::make('notes')
                                     ->label('Cashier Notes')
                                     ->columnSpanFull(),
+                                Forms\Components\FileUpload::make('office_copy')
+                                    ->label('Voucher Office Copy')
+                                    ->directory('payment-receipts')
+                                    ->image()
+                                    ->maxSize(5120)
+                                    ->columnSpanFull()
+                                    ->nullable(),
                             ])
                     ])
                     ->action(function ($record, array $data) {

@@ -178,7 +178,7 @@ class EnrollmentService
                 'student_fee_account_id' => $feeAccount->id,
                 'voucher_number' => $firstVoucherNumber['number'],
                 'voucher_type' => 'new_enrollment',
-                'orientation' => 'horizontal_three_part',
+                'orientation' => 'portrait_three_part',
                 'issue_date' => now(),
                 'due_date' => $admission->admission_date ?: now(),
                 'status' => 'issued',
@@ -238,7 +238,11 @@ class EnrollmentService
                     $remainingConcession -= $applied;
                 }
 
-                $dueDate = now()->parse($admission->admission_date ?: now())->addMonths($i - 1);
+                $baseDate = \Illuminate\Support\Carbon::parse($admission->admission_date ?: now());
+                $installmentDate = $baseDate->copy()->addMonths($i - 1);
+                $issueDate = $installmentDate->copy()->startOfMonth();
+                $dueDate = $installmentDate->copy()->day(10);
+
                 $installmentVoucherNumber = FeeVoucherService::generateVoucherNumber(
                     $campus,
                     'monthly_installment',
@@ -257,8 +261,8 @@ class EnrollmentService
                     'student_fee_account_id' => $feeAccount->id,
                     'voucher_number' => $installmentVoucherNumber['number'],
                     'voucher_type' => 'monthly_installment',
-                    'orientation' => 'horizontal_three_part',
-                    'issue_date' => now(),
+                    'orientation' => 'portrait_three_part',
+                    'issue_date' => $issueDate,
                     'due_date' => $dueDate,
                     'status' => 'upcoming',
                     'sequence_no' => $installmentVoucherNumber['sequence'],
@@ -296,7 +300,11 @@ class EnrollmentService
             // Examination registration is a separately due charge and therefore
             // remains an additional voucher outside the tuition installment count.
             if ($examinationFee > 0) {
-                $examDueDate = now()->parse($admission->admission_date ?: now())->addMonths(5);
+                $baseDate = \Illuminate\Support\Carbon::parse($admission->admission_date ?: now());
+                $examDate = $baseDate->copy()->addMonths(5);
+                $examIssueDate = $examDate->copy()->startOfMonth();
+                $examDueDate = $examDate->copy()->day(10);
+
                 $examVoucherNumber = FeeVoucherService::generateVoucherNumber(
                     $campus,
                     'monthly_installment',
@@ -316,8 +324,8 @@ class EnrollmentService
                     'student_fee_account_id' => $feeAccount->id,
                     'voucher_number' => $examVoucherNumber['number'],
                     'voucher_type' => 'monthly_installment',
-                    'orientation' => 'horizontal_three_part',
-                    'issue_date' => now(),
+                    'orientation' => 'portrait_three_part',
+                    'issue_date' => $examIssueDate,
                     'due_date' => $examDueDate,
                     'status' => 'upcoming',
                     'sequence_no' => $examVoucherNumber['sequence'],

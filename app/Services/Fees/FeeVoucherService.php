@@ -356,6 +356,7 @@ class FeeVoucherService
                 'transaction_reference' => $paymentData['transaction_reference'] ?? null,
                 'bank_name' => $paymentData['bank_name'] ?? null,
                 'notes' => $paymentData['notes'] ?? null,
+                'office_copy' => $paymentData['office_copy'] ?? null,
                 'collected_by' => filament()->auth()->id() ?? 1,
                 'status' => 'paid',
             ]);

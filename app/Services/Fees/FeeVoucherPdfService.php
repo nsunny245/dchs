@@ -19,10 +19,10 @@ class FeeVoucherPdfService
 
         abort_if($vouchers->isEmpty(), 404, 'No vouchers have been generated for this admission.');
 
-        $pdf = Pdf::loadView('fees.vouchers.horizontal-three-part', [
+        $pdf = Pdf::loadView('fees.vouchers.portrait-three-part', [
             'voucher' => $vouchers->first(),
             'vouchers' => $vouchers,
-        ])->setPaper('A4', 'portrait');
+        ])->setPaper('A4', 'landscape');
 
         return $pdf->stream("voucher-book-{$admission->enrollment_no}.pdf");
     }

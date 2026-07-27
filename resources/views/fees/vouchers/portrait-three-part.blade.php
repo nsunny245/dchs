@@ -266,39 +266,49 @@
         .density-dense .legal-note {
             font-size: 6pt;
         }
+        .voucher-page {
+            page-break-after: always;
+        }
+        .voucher-page:last-child {
+            page-break-after: auto;
+        }
     </style>
 </head>
 <body>
 
     @php
-        $copies = ['Bank Copy', 'Accounts Office Copy', 'Student Copy'];
+        $printVouchers = $vouchers ?? collect([$voucher]);
     @endphp
 
-    <table style="width: 100%; table-layout: fixed; border-collapse: collapse;">
-        <tr>
-            <td style="width: 32.5%; padding-right: 2mm; vertical-align: top;">
-                @include('fees.vouchers.partials.voucher-content', [
-                    'copyLabel' => 'Bank Copy',
-                    'voucher' => $voucher,
-                    'layout' => 'portrait'
-                ])
-            </td>
-            <td style="width: 32.5%; padding-left: 1mm; padding-right: 1mm; border-left: 1.5px dashed #CBD5E1; vertical-align: top;">
-                @include('fees.vouchers.partials.voucher-content', [
-                    'copyLabel' => 'Accounts Office Copy',
-                    'voucher' => $voucher,
-                    'layout' => 'portrait'
-                ])
-            </td>
-            <td style="width: 32.5%; padding-left: 2mm; border-left: 1.5px dashed #CBD5E1; vertical-align: top;">
-                @include('fees.vouchers.partials.voucher-content', [
-                    'copyLabel' => 'Student Copy',
-                    'voucher' => $voucher,
-                    'layout' => 'portrait'
-                ])
-            </td>
-        </tr>
-    </table>
+    @foreach($printVouchers as $printVoucher)
+        <div class="voucher-page">
+            <table style="width: 100%; table-layout: fixed; border-collapse: collapse;">
+                <tr>
+                    <td style="width: 32.5%; padding-right: 2mm; vertical-align: top;">
+                        @include('fees.vouchers.partials.voucher-content', [
+                            'copyLabel' => 'Bank Copy',
+                            'voucher' => $printVoucher,
+                            'layout' => 'portrait'
+                        ])
+                    </td>
+                    <td style="width: 32.5%; padding-left: 1mm; padding-right: 1mm; border-left: 1.5px dashed #CBD5E1; vertical-align: top;">
+                        @include('fees.vouchers.partials.voucher-content', [
+                            'copyLabel' => 'Accounts Office Copy',
+                            'voucher' => $printVoucher,
+                            'layout' => 'portrait'
+                        ])
+                    </td>
+                    <td style="width: 32.5%; padding-left: 2mm; border-left: 1.5px dashed #CBD5E1; vertical-align: top;">
+                        @include('fees.vouchers.partials.voucher-content', [
+                            'copyLabel' => 'Student Copy',
+                            'voucher' => $printVoucher,
+                            'layout' => 'portrait'
+                        ])
+                    </td>
+                </tr>
+            </table>
+        </div>
+    @endforeach
 
 </body>
 </html>

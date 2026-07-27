@@ -2,12 +2,22 @@
 
 namespace App\Models;
 
+use App\Traits\ConvertsImagesToWebp;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FeePayment extends Model
 {
+    use ConvertsImagesToWebp;
+
+    public function webpImageFields(): array
+    {
+        return [
+            'office_copy',
+        ];
+    }
+
     protected $table = 'fee_payments';
 
     protected $guarded = [];

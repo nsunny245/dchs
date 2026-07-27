@@ -78,6 +78,21 @@
             border: 2px solid #09264A;
             object-fit: cover;
         }
+        .student-photo-placeholder {
+            width: 80px;
+            height: 95px;
+            border-radius: 6px;
+            border: 2px dashed #09264A;
+            background: #F8FAFC;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            color: #64748B;
+            font-weight: bold;
+            text-align: center;
+            text-transform: uppercase;
+        }
         .doc-title {
             font-size: 18px;
             font-weight: 800;
@@ -343,6 +358,7 @@
             .document-container { box-shadow: none; border: none; padding: 15px; max-width: 100%; }
             .no-print { display: none !important; }
             .card, .card-full, .schedule-item { border-color: #CBD5E1; }
+            .card, .card-full, .signature-container { page-break-inside: avoid; break-inside: avoid; }
             .academic-table th { background: #09264A !important; color: #FFF !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .fee-summary-card { background: #09264A !important; color: #FFF !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
@@ -354,7 +370,7 @@
         <!-- Header -->
         <div class="header">
             <div class="brand-section">
-                <img src="{{ public_path('images/branding/daniyal-group-of-colleges-logo.png') }}" class="brand-logo">
+                <img src="{{ asset('images/branding/daniyal-group-of-colleges-logo.png') }}" class="brand-logo">
                 <div class="brand-text">
                     <h1>Daniyal Group of Colleges</h1>
                     <p>DANIYAL INSTITUTE OF HEALTH SCIENCES — {{ strtoupper($admission->campus->name ?? 'OKARA CAMPUS') }}</p>
@@ -365,8 +381,12 @@
                     <div class="doc-title">ADMISSION AGREEMENT</div>
                     <div class="doc-ref">Ref: #{{ $admission->enrollment_no ?? 'ADM-' . date('Y') . '-' . str_pad($admission->id, 5, '0', STR_PAD_LEFT) }}</div>
                 </div>
-                @if($admission->student_photo)
-                    <img src="{{ asset('storage/' . $admission->student_photo) }}" class="student-photo" onerror="this.style.display='none'">
+                @if($admission->student_photo && file_exists(public_path('storage/' . $admission->student_photo)))
+                    <img src="{{ asset('storage/' . $admission->student_photo) }}" class="student-photo">
+                @else
+                    <div class="student-photo-placeholder">
+                        <span>Affix Photo<br>Here</span>
+                    </div>
                 @endif
             </div>
         </div>

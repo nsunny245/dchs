@@ -59,4 +59,9 @@ class Student extends Model
     {
         return $this->hasMany(StudentLedgerEntry::class);
     }
+
+    public function getStudentPhotoAttribute()
+    {
+        return $this->attributes['student_photo'] ?? $this->admission?->student_photo;
+    }
 }

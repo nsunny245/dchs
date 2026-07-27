@@ -43,9 +43,11 @@ Route::middleware('auth:admin,campus')
     ->name('admissions.complete');
 
 Route::middleware('auth:admin,campus')->prefix('admin/fee-vouchers')->name('fee-vouchers.')->group(function () {
+    Route::get('/campus-monthly/print', [FeeVoucherPrintController::class, 'printCampusMonthly'])->name('print.campus-monthly');
     Route::get('/admission/{admission}/book', [FeeVoucherPrintController::class, 'printBook'])->name('print.book');
     Route::get('/{feeVoucher}/print/horizontal', [FeeVoucherPrintController::class, 'printHorizontal'])->name('print.horizontal');
     Route::get('/{feeVoucher}/print/portrait', [FeeVoucherPrintController::class, 'printPortrait'])->name('print.portrait');
+    Route::get('/{feeVoucher}/print/late', [FeeVoucherPrintController::class, 'printLateFee'])->name('print.late');
     Route::get('/{feeVoucher}/pdf/horizontal', [FeeVoucherPrintController::class, 'downloadHorizontal'])->name('pdf.horizontal');
     Route::get('/{feeVoucher}/pdf/portrait', [FeeVoucherPrintController::class, 'downloadPortrait'])->name('pdf.portrait');
 });

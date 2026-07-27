@@ -45,8 +45,7 @@ class CampusFinancialOverviewWidget extends BaseWidget
                     ->state(fn (Campus $record) => FeePayment::whereHas('student', fn ($q) => $q->where('campus_id', $record->id))
                         ->sum('amount'))
                     ->money('PKR')
-                    ->alignRight()
-                    ->sortable(),
+                    ->alignRight(),
                 Tables\Columns\TextColumn::make('pending_fee')
                     ->label('Pending Fee')
                     ->state(fn (Campus $record) => FeeVoucher::where('campus_id', $record->id)
@@ -54,15 +53,13 @@ class CampusFinancialOverviewWidget extends BaseWidget
                         ->sum('balance_amount'))
                     ->money('PKR')
                     ->color(fn ($state) => $state > 0 ? 'warning' : 'gray')
-                    ->alignRight()
-                    ->sortable(),
+                    ->alignRight(),
                 Tables\Columns\TextColumn::make('expenses')
                     ->label('Total Expenses')
                     ->state(fn (Campus $record) => Expense::where('campus_id', $record->id)->sum('college_revenue_amount'))
                     ->money('PKR')
                     ->color(fn ($state) => $state > 0 ? 'danger' : 'gray')
-                    ->alignRight()
-                    ->sortable(),
+                    ->alignRight(),
             ])
             ->paginated(false);
     }

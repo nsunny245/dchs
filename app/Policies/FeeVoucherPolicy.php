@@ -39,7 +39,12 @@ class FeeVoucherPolicy
 
     public function update(User $user, FeeVoucher $voucher): bool
     {
-        // Only draft vouchers can be updated
+        // Super Admin can edit any voucher
+        if ($user->hasRole('Super Admin')) {
+            return true;
+        }
+
+        // Only draft vouchers can be updated for others
         if ($voucher->status !== 'draft') {
             return false;
         }
@@ -49,7 +54,7 @@ class FeeVoucherPolicy
             return false;
         }
 
-        return $user->hasAnyRole(['Super Admin', 'Campus Principal', 'Finance']);
+        return $user->hasAnyRole(['Campus Principal', 'Finance']);
     }
 
     public function delete(User $user, FeeVoucher $voucher): bool

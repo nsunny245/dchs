@@ -48,6 +48,27 @@
                     </span>
                 </div>
             </div>
+
+            <!-- Student Detail Actions -->
+            <div class="border-t border-slate-100 dark:border-slate-800 pt-4 flex flex-col gap-2">
+                @if($record->student && $record->student->admission)
+                    <a href="{{ route('fee-vouchers.print.book', $record->student->admission) }}" 
+                       target="_blank" 
+                       class="w-full text-center px-4 py-2 text-xs font-bold text-white bg-[#082245] hover:bg-[#10345D] rounded-lg shadow-sm transition">
+                        Print Voucher Book
+                    </a>
+                    <a href="{{ route('pdf.installment-schedule', $record->student->admission) }}" 
+                       target="_blank" 
+                       class="w-full text-center px-4 py-2 text-xs font-bold text-[#082245] hover:text-white border border-[#082245] hover:bg-[#082245] rounded-lg shadow-sm transition">
+                        View Installment Schedule
+                    </a>
+                    <a href="{{ route('pdf.admission-agreement', $record->student->admission) }}" 
+                       target="_blank" 
+                       class="w-full text-center px-4 py-2 text-xs font-bold text-[#06192E] bg-[#C98D18] hover:bg-[#B97708] rounded-lg shadow-sm transition">
+                        Print Student Agreement
+                    </a>
+                @endif
+            </div>
         </div>
 
         <!-- Financial Summary & Voucher Timeline -->
@@ -124,19 +145,45 @@
                                                 {{ ucfirst($voucher->status) }}
                                             </span>
                                         </td>
-                                        <td class="px-4 py-3 text-center space-x-2">
-                                             <a href="{{ route('fee-vouchers.print.horizontal', $voucher->id) }}" 
-                                                target="_blank" 
-                                                class="inline-flex items-center text-xs font-bold text-primary-600 hover:text-primary-800 hover:underline">
-                                                 Print (H)
-                                             </a>
-                                             <span class="text-slate-300">|</span>
-                                             <a href="{{ route('fee-vouchers.print.portrait', $voucher->id) }}" 
-                                                target="_blank" 
-                                                class="inline-flex items-center text-xs font-bold text-primary-600 hover:text-primary-800 hover:underline">
-                                                 Print (P)
-                                             </a>
-                                        </td>
+                                         <td class="px-4 py-3 text-center space-x-2">
+                                             @php
+                                                 $isPaid = $voucher->status === 'paid';
+                                                 $isOverdue = $voucher->due_date && now()->startOfDay()->greaterThan($voucher->due_date->startOfDay());
+                                                 $isDueDays = !$isOverdue;
+                                             @endphp
+
+                                             @if($isPaid || $isDueDays)
+                                                 <a href="{{ route('fee-vouchers.print.portrait', $voucher->id) }}" 
+                                                    target="_blank" 
+                                                    class="inline-flex items-center text-xs font-bold text-primary-600 hover:text-primary-800 hover:underline">
+                                                     Print Duplicate
+                                                 </a>
+                                             @else
+                                                 <span class="text-xs text-slate-400 font-semibold cursor-not-allowed" title="Cannot print duplicate after due date. Print Late Fee instead.">
+                                                     Print Duplicate
+                                                 </span>
+                                             @endif
+
+                                             @if($isOverdue && !$isPaid)
+                                                 <span class="text-slate-300">|</span>
+                                                 <a href="{{ route('fee-vouchers.print.late', $voucher->id) }}" 
+                                                    target="_blank" 
+                                                    class="inline-flex items-center text-xs font-bold text-rose-600 hover:text-rose-800 hover:underline">
+                                                     Print Late Fee
+                                                 </a>
+                                             @endif
+
+                                             @if(auth()->user()?->hasRole('Super Admin'))
+                                                 <span class="text-slate-300">|</span>
+                                                 @php
+                                                     $panelPrefix = auth()->user()?->hasRole('Super Admin') ? 'admin' : 'campus';
+                                                 @endphp
+                                                 <a href="{{ url("/{$panelPrefix}/fee-vouchers/{$voucher->id}/edit") }}" 
+                                                    class="inline-flex items-center text-xs font-bold text-amber-600 hover:text-amber-800 hover:underline">
+                                                     Edit
+                                                 </a>
+                                             @endif
+                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
@@ -199,6 +246,14 @@
                                                class="inline-flex items-center text-xs font-bold text-emerald-600 hover:text-emerald-800 hover:underline">
                                                 Print Receipt
                                             </a>
+                                            @if($payment->office_copy)
+                                                <span class="text-slate-300">|</span>
+                                                <a href="{{ asset('storage/' . $payment->office_copy) }}" 
+                                                   target="_blank" 
+                                                   class="inline-flex items-center text-xs font-bold text-primary-600 hover:text-primary-800 hover:underline">
+                                                    View Copy
+                                                </a>
+                                            @endif
                                         </td>
                                     </tr>
                                 @empty

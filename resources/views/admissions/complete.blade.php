@@ -39,8 +39,7 @@
         </div>
 
         <div class="flex flex-wrap gap-3 border-t border-[#D9E2EC] p-6 sm:px-10">
-            <a href="{{ route('pdf.admission-letter', $admission) }}" target="_blank" class="rounded-lg bg-[#082245] px-4 py-3 text-sm font-bold text-white">Print Admission Form</a>
-            <a href="{{ route('pdf.admission-agreement', $admission) }}" target="_blank" class="rounded-lg bg-[#C98D18] px-4 py-3 text-sm font-bold text-[#06192E]">Print Fee Agreement</a>
+            <a href="{{ route('pdf.admission-agreement', $admission) }}" target="_blank" class="rounded-lg bg-[#C98D18] px-4 py-3 text-sm font-bold text-[#06192E]">Print Student Agreement</a>
             @if($vouchers->first())
                 <a href="{{ route('fee-vouchers.print.book', $admission) }}" target="_blank" class="rounded-lg border border-[#082245] px-4 py-3 text-sm font-bold text-[#082245]">Print Voucher Book</a>
             @endif
