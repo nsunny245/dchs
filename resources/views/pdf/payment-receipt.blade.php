@@ -170,8 +170,66 @@
                 <span>Amount Paid in Words:</span>
                 <strong style="text-transform: capitalize; color: #555;">
                     @php
-                        $f = new NumberFormatter("en", NumberFormatter::SPELLOUT);
-                        echo $f->format($payment->amount) . " Rupees Only";
+                        if (!function_exists('convertNumberToWords')) {
+                            function convertNumberToWords($num) {
+                                $num = (int)$num;
+                                if ($num === 0) {
+                                    return 'zero';
+                                }
+
+                                $ones = [
+                                    1 => "one", 2 => "two", 3 => "three", 4 => "four", 5 => "five", 6 => "six", 7 => "seven", 8 => "eight", 9 => "nine",
+                                    10 => "ten", 11 => "eleven", 12 => "twelve", 13 => "thirteen", 14 => "fourteen", 15 => "fifteen", 16 => "sixteen", 17 => "seventeen", 18 => "eighteen", 19 => "nineteen"
+                                ];
+                                $tens = [
+                                    2 => "twenty", 3 => "thirty", 4 => "forty", 5 => "fifty", 6 => "sixty", 7 => "seventy", 8 => "eighty", 9 => "ninety"
+                                ];
+                                $units = ["", "thousand", "million", "billion"];
+
+                                $words = [];
+                                $unitIdx = 0;
+
+                                while ($num > 0) {
+                                    $chunk = $num % 1000;
+                                    if ($chunk > 0) {
+                                        $chunkWords = [];
+                                        $hundreds = (int)($chunk / 100);
+                                        $remainder = $chunk % 100;
+
+                                        if ($hundreds > 0) {
+                                            $chunkWords[] = $ones[$hundreds] . " hundred";
+                                        }
+
+                                        if ($remainder > 0) {
+                                            if ($remainder < 20) {
+                                                $chunkWords[] = $ones[$remainder];
+                                            } else {
+                                                $tenVal = (int)($remainder / 10);
+                                                $oneVal = $remainder % 10;
+                                                $chunkWords[] = $tens[$tenVal] . ($oneVal > 0 ? "-" . $ones[$oneVal] : "");
+                                            }
+                                        }
+
+                                        $chunkStr = implode(" ", $chunkWords);
+                                        if ($units[$unitIdx]) {
+                                            $chunkStr .= " " . $units[$unitIdx];
+                                        }
+                                        array_unshift($words, $chunkStr);
+                                    }
+                                    $num = (int)($num / 1000);
+                                    $unitIdx++;
+                                }
+
+                                return implode(" ", $words);
+                            }
+                        }
+
+                        if (class_exists('NumberFormatter')) {
+                            $f = new NumberFormatter("en", NumberFormatter::SPELLOUT);
+                            echo $f->format($payment->amount) . " Rupees Only";
+                        } else {
+                            echo convertNumberToWords($payment->amount) . " Rupees Only";
+                        }
                     @endphp
                 </strong>
             </div>

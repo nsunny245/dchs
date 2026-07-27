@@ -174,16 +174,17 @@
                                                  $isPaid = $voucher->status === 'paid';
                                                  $isOverdue = $voucher->due_date && now()->startOfDay()->greaterThan($voucher->due_date->startOfDay());
                                                  $isDueDays = !$isOverdue;
+                                                 $canPrintDuplicate = ($isPaid || $isDueDays) && !(auth()->user()?->campus_id && $isPaid);
                                              @endphp
 
-                                             @if($isPaid || $isDueDays)
+                                             @if($canPrintDuplicate)
                                                  <a href="{{ route('fee-vouchers.print.portrait', $voucher->id) }}" 
                                                     target="_blank" 
                                                     class="inline-flex items-center text-xs font-bold text-primary-600 hover:text-primary-800 hover:underline">
                                                      Print Duplicate
                                                  </a>
                                              @else
-                                                 <span class="text-xs text-slate-400 font-semibold cursor-not-allowed" title="Cannot print duplicate after due date. Print Late Fee instead.">
+                                                 <span class="text-xs text-slate-400 font-semibold cursor-not-allowed" title="{{ $isPaid ? 'Voucher is already paid.' : 'Cannot print duplicate after due date. Print Late Fee instead.' }}">
                                                      Print Duplicate
                                                  </span>
                                              @endif
@@ -222,6 +223,11 @@
                                                             class="inline-flex items-center text-xs font-bold text-amber-600 hover:text-amber-800 hover:underline">
                                                              Edit Draft
                                                          </a>
+                                                     @elseif($voucher->status === 'paid')
+                                                         <span class="text-slate-300">|</span>
+                                                         <span class="text-xs text-slate-400 font-semibold cursor-not-allowed" title="Voucher is already paid.">
+                                                             Request Edit
+                                                         </span>
                                                      @else
                                                          <span class="text-slate-300">|</span>
                                                          <button type="button" onclick="requestVoucherEdit({{ $voucher->id }})" 
