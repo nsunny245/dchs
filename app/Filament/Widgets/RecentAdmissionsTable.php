@@ -6,6 +6,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use App\Models\Admission;
+use App\Filament\Resources\AdmissionResource;
 
 class RecentAdmissionsTable extends BaseWidget
 {
@@ -34,6 +35,10 @@ class RecentAdmissionsTable extends BaseWidget
                         default => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('created_at')->dateTime()->label('Applied')->sortable(),
+            ])
+            ->actions([
+                Tables\Actions\EditAction::make()
+                    ->url(fn ($record) => AdmissionResource::getUrl('edit', ['record' => $record])),
             ])
             ->paginated([10])
             ->defaultSort('created_at', 'desc');

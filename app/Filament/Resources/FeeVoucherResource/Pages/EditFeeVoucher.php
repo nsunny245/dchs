@@ -16,4 +16,22 @@ class EditFeeVoucher extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function afterSave(): void
+    {
+        $voucher = $this->record;
+
+        $voucher->update([
+            'edit_request_status' => null,
+            'edit_request_reason' => null,
+            'edit_requested_by' => null,
+        ]);
+
+        $totals = \App\Services\Fees\FeeVoucherCalculator::calculate($voucher);
+        $voucher->update($totals);
+
+        if ($voucher->feeAccount) {
+            \App\Services\Fees\FeeVoucherService::recalculateAccountTotals($voucher->feeAccount);
+        }
+    }
 }

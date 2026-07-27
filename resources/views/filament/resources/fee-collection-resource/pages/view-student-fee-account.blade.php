@@ -1,4 +1,10 @@
 <x-filament-panels::page>
+    @if(session('success'))
+        <div class="mb-4 p-4 text-sm text-emerald-800 rounded-lg bg-emerald-50 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800" role="alert">
+            {{ session('success') }}
+        </div>
+    @endif
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Student Profile Card -->
         <div class="lg:col-span-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm space-y-4">
@@ -118,33 +124,43 @@
                                             {{ $voucher->title }}
                                             <div class="text-[10px] text-slate-400">{{ $voucher->voucher_number }}</div>
                                         </td>
-                                        <td class="px-4 py-3 text-slate-500 dark:text-slate-400">
-                                            {{ $voucher->due_date ? $voucher->due_date->format('d M Y') : 'N/A' }}
-                                        </td>
-                                        <td class="px-4 py-3 text-right font-medium text-slate-800 dark:text-slate-200">
-                                            PKR {{ number_format($voucher->total_amount, 2) }}
-                                        </td>
-                                        <td class="px-4 py-3 text-right text-emerald-600 font-semibold">
-                                            PKR {{ number_format($voucher->paid_amount, 2) }}
-                                        </td>
-                                        <td class="px-4 py-3 text-right text-rose-600 font-semibold">
-                                            PKR {{ number_format($voucher->balance_amount, 2) }}
-                                        </td>
-                                        <td class="px-4 py-3 text-center">
-                                            @php
-                                                $statusColor = match($voucher->status) {
-                                                    'paid' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
-                                                    'partially_paid' => 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300',
-                                                    'due', 'issued' => 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
-                                                    'overdue' => 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300',
-                                                    'waived' => 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300',
-                                                    default => 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300',
-                                                };
-                                            @endphp
-                                            <span class="px-2 py-0.5 text-xs font-bold rounded-full {{ $statusColor }}">
-                                                {{ ucfirst($voucher->status) }}
-                                            </span>
-                                        </td>
+                                         <td class="px-4 py-3 text-slate-500 dark:text-slate-400 font-medium">
+                                             {{ $voucher->due_date ? $voucher->due_date->format('d-M-Y') : 'N/A' }}
+                                         </td>
+                                         <td class="px-4 py-3 text-right font-medium text-slate-800 dark:text-slate-200">
+                                             PKR {{ number_format($voucher->total_amount, 2) }}
+                                         </td>
+                                         <td class="px-4 py-3 text-right text-emerald-600 font-semibold">
+                                             PKR {{ number_format($voucher->paid_amount, 2) }}
+                                         </td>
+                                         <td class="px-4 py-3 text-right text-rose-600 font-semibold">
+                                             PKR {{ number_format($voucher->balance_amount, 2) }}
+                                         </td>
+                                         <td class="px-4 py-3 text-center">
+                                             @php
+                                                 $statusColor = match($voucher->status) {
+                                                     'paid' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
+                                                     'partially_paid' => 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300',
+                                                     'due', 'issued' => 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
+                                                     'overdue' => 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300',
+                                                     'waived' => 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300',
+                                                     default => 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300',
+                                                 };
+                                             @endphp
+                                             <span class="px-2 py-0.5 text-xs font-bold rounded-full {{ $statusColor }}">
+                                                 {{ ucfirst($voucher->status) }}
+                                             </span>
+                                             @if(auth()->user()?->hasRole('Super Admin') && $voucher->edit_request_status === 'pending')
+                                                 <div class="mt-2 p-1.5 text-[10px] bg-amber-50 dark:bg-amber-950 text-amber-800 dark:text-amber-300 rounded border border-amber-200 dark:border-amber-900 max-w-[150px] mx-auto text-left">
+                                                     <span class="font-bold block text-slate-700 dark:text-slate-300">Edit Requested:</span> 
+                                                     <span class="italic block mb-1">"{{ $voucher->edit_request_reason }}"</span>
+                                                     <div class="flex gap-2 justify-end border-t border-amber-200/50 pt-1 font-bold">
+                                                         <a href="{{ route('fee-vouchers.approve-edit', $voucher->id) }}" class="text-emerald-600 dark:text-emerald-400 hover:underline">Approve</a>
+                                                         <a href="{{ route('fee-vouchers.reject-edit', $voucher->id) }}" class="text-rose-600 dark:text-rose-400 hover:underline">Reject</a>
+                                                     </div>
+                                                 </div>
+                                             @endif
+                                         </td>
                                          <td class="px-4 py-3 text-center space-x-2">
                                              @php
                                                  $isPaid = $voucher->status === 'paid';
@@ -175,13 +191,37 @@
 
                                              @if(auth()->user()?->hasRole('Super Admin'))
                                                  <span class="text-slate-300">|</span>
-                                                 @php
-                                                     $panelPrefix = auth()->user()?->hasRole('Super Admin') ? 'admin' : 'campus';
-                                                 @endphp
-                                                 <a href="{{ url("/{$panelPrefix}/fee-vouchers/{$voucher->id}/edit") }}" 
+                                                 <a href="{{ url("/admin/fee-vouchers/{$voucher->id}/edit") }}" 
                                                     class="inline-flex items-center text-xs font-bold text-amber-600 hover:text-amber-800 hover:underline">
                                                      Edit
                                                  </a>
+                                             @else
+                                                 @if($voucher->edit_request_status === 'approved')
+                                                     <span class="text-slate-300">|</span>
+                                                     <a href="{{ url("/campus/fee-vouchers/{$voucher->id}/edit") }}" 
+                                                        class="inline-flex items-center text-xs font-bold text-emerald-600 hover:text-emerald-800 hover:underline">
+                                                         Edit (Approved)
+                                                     </a>
+                                                 @elseif($voucher->edit_request_status === 'pending')
+                                                     <span class="text-slate-300">|</span>
+                                                     <span class="text-xs text-amber-500 font-bold cursor-default" title="Awaiting Super Admin approval">
+                                                         Edit Pending
+                                                     </span>
+                                                 @else
+                                                     @if($voucher->status === 'draft')
+                                                         <span class="text-slate-300">|</span>
+                                                         <a href="{{ url("/campus/fee-vouchers/{$voucher->id}/edit") }}" 
+                                                            class="inline-flex items-center text-xs font-bold text-amber-600 hover:text-amber-800 hover:underline">
+                                                             Edit Draft
+                                                         </a>
+                                                     @else
+                                                         <span class="text-slate-300">|</span>
+                                                         <button type="button" onclick="requestVoucherEdit({{ $voucher->id }})" 
+                                                                 class="inline-flex items-center text-xs font-bold text-slate-600 hover:text-slate-800 hover:underline border-none bg-transparent p-0 cursor-pointer">
+                                                             Request Edit
+                                                         </button>
+                                                     @endif
+                                                 @endif
                                              @endif
                                          </td>
                                     </tr>
@@ -225,9 +265,9 @@
                                                 <div class="text-[10px] text-slate-400 font-normal">Notes: {{ $payment->notes }}</div>
                                             @endif
                                         </td>
-                                        <td class="px-4 py-3 text-slate-500 dark:text-slate-400">
-                                            {{ $payment->payment_date ? $payment->payment_date->format('d M Y') : 'N/A' }}
-                                        </td>
+                                         <td class="px-4 py-3 text-slate-500 dark:text-slate-400">
+                                             {{ $payment->payment_date ? $payment->payment_date->format('d-M-Y') : 'N/A' }}
+                                         </td>
                                         <td class="px-4 py-3 text-right font-bold text-emerald-600">
                                             PKR {{ number_format($payment->amount, 2) }}
                                         </td>
@@ -270,4 +310,37 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function requestVoucherEdit(voucherId) {
+            const reason = prompt("Please enter the reason for editing this voucher:");
+            if (reason === null) return;
+            if (reason.trim() === "") {
+                alert("Reason is required to submit an edit request.");
+                return;
+            }
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/fee-vouchers/${voucherId}/request-edit`;
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') 
+                || '{{ csrf_token() }}';
+
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+
+            const reasonInput = document.createElement('input');
+            reasonInput.type = 'hidden';
+            reasonInput.name = 'reason';
+            reasonInput.value = reason;
+            form.appendChild(reasonInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
 </x-filament-panels::page>

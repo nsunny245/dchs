@@ -27,7 +27,12 @@ class ExpenseResource extends Resource
                     ->required()
                     ->maxLength(255),
                 Forms\Components\Select::make('expense_category_id')
-                    ->relationship('category', 'name')
+                    ->relationship('category', 'name', function (Builder $query) {
+                        $user = filament()->auth()->user();
+                        if ($user && $user->campus_id !== null) {
+                            $query->whereRaw('LOWER(name) NOT LIKE ?', ['%personal%']);
+                        }
+                    })
                     ->required()
                     ->searchable()
                     ->preload(),
@@ -124,7 +129,12 @@ class ExpenseResource extends Resource
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('expense_category_id')
-                    ->relationship('category', 'name')
+                    ->relationship('category', 'name', function (Builder $query) {
+                        $user = filament()->auth()->user();
+                        if ($user && $user->campus_id !== null) {
+                            $query->whereRaw('LOWER(name) NOT LIKE ?', ['%personal%']);
+                        }
+                    })
                     ->label('Category'),
                 Tables\Filters\SelectFilter::make('campus_id')
                     ->relationship('campus', 'name')
@@ -148,6 +158,9 @@ class ExpenseResource extends Resource
 
         if ($user && $user->campus_id !== null) {
             $query->where('campus_id', $user->campus_id);
+            $query->whereHas('category', function ($q) {
+                $q->whereRaw('LOWER(name) NOT LIKE ?', ['%personal%']);
+            });
         }
 
         return $query;

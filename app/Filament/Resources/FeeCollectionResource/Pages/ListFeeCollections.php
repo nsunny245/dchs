@@ -16,16 +16,4 @@ class ListFeeCollections extends ListRecords
             FeeCollectionOverviewWidget::class,
         ];
     }
-
-    protected function getHeaderActions(): array
-    {
-        return [
-            \Filament\Actions\Action::make('printAllCampusVouchers')
-                ->label('Print All Campus Vouchers')
-                ->icon('heroicon-o-printer')
-                ->color('info')
-                ->url(route('fee-vouchers.print.campus-monthly'))
-                ->openUrlInNewTab(),
-        ];
-    }
 }

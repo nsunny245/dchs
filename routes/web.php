@@ -50,4 +50,7 @@ Route::middleware('auth:admin,campus')->prefix('admin/fee-vouchers')->name('fee-
     Route::get('/{feeVoucher}/print/late', [FeeVoucherPrintController::class, 'printLateFee'])->name('print.late');
     Route::get('/{feeVoucher}/pdf/horizontal', [FeeVoucherPrintController::class, 'downloadHorizontal'])->name('pdf.horizontal');
     Route::get('/{feeVoucher}/pdf/portrait', [FeeVoucherPrintController::class, 'downloadPortrait'])->name('pdf.portrait');
+    Route::post('/{feeVoucher}/request-edit', [FeeVoucherPrintController::class, 'requestEdit'])->name('request-edit');
+    Route::get('/{feeVoucher}/approve-edit', [FeeVoucherPrintController::class, 'approveEdit'])->name('approve-edit');
+    Route::get('/{feeVoucher}/reject-edit', [FeeVoucherPrintController::class, 'rejectEdit'])->name('reject-edit');
 });

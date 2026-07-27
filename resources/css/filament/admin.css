@@ -294,22 +294,7 @@ select,
     box-shadow: 0 0 0 3px rgba(201, 150, 60, 0.2) !important;
 }
 
-/* Native Filament selects own exactly one arrow. Enhanced Choices.js selects
-   retain their component-provided indicator. */
-.fi-fo-select select.fi-select-input {
-    appearance: none !important;
-    -webkit-appearance: none !important;
-    -moz-appearance: none !important;
-    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%235E6D7E' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E") !important;
-    background-repeat: no-repeat !important;
-    background-position: right 0.75rem center !important;
-    background-size: 1.25rem 1.25rem !important;
-    padding-right: 2.5rem !important;
-}
 
-.fi-fo-select .choices select {
-    background-image: none !important;
-}
 
 /* Buttons Styling */
 .fi-btn.fi-btn-color-primary,

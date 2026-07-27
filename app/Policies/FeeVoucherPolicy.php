@@ -44,13 +44,18 @@ class FeeVoucherPolicy
             return true;
         }
 
-        // Only draft vouchers can be updated for others
-        if ($voucher->status !== 'draft') {
+        // Campus scoping
+        if ($user->campus_id && $voucher->campus_id !== $user->campus_id) {
             return false;
         }
 
-        // Campus scoping
-        if ($user->campus_id && $voucher->campus_id !== $user->campus_id) {
+        // Approved edit request allows editing
+        if ($voucher->edit_request_status === 'approved') {
+            return $user->hasAnyRole(['Campus Principal', 'Finance']);
+        }
+
+        // Otherwise only draft vouchers can be updated
+        if ($voucher->status !== 'draft') {
             return false;
         }
 

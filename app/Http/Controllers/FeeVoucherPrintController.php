@@ -79,6 +79,11 @@ class FeeVoucherPrintController extends Controller
         // Scope by campus if not Super Admin
         if ($user->campus_id && !$user->hasRole('Super Admin')) {
             $query->where('campus_id', $user->campus_id);
+        } else {
+            $campusId = request('campus_id');
+            if ($campusId) {
+                $query->where('campus_id', $campusId);
+            }
         }
 
         // Vouchers are issued on 1st of every month and due on 10th.
@@ -98,5 +103,44 @@ class FeeVoucherPrintController extends Controller
         ])->setPaper('A4', 'landscape');
 
         return $pdf->stream("campus-vouchers-" . now()->format('Y-m') . ".pdf");
+    }
+
+    public function requestEdit(\Illuminate\Http\Request $request, FeeVoucher $feeVoucher)
+    {
+        if (auth()->user()->campus_id && $feeVoucher->campus_id !== auth()->user()->campus_id) {
+            abort(403);
+        }
+
+        $feeVoucher->update([
+            'edit_request_status' => 'pending',
+            'edit_request_reason' => $request->input('reason', 'Campus requested voucher modification'),
+            'edit_requested_by' => auth()->id(),
+        ]);
+
+        return redirect()->back()->with('success', 'Voucher edit request submitted successfully.');
+    }
+
+    public function approveEdit(FeeVoucher $feeVoucher)
+    {
+        abort_unless(auth()->user()->hasRole('Super Admin'), 403);
+
+        $feeVoucher->update([
+            'edit_request_status' => 'approved',
+        ]);
+
+        return redirect()->back()->with('success', 'Voucher edit request approved.');
+    }
+
+    public function rejectEdit(FeeVoucher $feeVoucher)
+    {
+        abort_unless(auth()->user()->hasRole('Super Admin'), 403);
+
+        $feeVoucher->update([
+            'edit_request_status' => null,
+            'edit_request_reason' => null,
+            'edit_requested_by' => null,
+        ]);
+
+        return redirect()->back()->with('success', 'Voucher edit request rejected.');
     }
 }
