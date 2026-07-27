@@ -45,59 +45,53 @@
                     Select details to download monthly vouchers for <span class="font-bold text-slate-800 dark:text-slate-200">"{{ $selectedCourseName }}"</span>.
                 </p>
 
-                <div class="space-y-4">
-                    <!-- Campus Selection (Super Admin only) -->
-                    @if($isSuperAdmin)
+                <!-- Synchronous HTML Form to prevent browser popup blocking -->
+                <form action="{{ route('fee-vouchers.print.course-monthly') }}" method="GET" target="_blank">
+                    <input type="hidden" name="course_id" value="{{ $selectedCourseId }}">
+
+                    <div class="space-y-4">
+                        <!-- Campus Selection (Super Admin only) -->
+                        @if($isSuperAdmin)
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1 uppercase tracking-wider">Campus</label>
+                                <select name="campus_id" 
+                                        class="w-full text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 py-2 px-3 focus:ring-primary-500 focus:border-primary-500"
+                                        style="appearance: auto !important; -webkit-appearance: auto !important; -moz-appearance: auto !important; background-image: none !important; padding-right: 1.5rem !important;">
+                                    <option value="">All Campuses</option>
+                                    @foreach($campuses as $campus)
+                                        <option value="{{ $campus->id }}">{{ $campus->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
+
+                        <!-- Month Selection -->
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1 uppercase tracking-wider">Campus</label>
-                            <select wire:model="selectedCampusId" 
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1 uppercase tracking-wider">Select Month</label>
+                            <select name="month" 
                                     class="w-full text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 py-2 px-3 focus:ring-primary-500 focus:border-primary-500"
                                     style="appearance: auto !important; -webkit-appearance: auto !important; -moz-appearance: auto !important; background-image: none !important; padding-right: 1.5rem !important;">
-                                <option value="">All Campuses</option>
-                                @foreach($campuses as $campus)
-                                    <option value="{{ $campus->id }}">{{ $campus->name }}</option>
+                                @foreach($months as $val => $lbl)
+                                    <option value="{{ $val }}" {{ $val === $selectedMonth ? 'selected' : '' }}>{{ $lbl }}</option>
                                 @endforeach
                             </select>
                         </div>
-                    @endif
-
-                    <!-- Month Selection -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1 uppercase tracking-wider">Select Month</label>
-                        <select wire:model="selectedMonth" 
-                                class="w-full text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 py-2 px-3 focus:ring-primary-500 focus:border-primary-500"
-                                style="appearance: auto !important; -webkit-appearance: auto !important; -moz-appearance: auto !important; background-image: none !important; padding-right: 1.5rem !important;">
-                            @foreach($months as $val => $lbl)
-                                <option value="{{ $val }}">{{ $lbl }}</option>
-                            @endforeach
-                        </select>
                     </div>
-                </div>
 
-                <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" 
-                            wire:click="closeModal" 
-                            class="px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition cursor-pointer">
-                        Cancel
-                    </button>
-                    <button type="button" 
-                            wire:click="generatePdf" 
-                            class="px-4 py-2 text-xs font-bold text-white bg-[#082245] hover:bg-[#10345D] rounded-lg transition cursor-pointer">
-                        Generate PDF
-                    </button>
-                </div>
+                    <div class="mt-6 flex justify-end gap-3">
+                        <button type="button" 
+                                wire:click="closeModal" 
+                                class="px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition cursor-pointer">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                wire:click="closeModal" 
+                                class="px-4 py-2 text-xs font-bold text-white bg-[#082245] hover:bg-[#10345D] rounded-lg transition cursor-pointer">
+                            Generate PDF
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     @endif
-
-    <script>
-        window.addEventListener('open-new-tab', event => {
-            const url = event.detail.url || (event.detail && event.detail[0] ? event.detail[0].url : null) || event.detail;
-            if (url && typeof url === 'string') {
-                window.open(url, '_blank');
-            } else if (event.detail && event.detail.url) {
-                window.open(event.detail.url, '_blank');
-            }
-        });
-    </script>
 </div>

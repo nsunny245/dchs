@@ -62,27 +62,4 @@ class CourseVoucherPrintWidget extends Widget
         $this->selectedCourseId = null;
         $this->selectedCourseName = '';
     }
-
-    public function generatePdf()
-    {
-        $this->validate([
-            'selectedCourseId' => 'required',
-            'selectedMonth' => 'required',
-        ]);
-
-        $params = [
-            'course_id' => $this->selectedCourseId,
-            'month' => $this->selectedMonth,
-        ];
-
-        if ($this->isSuperAdmin && $this->selectedCampusId) {
-            $params['campus_id'] = $this->selectedCampusId;
-        }
-
-        $url = route('fee-vouchers.print.course-monthly', $params);
-
-        $this->showModal = false;
-
-        $this->dispatch('open-new-tab', ['url' => $url]);
-    }
 }
