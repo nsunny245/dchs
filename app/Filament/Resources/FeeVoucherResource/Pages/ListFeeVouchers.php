@@ -10,6 +10,8 @@ class ListFeeVouchers extends ListRecords
 {
     protected static string $resource = FeeVoucherResource::class;
 
+    protected static string $view = 'filament.resources.fee-voucher-resource.pages.list-fee-vouchers';
+
     protected function getHeaderWidgets(): array
     {
         return [
