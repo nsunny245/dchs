@@ -16,6 +16,8 @@ class EditAdmission extends EditRecord
 {
     protected static string $resource = AdmissionResource::class;
 
+    protected static string $view = 'filament.resources.admission-resource.pages.edit-admission';
+
     public function getSubheading(): ?string
     {
         return 'Review the seven-step record, save a draft, or finalize the student and financial documents.';
