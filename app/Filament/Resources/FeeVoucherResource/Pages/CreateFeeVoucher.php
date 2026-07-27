@@ -11,6 +11,27 @@ class CreateFeeVoucher extends CreateRecord
 {
     protected static string $resource = FeeVoucherResource::class;
 
+    public function mount(): void
+    {
+        parent::mount();
+
+        $studentId = request()->query('student_id');
+        if ($studentId) {
+            $student = \App\Models\Student::find($studentId);
+            if ($student) {
+                $this->form->fill([
+                    'student_id' => $student->id,
+                    'campus_id' => $student->campus_id,
+                    'course_id' => $student->course_id,
+                    'admission_id' => $student->admission_id,
+                    'academic_session_id' => $student->admission?->academic_session_id,
+                    'voucher_type' => 'monthly_installment',
+                    'orientation' => 'portrait_three_part',
+                ]);
+            }
+        }
+    }
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $campus = Campus::find($data['campus_id']);

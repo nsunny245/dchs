@@ -143,4 +143,42 @@ class FeeVoucherPrintController extends Controller
 
         return redirect()->back()->with('success', 'Voucher edit request rejected.');
     }
+
+    public function printCourseMonthly()
+    {
+        $user = auth()->user();
+        $courseId = request('course_id');
+        $month = request('month');
+        $campusId = request('campus_id');
+
+        abort_unless($courseId && $month, 400, 'Course and Month are required.');
+
+        $query = FeeVoucher::query()
+            ->with(['student.admission', 'student.campus', 'student.course', 'campus', 'course', 'academicSession', 'items.feeHead'])
+            ->whereNotIn('status', ['paid', 'waived', 'cancelled'])
+            ->where('course_id', $courseId);
+
+        // Scope by campus if not Super Admin
+        if ($user->campus_id && !$user->hasRole('Super Admin')) {
+            $query->where('campus_id', $user->campus_id);
+        } else if ($campusId) {
+            $query->where('campus_id', $campusId);
+        }
+
+        // Parse month
+        $start = \Illuminate\Support\Carbon::parse($month . '-01')->startOfMonth()->toDateString();
+        $end = \Illuminate\Support\Carbon::parse($month . '-01')->endOfMonth()->toDateString();
+
+        $query->whereBetween('due_date', [$start, $end]);
+        $vouchers = $query->orderBy('voucher_number')->get();
+
+        abort_if($vouchers->isEmpty(), 404, 'No upcoming vouchers found for this selection.');
+
+        $pdf = Pdf::loadView('fees.vouchers.portrait-three-part', [
+            'voucher' => $vouchers->first(),
+            'vouchers' => $vouchers,
+        ])->setPaper('A4', 'landscape');
+
+        return $pdf->stream("course-vouchers-{$courseId}-{$month}.pdf");
+    }
 }

@@ -73,6 +73,13 @@
                        class="w-full text-center px-4 py-2 text-xs font-bold text-[#06192E] bg-[#C98D18] hover:bg-[#B97708] rounded-lg shadow-sm transition">
                         Print Student Agreement
                     </a>
+                    @php
+                        $panelPrefix = auth()->user()?->hasRole('Super Admin') ? 'admin' : 'campus';
+                    @endphp
+                    <a href="{{ url("/{$panelPrefix}/fee-vouchers/create?student_id=" . $record->student->id) }}" 
+                       class="w-full text-center px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-white border border-slate-300 dark:border-slate-800 hover:bg-[#082245] hover:border-[#082245] rounded-lg shadow-sm transition">
+                        Create Custom Voucher
+                    </a>
                 @endif
             </div>
         </div>

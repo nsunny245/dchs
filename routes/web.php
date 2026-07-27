@@ -44,6 +44,7 @@ Route::middleware('auth:admin,campus')
 
 Route::middleware('auth:admin,campus')->prefix('admin/fee-vouchers')->name('fee-vouchers.')->group(function () {
     Route::get('/campus-monthly/print', [FeeVoucherPrintController::class, 'printCampusMonthly'])->name('print.campus-monthly');
+    Route::get('/course-monthly/print', [FeeVoucherPrintController::class, 'printCourseMonthly'])->name('print.course-monthly');
     Route::get('/admission/{admission}/book', [FeeVoucherPrintController::class, 'printBook'])->name('print.book');
     Route::get('/{feeVoucher}/print/horizontal', [FeeVoucherPrintController::class, 'printHorizontal'])->name('print.horizontal');
     Route::get('/{feeVoucher}/print/portrait', [FeeVoucherPrintController::class, 'printPortrait'])->name('print.portrait');
