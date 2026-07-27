@@ -36,6 +36,10 @@ trait ConvertsImagesToWebp
 
     protected static function convertToWebpSingle($filePath)
     {
+        if (!extension_loaded('gd') || !function_exists('imagewebp')) {
+            return $filePath;
+        }
+
         if (empty($filePath) || !is_string($filePath)) {
             return $filePath;
         }
