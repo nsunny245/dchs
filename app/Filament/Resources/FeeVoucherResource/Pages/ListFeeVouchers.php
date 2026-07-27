@@ -18,4 +18,9 @@ class ListFeeVouchers extends ListRecords
             \App\Filament\Widgets\CourseVoucherPrintWidget::class,
         ];
     }
+
+    public function getHeaderWidgetsColumns(): int | string | array
+    {
+        return 1;
+    }
 }
