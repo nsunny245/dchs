@@ -228,7 +228,7 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                             Forms\Components\Section::make('Posting Details')
                                 ->schema([
                                     Forms\Components\Select::make('campus_id')
-                                        ->relationship('campus', 'name')
+                                        ->options(\App\Models\Campus::pluck('name', 'id'))
                                         ->required()
                                         ->disabled(!$isSuperAdmin)
                                         ->dehydrated()
