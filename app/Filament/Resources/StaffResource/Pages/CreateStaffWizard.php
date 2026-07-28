@@ -77,8 +77,24 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                     Forms\Components\Wizard\Step::make('1. Personal')
                         ->icon('heroicon-o-user')
                         ->schema([
-                            Forms\Components\Section::make('Teacher Identity')
+                            Forms\Components\Section::make('Teacher Identity & Campus Posting')
                                 ->schema([
+                                    Forms\Components\Select::make('campus_id')
+                                        ->label('Hiring / Assigned Campus')
+                                        ->options(\App\Models\Campus::pluck('name', 'id'))
+                                        ->required()
+                                        ->searchable()
+                                        ->disabled(!$isSuperAdmin)
+                                        ->dehydrated()
+                                        ->reactive()
+                                        ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                            $set('employee_id', GenerateEmployeeIdService::generate($state, $get('staff_category') ?? 'TEA'));
+                                        }),
+                                    Forms\Components\TextInput::make('employee_id')
+                                        ->label('Employee ID (Auto-Generated)')
+                                        ->disabled()
+                                        ->dehydrated()
+                                        ->required(),
                                     Forms\Components\FileUpload::make('photo_path')
                                         ->label('Profile Photograph')
                                         ->image()
@@ -116,12 +132,7 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                                             'divorced' => 'Divorced',
                                             'widowed' => 'Widowed',
                                         ]),
-                                    Forms\Components\TextInput::make('employee_id')
-                                        ->label('Employee ID (Auto-Generated)')
-                                        ->disabled()
-                                        ->dehydrated()
-                                        ->required(),
-                                ])->columns(2),
+                                ])->columns(3),
 
                             Forms\Components\Section::make('Contact Details')
                                 ->schema([
