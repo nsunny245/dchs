@@ -10,6 +10,8 @@ class CourseVoucherPrintWidget extends Widget
 {
     protected static string $view = 'filament.widgets.course-voucher-print-widget';
 
+    public static bool $shouldRegister = false;
+
     protected static ?int $sort = 1;
 
     public $showModal = false;
