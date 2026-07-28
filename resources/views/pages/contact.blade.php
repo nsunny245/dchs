@@ -95,7 +95,7 @@
                         </div>
                         <div>
                             <p class="font-bold">Phone Support</p>
-                            <p class="text-navy-400">+92 321-7729533</p>
+                            <p class="text-navy-400">{{ \App\Models\Setting::getGlobal('website_phone', '+92 321-7729533') }}</p>
                         </div>
                     </div>
 
@@ -105,7 +105,7 @@
                         </div>
                         <div>
                             <p class="font-bold">Email Admissions</p>
-                            <p class="text-navy-400">info@daniyalgroupofcolleges.com</p>
+                            <p class="text-navy-400">{{ \App\Models\Setting::getGlobal('website_email', 'info@daniyalgroupofcolleges.com') }}</p>
                         </div>
                     </div>
 

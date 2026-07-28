@@ -23,11 +23,12 @@ class SettingResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Campus Settings')
+                Forms\Components\Section::make('Settings Configuration')
                     ->schema([
                         Forms\Components\Select::make('campus_id')
                             ->relationship('campus', 'name')
-                            ->required()
+                            ->placeholder('Global / Website Setting')
+                            ->nullable()
                             ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin'))
                             ->default(filament()->auth()->user()->campus_id),
                         Forms\Components\TextInput::make('key')
@@ -66,6 +67,7 @@ class SettingResource extends Resource
                     ->limit(50),
                 Tables\Columns\TextColumn::make('campus.name')
                     ->sortable()
+                    ->default('Global / Website')
                     ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin')),
             ])
             ->filters([
