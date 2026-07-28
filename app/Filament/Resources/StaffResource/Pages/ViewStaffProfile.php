@@ -29,6 +29,11 @@ class ViewStaffProfile extends Page implements Forms\Contracts\HasForms
     public Staff $record;
     public string $activeTab = 'overview';
 
+    public function getMaxContentWidth(): ?string
+    {
+        return 'full';
+    }
+
     public function mount(int $record): void
     {
         $this->record = Staff::with([

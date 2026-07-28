@@ -35,6 +35,11 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
     public ?array $data = [];
     public int $currentStep = 1;
 
+    public function getMaxContentWidth(): ?string
+    {
+        return 'full';
+    }
+
     public function mount(): void
     {
         $user = filament()->auth()->user();
@@ -69,9 +74,8 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
             ->schema([
                 Forms\Components\Wizard::make([
                     // STEP 1: Personal Information
-                    Forms\Components\Wizard\Step::make('Personal Information')
+                    Forms\Components\Wizard\Step::make('1. Personal')
                         ->icon('heroicon-o-user')
-                        ->description('Identity, contact, & emergency details')
                         ->schema([
                             Forms\Components\Section::make('Teacher Identity')
                                 ->schema([
@@ -153,9 +157,8 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                         ]),
 
                     // STEP 2: Academic & Professional
-                    Forms\Components\Wizard\Step::make('Academic & Professional')
+                    Forms\Components\Wizard\Step::make('2. Academic')
                         ->icon('heroicon-o-academic-cap')
-                        ->description('Qualifications, experience & docs')
                         ->schema([
                             Forms\Components\Section::make('Qualifications & Experience')
                                 ->schema([
@@ -221,9 +224,8 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                         ]),
 
                     // STEP 3: Employment & Posting
-                    Forms\Components\Wizard\Step::make('Employment & Posting')
+                    Forms\Components\Wizard\Step::make('3. Employment')
                         ->icon('heroicon-o-briefcase')
-                        ->description('Campus, designation, shift & status')
                         ->schema([
                             Forms\Components\Section::make('Posting Details')
                                 ->schema([
@@ -315,10 +317,9 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                                 ])->columns(2),
                         ]),
 
-                    // STEP 4: Salary & Payroll (Super Admin / Restricted)
-                    Forms\Components\Wizard\Step::make('Salary & Payroll')
+                    // STEP 4: Payroll
+                    Forms\Components\Wizard\Step::make('4. Payroll')
                         ->icon('heroicon-o-currency-dollar')
-                        ->description('Salary breakdown & bank accounts')
                         ->visible($isSuperAdmin)
                         ->schema([
                             Forms\Components\Section::make('Monthly Remuneration')
@@ -384,9 +385,8 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                         ]),
 
                     // STEP 5: Review & Confirmation
-                    Forms\Components\Wizard\Step::make('Review & Confirmation')
+                    Forms\Components\Wizard\Step::make('5. Review')
                         ->icon('heroicon-o-check-badge')
-                        ->description('Final readiness summary')
                         ->schema([
                             Forms\Components\Placeholder::make('review_summary')
                                 ->label('Onboarding Summary')
