@@ -146,4 +146,21 @@ class PdfController extends Controller
 
         return $pdf->stream("payment-receipt-{$payment->receipt_number}.pdf");
     }
+
+    /**
+     * Generate Teacher Profile Summary PDF
+     */
+    public function teacherProfileSummary(\App\Models\Staff $staff)
+    {
+        abort_unless(auth()->user()?->hasRole('Super Admin') || auth()->user()?->campus_id === $staff->campus_id, 403);
+        $staff->load(['campus', 'academics', 'registrations', 'currentEmployment']);
+
+        $pdf = Pdf::loadView('pdf.teacher-profile-summary', [
+            'staff' => $staff,
+        ]);
+
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->stream("teacher-summary-{$staff->employee_id}.pdf");
+    }
 }

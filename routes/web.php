@@ -36,6 +36,7 @@ Route::middleware('auth:admin,campus')->prefix('pdf')->name('pdf.')->group(funct
     Route::get('/report-card/{student}', [PdfController::class, 'reportCard'])->name('report-card');
     Route::get('/fee-voucher/{voucher}', [PdfController::class, 'feeVoucher'])->name('fee-voucher');
     Route::get('/payment-receipt/{payment}', [PdfController::class, 'paymentReceipt'])->name('payment-receipt');
+    Route::get('/teacher-profile-summary/{staff}', [PdfController::class, 'teacherProfileSummary'])->name('teacher-profile-summary');
 });
 
 Route::middleware('auth:admin,campus')
