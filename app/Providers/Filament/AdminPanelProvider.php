@@ -17,7 +17,9 @@ use App\Filament\Resources\FeeHeadResource;
 use App\Filament\Resources\FeeStructureResource;
 use App\Filament\Resources\FeeVoucherResource;
 use App\Filament\Resources\FranchisorResource;
+use App\Filament\Resources\LeaveRequestResource;
 use App\Filament\Resources\SettingResource;
+use App\Filament\Resources\StaffResource;
 use App\Filament\Resources\StudentResource;
 use App\Filament\Resources\SuperAdminFranchisorPaymentResource;
 use App\Filament\Resources\UserResource;
@@ -97,6 +99,8 @@ class AdminPanelProvider extends PanelProvider
                 AdmissionResource::class,
                 StudentResource::class,
                 AttendanceResource::class,
+                StaffResource::class,
+                LeaveRequestResource::class,
                 VisitorQueryResource::class,
                 AdmissionInquiryResource::class,
                 ContactSubmissionResource::class,

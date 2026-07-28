@@ -11,6 +11,7 @@ use App\Filament\Resources\ExpenseResource;
 use App\Filament\Resources\FeeCollectionResource;
 use App\Filament\Resources\FeeHeadResource;
 use App\Filament\Resources\FeeVoucherResource;
+use App\Filament\Resources\LeaveRequestResource;
 use App\Filament\Resources\MarkResource;
 use App\Filament\Resources\StaffResource;
 use App\Filament\Resources\StudentResource;
@@ -102,6 +103,7 @@ class CampusPanelProvider extends PanelProvider
                 ExamResource::class,
                 MarkResource::class,
                 StaffResource::class,
+                LeaveRequestResource::class,
             ])
             ->pages([
                 Pages\Dashboard::class,
