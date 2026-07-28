@@ -34,13 +34,21 @@ class ViewStaffProfile extends Page implements Forms\Contracts\HasForms
         return 'full';
     }
 
-    public function mount(int $record): void
+    public function mount(int|Staff $record): void
     {
-        $this->record = Staff::with([
-            'campus', 'user', 'academics', 'registrations',
-            'employmentRecords.campus', 'salaryRecords',
-            'documents', 'leaveRequests', 'agreementVersions'
-        ])->findOrFail($record);
+        if ($record instanceof Staff) {
+            $this->record = $record->load([
+                'campus', 'user', 'academics', 'registrations',
+                'employmentRecords.campus', 'salaryRecords',
+                'documents', 'leaveRequests', 'agreementVersions'
+            ]);
+        } else {
+            $this->record = Staff::with([
+                'campus', 'user', 'academics', 'registrations',
+                'employmentRecords.campus', 'salaryRecords',
+                'documents', 'leaveRequests', 'agreementVersions'
+            ])->findOrFail($record);
+        }
     }
 
     public function setActiveTab(string $tab): void
