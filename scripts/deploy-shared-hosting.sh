@@ -81,6 +81,7 @@ echo "Applying pending, non-destructive database migrations..."
 
 echo "Synchronizing application roles and permissions..."
 "${PHP_BIN}" artisan db:seed --class=RoleAndPermissionSeeder --force
+"${PHP_BIN}" artisan db:seed --class=StaffPermissionsSeeder --force
 "${PHP_BIN}" artisan permission:cache-reset
 
 echo "Synchronizing the production fee catalog..."
