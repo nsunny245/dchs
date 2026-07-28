@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\StaffResource\Pages;
 
 use App\Filament\Resources\StaffResource;
-use App\Filament\Resources\StaffResource\Widgets\StaffOverviewWidget;
+use App\Filament\Widgets\StaffOverviewWidget;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 

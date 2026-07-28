@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\StaffResource\Widgets;
+namespace App\Filament\Widgets;
 
 use App\Models\Staff;
 use App\Models\LeaveRequest;
