@@ -10,6 +10,11 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class StaffOverviewWidget extends BaseWidget
 {
+    public static function canView(): bool
+    {
+        return !request()->routeIs('*.pages.dashboard');
+    }
+
     protected function getStats(): array
     {
         $user = filament()->auth()->user();
