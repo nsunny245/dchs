@@ -10,9 +10,12 @@ class CourseVoucherPrintWidget extends Widget
 {
     protected static string $view = 'filament.widgets.course-voucher-print-widget';
 
-    public static bool $shouldRegister = false;
-
     protected static ?int $sort = 1;
+
+    public static function canView(): bool
+    {
+        return !request()->routeIs('*.pages.dashboard');
+    }
 
     public $showModal = false;
     public $selectedCourseId = null;
