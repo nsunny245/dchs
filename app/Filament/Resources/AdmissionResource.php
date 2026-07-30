@@ -142,7 +142,6 @@ class AdmissionResource extends Resource
                                             ->acceptedFileTypes(['image/jpeg', 'image/png'])
                                             ->maxSize(4096)
                                             ->helperText('Use a clear passport-style photograph with a white or light-blue background. JPG or PNG, maximum 4 MB.')
-                                            ->required()
                                             ->columnSpanFull(),
                                     ])->extraAttributes(['class' => 'admission-main-column admission-photo-step'])->columnSpan(9),
                                     Forms\Components\Group::make([
@@ -164,15 +163,13 @@ class AdmissionResource extends Resource
                                             ->schema([
                                                 Forms\Components\TextInput::make('applicant_name')
                                                     ->label('Student Full Name')
-                                                    ->required()
+                                                    ->default('Draft Student')
                                                     ->maxLength(255),
                                                 Forms\Components\TextInput::make('cnic')
                                                     ->label('Student CNIC or B-Form #')
-                                                    ->required()
                                                     ->maxLength(255)
-                                                    ->rule('regex:/^(?:\d{5}-\d{7}-\d|\d{13})$/')
                                                     ->helperText('Format: 35202-1234567-1')
-                                                    ->live()
+                                                    ->live(onBlur: true)
                                                     ->afterStateUpdated(function ($state) {
                                                         if (empty($state)) {
                                                             return;
@@ -187,16 +184,14 @@ class AdmissionResource extends Resource
                                                     }),
                                                 Forms\Components\DatePicker::make('dob')
                                                     ->label('Date of Birth')
-                                                    ->maxDate(now())
-                                                    ->required(),
+                                                    ->maxDate(now()),
                                                 Forms\Components\Select::make('gender')
                                                     ->label('Gender')
                                                     ->options([
                                                         'male' => 'Male',
                                                         'female' => 'Female',
                                                         'other' => 'Other',
-                                                    ])
-                                                    ->required(),
+                                                    ]),
                                                 Forms\Components\Select::make('blood_group')
                                                     ->label('Blood Group')
                                                     ->options([
@@ -206,16 +201,14 @@ class AdmissionResource extends Resource
                                                 Forms\Components\Select::make('workflow_metadata.nationality')
                                                     ->label('Nationality')
                                                     ->options(['Pakistani' => 'Pakistani'])
-                                                    ->default('Pakistani')
-                                                    ->required(),
+                                                    ->default('Pakistani'),
                                                 Forms\Components\Select::make('workflow_metadata.religion')
                                                     ->label('Religion')
                                                     ->options([
                                                         'Islam' => 'Islam', 'Christianity' => 'Christianity',
                                                         'Hinduism' => 'Hinduism', 'Sikhism' => 'Sikhism', 'Other' => 'Other',
                                                     ])
-                                                    ->default('Islam')
-                                                    ->required(),
+                                                    ->default('Islam'),
                                                 Forms\Components\TextInput::make('caste')
                                                     ->label('Caste (Optional)')
                                                     ->maxLength(255),
@@ -226,10 +219,8 @@ class AdmissionResource extends Resource
                                                 Forms\Components\TextInput::make('phone')
                                                     ->label('Mobile Number')
                                                     ->tel()
-                                                    ->required()
-                                                    ->rule('regex:/^(?:\+92|0)3\d{9}$/')
                                                     ->helperText('Format: 03001234567 or +923001234567')
-                                                    ->live()
+                                                    ->live(onBlur: true)
                                                     ->afterStateUpdated(function ($state) {
                                                         if (empty($state)) {
                                                             return;
@@ -248,14 +239,12 @@ class AdmissionResource extends Resource
                                                     ->maxLength(255),
                                                 Forms\Components\TextInput::make('city')
                                                     ->label('City')
-                                                    ->default('Okara')
-                                                    ->required(),
+                                                    ->default('Okara'),
                                                 Forms\Components\TextInput::make('domicile_district')
                                                     ->label('Domicile (District)')
                                                     ->maxLength(255),
                                                 Forms\Components\Textarea::make('address')
                                                     ->label('Current Address')
-                                                    ->required()
                                                     ->rows(2)
                                                     ->columnSpanFull(),
                                             ])->columns(4),
@@ -268,12 +257,10 @@ class AdmissionResource extends Resource
                                                         'morning' => 'Morning',
                                                         'evening' => 'Evening',
                                                     ])
-                                                    ->default('morning')
-                                                    ->required(),
+                                                    ->default('morning'),
                                                 Forms\Components\Select::make('campus_id')
                                                     ->relationship('campus', 'name')
                                                     ->label('Preferred Campus')
-                                                    ->required()
                                                     ->default(fn () => filament()->auth()->user()->campus_id)
                                                     ->disabled(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
                                                     ->dehydrated(),
@@ -288,8 +275,7 @@ class AdmissionResource extends Resource
                                                     ->default('Facebook'),
                                                 Forms\Components\Select::make('academic_session_id')
                                                     ->relationship('academicSession', 'name')
-                                                    ->label('Session')
-                                                    ->required(),
+                                                    ->label('Session'),
                                             ])->columns(4),
                                     ])->extraAttributes(['class' => 'admission-main-column admission-student-step'])->columnSpan(9),
                                     Forms\Components\Group::make([
@@ -311,17 +297,13 @@ class AdmissionResource extends Resource
                                             ->schema([
                                                 Forms\Components\TextInput::make('father_name')
                                                     ->label("Father's or Guardian's Name")
-                                                    ->required()
                                                     ->maxLength(255),
                                                 Forms\Components\TextInput::make('father_cnic')
                                                     ->label('Father/Guardian CNIC #')
-                                                    ->maxLength(255)
-                                                    ->rule('regex:/^(?:\d{5}-\d{7}-\d|\d{13})$/'),
+                                                    ->maxLength(255),
                                                 Forms\Components\TextInput::make('father_phone')
                                                     ->label("Father's Mobile Number")
-                                                    ->tel()
-                                                    ->rule('regex:/^(?:\+92|0)3\d{9}$/')
-                                                    ->required(),
+                                                    ->tel(),
                                                 Forms\Components\TextInput::make('mother_cnic')
                                                     ->label("Mother's CNIC #")
                                                     ->maxLength(255),
@@ -333,9 +315,7 @@ class AdmissionResource extends Resource
                                                     ->maxLength(255),
                                                 Forms\Components\TextInput::make('emergency_contact')
                                                     ->label('Emergency Contact Number')
-                                                    ->tel()
-                                                    ->rule('regex:/^(?:\+92|0)3\d{9}$/')
-                                                    ->required(),
+                                                    ->tel(),
                                                 Forms\Components\TextInput::make('workflow_metadata.emergency_contact_relation')
                                                     ->label('Emergency Contact Relationship'),
                                                 Forms\Components\Select::make('workflow_metadata.guardian_relation')
@@ -345,8 +325,7 @@ class AdmissionResource extends Resource
                                                         'Mother' => 'Mother',
                                                         'Guardian' => 'Guardian / Other',
                                                     ])
-                                                    ->default('Father')
-                                                    ->required(),
+                                                    ->default('Father'),
                                                 Forms\Components\Toggle::make('same_as_student_address')
                                                     ->label("Guardian's address is same as student's address")
                                                     ->dehydrated(false)
@@ -400,7 +379,7 @@ class AdmissionResource extends Resource
 
                                                         Forms\Components\Grid::make(3)
                                                             ->schema([
-                                                                Forms\Components\Select::make('degree_title')
+                                                                 Forms\Components\Select::make('degree_title')
                                                                     ->label('Degree Title')
                                                                     ->options(fn (Forms\Get $get) => match ($get('level')) {
                                                                         'matric' => [
@@ -418,39 +397,33 @@ class AdmissionResource extends Resource
                                                                         default => [],
                                                                     })
                                                                     ->searchable()
-                                                                    ->required(fn (Forms\Get $get) => in_array($get('level'), ['matric', 'intermediate']))
                                                                     ->visible(fn (Forms\Get $get) => in_array($get('level'), ['matric', 'intermediate']))
                                                                     ->placeholder('Select degree option'),
 
                                                                 Forms\Components\TextInput::make('degree_title_custom')
                                                                     ->label('Degree Title')
-                                                                    ->required()
                                                                     ->visible(fn (Forms\Get $get) => $get('level') === 'graduation')
                                                                     ->afterStateUpdated(fn ($state, Forms\Set $set) => $set('degree_title', $state))
                                                                     ->placeholder('e.g. BS Computer Science'),
 
                                                                 Forms\Components\TextInput::make('board_university')
-                                                                    ->label('Board / University')
-                                                                    ->required(),
+                                                                    ->label('Board / University'),
 
                                                                 Forms\Components\TextInput::make('passing_year')
                                                                     ->label('Passing Year')
                                                                     ->numeric()
                                                                     ->minValue(1950)
-                                                                    ->maxValue((int) now()->year)
-                                                                    ->required(),
+                                                                    ->maxValue((int) now()->year),
 
                                                                 Forms\Components\TextInput::make('roll_no')
-                                                                    ->label('Roll Number')
-                                                                    ->required(),
+                                                                    ->label('Roll Number'),
 
                                                                 Forms\Components\TextInput::make('obtained_marks')
                                                                     ->label('Obtained Marks')
                                                                     ->numeric()
                                                                     ->minValue(0)
                                                                     ->lte('total_marks')
-                                                                    ->required()
-                                                                    ->live()
+                                                                    ->live(onBlur: true)
                                                                     ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set) {
                                                                         $total = (float) $get('total_marks');
                                                                         $set('percentage', $total > 0
@@ -463,8 +436,7 @@ class AdmissionResource extends Resource
                                                                     ->numeric()
                                                                     ->minValue(1)
                                                                     ->default(1100)
-                                                                    ->required()
-                                                                    ->live()
+                                                                    ->live(onBlur: true)
                                                                     ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set) {
                                                                         $total = (float) $get('total_marks');
                                                                         $set('percentage', $total > 0
@@ -484,7 +456,6 @@ class AdmissionResource extends Resource
                                                                 Forms\Components\TextInput::make('biology_marks')
                                                                     ->label('Biology Marks')
                                                                     ->numeric()
-                                                                    ->required(fn (Forms\Get $get) => $get('level') === 'matric')
                                                                     ->visible(fn (Forms\Get $get) => in_array($get('level'), ['matric', 'intermediate']))
                                                                     ->placeholder('Enter biology marks'),
                                                             ])

@@ -55,7 +55,7 @@ class StaffResource extends Resource
                                                 'administrative' => 'Administrative Staff',
                                                 'support' => 'Support Staff',
                                             ])
-                                            ->required(),
+                                            ->default('teaching'),
                                         Forms\Components\FileUpload::make('photo_path')
                                             ->label('Profile Photograph')
                                             ->image()
@@ -68,8 +68,7 @@ class StaffResource extends Resource
                                             ->label('Father / Spouse Name'),
                                         Forms\Components\TextInput::make('cnic')
                                             ->label('CNIC Number')
-                                            ->placeholder('38403-1234567-1')
-                                            ->required(),
+                                            ->placeholder('38403-1234567-1'),
                                         Forms\Components\DatePicker::make('cnic_issue_date')
                                             ->label('CNIC Issue Date'),
                                         Forms\Components\DatePicker::make('cnic_expiry_date')
@@ -93,7 +92,7 @@ class StaffResource extends Resource
 
                                 Forms\Components\Section::make('Contact & Emergency')
                                     ->schema([
-                                        Forms\Components\TextInput::make('phone')->label('Primary Mobile')->tel()->required(),
+                                        Forms\Components\TextInput::make('phone')->label('Primary Mobile')->tel(),
                                         Forms\Components\TextInput::make('whatsapp')->label('WhatsApp Number'),
                                         Forms\Components\TextInput::make('email')->label('Email Address')->email(),
                                         Forms\Components\Textarea::make('current_address')->columnSpanFull(),
@@ -127,7 +126,7 @@ class StaffResource extends Resource
                                                 'Demonstrator' => 'Demonstrator',
                                                 'Visiting Lecturer' => 'Visiting Lecturer',
                                                 'Lab Instructor' => 'Lab Instructor',
-                                            ])->required()->searchable(),
+                                            ])->searchable(),
                                         Forms\Components\Select::make('reporting_officer_id')
                                             ->label('Reporting Officer')
                                             ->options(\App\Models\User::pluck('name', 'id'))
@@ -138,14 +137,14 @@ class StaffResource extends Resource
                                                 'part_time' => 'Part-time',
                                                 'visiting' => 'Visiting',
                                                 'contract' => 'Contract',
-                                            ])->required(),
+                                            ]),
                                         Forms\Components\Select::make('appointment_status')
                                             ->options([
                                                 'probation' => 'Probation',
                                                 'permanent' => 'Permanent',
                                                 'contract' => 'Fixed-Term Contract',
-                                            ])->required(),
-                                        Forms\Components\DatePicker::make('joining_date')->required(),
+                                            ]),
+                                        Forms\Components\DatePicker::make('joining_date'),
                                         Forms\Components\Select::make('shift')
                                             ->options([
                                                 'Morning' => 'Morning Shift',

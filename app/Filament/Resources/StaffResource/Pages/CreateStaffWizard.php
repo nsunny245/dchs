@@ -110,8 +110,7 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                                     Forms\Components\TextInput::make('cnic')
                                         ->label('CNIC Number')
                                         ->placeholder('38403-1234567-1')
-                                        ->required()
-                                        ->unique('staff', 'cnic')
+                                        ->nullable()
                                         ->maxLength(20),
                                     Forms\Components\DatePicker::make('cnic_issue_date')
                                         ->label('CNIC Issue Date'),
@@ -138,8 +137,7 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                                 ->schema([
                                     Forms\Components\TextInput::make('phone')
                                         ->label('Primary Mobile Number')
-                                        ->tel()
-                                        ->required(),
+                                        ->tel(),
                                     Forms\Components\TextInput::make('whatsapp')
                                         ->label('WhatsApp Number'),
                                     Forms\Components\TextInput::make('email')
@@ -156,14 +154,11 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                             Forms\Components\Section::make('Emergency Contact')
                                 ->schema([
                                     Forms\Components\TextInput::make('emergency_contact_name')
-                                        ->label('Contact Name')
-                                        ->required(),
+                                        ->label('Contact Name'),
                                     Forms\Components\TextInput::make('emergency_contact_relationship')
-                                        ->label('Relationship')
-                                        ->required(),
+                                        ->label('Relationship'),
                                     Forms\Components\TextInput::make('emergency_contact_phone')
-                                        ->label('Emergency Phone Number')
-                                        ->required(),
+                                        ->label('Emergency Phone Number'),
                                 ])->columns(3),
                         ]),
 
@@ -198,35 +193,27 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                                         ->numeric()
                                         ->default(0),
                                     Forms\Components\TextInput::make('previous_employer')
-                                        ->label('Previous Employer'),
-                                    Forms\Components\TextInput::make('previous_designation')
-                                        ->label('Previous Designation'),
-                                    Forms\Components\Textarea::make('professional_summary')
-                                        ->columnSpanFull(),
+                                        ->label('Previous Employer / Institute'),
                                 ])->columns(3),
 
-                            Forms\Components\Section::make('Professional Registration')
+                            Forms\Components\Section::make('Council Registration & Licenses')
                                 ->schema([
-                                    Forms\Components\TextInput::make('registration_body')
-                                        ->label('Registration Body (e.g. Pharmacy Council, PNC)'),
-                                    Forms\Components\TextInput::make('registration_number')
-                                        ->label('Licence / Registration Number'),
-                                    Forms\Components\DatePicker::make('reg_issue_date')
-                                        ->label('Issue Date'),
-                                    Forms\Components\DatePicker::make('reg_expiry_date')
-                                        ->label('Expiry Date'),
+                                    Forms\Components\TextInput::make('council_registration_number')
+                                        ->label('Registration # (PNC / Pharmacy Council / PMDC)'),
+                                    Forms\Components\DatePicker::make('council_registration_expiry')
+                                        ->label('Registration Expiry Date'),
                                 ])->columns(2),
 
                             Forms\Components\Section::make('Document Uploads')
                                 ->schema([
                                     Forms\Components\FileUpload::make('document_cnic')
-                                        ->label('CNIC Copy (PDF/Image)')
+                                        ->label('CNIC Front & Back (PDF/JPG)')
                                         ->directory('staff/documents/cnic'),
-                                    Forms\Components\FileUpload::make('document_degree')
-                                        ->label('Degree Certificate (PDF/Image)')
+                                    Forms\Components\FileUpload::make('document_degrees')
+                                        ->label('Educational Degrees & Transcripts')
                                         ->directory('staff/documents/degrees'),
                                     Forms\Components\FileUpload::make('document_cv')
-                                        ->label('CV / Resume')
+                                        ->label('Updated Curriculum Vitae (CV)')
                                         ->directory('staff/documents/cv'),
                                     Forms\Components\FileUpload::make('document_experience')
                                         ->label('Experience Letters')
@@ -242,7 +229,6 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                                 ->schema([
                                     Forms\Components\Select::make('campus_id')
                                         ->options(\App\Models\Campus::pluck('name', 'id'))
-                                        ->required()
                                         ->disabled(!$isSuperAdmin)
                                         ->dehydrated()
                                         ->reactive()
@@ -255,7 +241,7 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                                             'administrative' => 'Administrative Staff',
                                             'support' => 'Support Staff',
                                         ])
-                                        ->required()
+                                        ->default('teaching')
                                         ->reactive()
                                         ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
                                             $set('employee_id', GenerateEmployeeIdService::generate($get('campus_id'), $state ?? 'TEA'));
@@ -280,7 +266,6 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                                             'Visiting Lecturer' => 'Visiting Lecturer',
                                             'Lab Instructor' => 'Lab Instructor',
                                         ])
-                                        ->required()
                                         ->searchable(),
                                     Forms\Components\Select::make('reporting_officer_id')
                                         ->label('Reporting Officer')
@@ -293,17 +278,16 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                                             'visiting' => 'Visiting',
                                             'contract' => 'Contract',
                                         ])
-                                        ->required(),
+                                        ->default('full_time'),
                                     Forms\Components\Select::make('appointment_status')
                                         ->options([
                                             'probation' => 'Probation',
                                             'permanent' => 'Permanent',
                                             'contract' => 'Fixed-Term Contract',
                                         ])
-                                        ->required()
+                                        ->default('probation')
                                         ->reactive(),
-                                    Forms\Components\DatePicker::make('joining_date')
-                                        ->required(),
+                                    Forms\Components\DatePicker::make('joining_date'),
                                     Forms\Components\Select::make('shift')
                                         ->options([
                                             'Morning' => 'Morning Shift',
