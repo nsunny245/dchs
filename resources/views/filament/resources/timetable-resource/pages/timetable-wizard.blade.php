@@ -41,7 +41,59 @@
 @endphp
 
 <x-filament-panels::page>
-    <div class="space-y-6">
+    <style>
+        .dgc-wizard-wrap select {
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23475569' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+            background-position: right 0.75rem center !important;
+            background-repeat: no-repeat !important;
+            background-size: 1.25em 1.25em !important;
+            padding-right: 2.5rem !important;
+        }
+        .dgc-wizard-steps-grid {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 8px !important;
+            width: 100% !important;
+        }
+        .dgc-wizard-step-item {
+            flex: 1 !important;
+            min-width: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px !important;
+            padding: 10px 8px !important;
+            border-radius: 8px !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+        }
+        .dgc-form-grid-3 {
+            display: grid !important;
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 20px !important;
+        }
+        .dgc-span-2 {
+            grid-column: span 2 / span 2 !important;
+        }
+        @media (max-width: 768px) {
+            .dgc-form-grid-3 {
+                grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+            }
+            .dgc-span-2 {
+                grid-column: span 1 / span 1 !important;
+            }
+            .dgc-wizard-steps-grid {
+                flex-wrap: wrap !important;
+            }
+        }
+    </style>
+
+    <div class="dgc-wizard-wrap space-y-6">
         <!-- Brand Header & Steps Progress Bar -->
         <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-100 pb-5">
@@ -69,24 +121,24 @@
 
             <!-- Steps Progress Bar -->
             <div class="pt-5">
-                <div class="grid grid-cols-5 gap-2 text-center text-xs font-semibold">
-                    <button wire:click="goToStep(1)" class="py-2.5 px-2 rounded-lg transition-all flex items-center justify-center gap-1.5 {{ $currentStep === 1 ? 'bg-navy-900 text-white font-bold shadow' : ($currentStep > 1 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-50 text-slate-400') }}">
+                <div class="dgc-wizard-steps-grid">
+                    <button wire:click="goToStep(1)" class="dgc-wizard-step-item {{ $currentStep === 1 ? 'bg-navy-900 text-white font-bold shadow' : ($currentStep > 1 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-50 text-slate-400') }}">
                         <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] {{ $currentStep === 1 ? 'bg-gold-500 text-navy-950 font-bold' : ($currentStep > 1 ? 'bg-emerald-600 text-white' : 'bg-slate-200') }}">1</span>
                         <span>1. Setup</span>
                     </button>
-                    <button wire:click="goToStep(2)" class="py-2.5 px-2 rounded-lg transition-all flex items-center justify-center gap-1.5 {{ $currentStep === 2 ? 'bg-navy-900 text-white font-bold shadow' : ($currentStep > 2 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-50 text-slate-400') }}">
+                    <button wire:click="goToStep(2)" class="dgc-wizard-step-item {{ $currentStep === 2 ? 'bg-navy-900 text-white font-bold shadow' : ($currentStep > 2 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-50 text-slate-400') }}">
                         <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] {{ $currentStep === 2 ? 'bg-gold-500 text-navy-950 font-bold' : ($currentStep > 2 ? 'bg-emerald-600 text-white' : 'bg-slate-200') }}">2</span>
                         <span>2. Subjects</span>
                     </button>
-                    <button wire:click="goToStep(3)" class="py-2.5 px-2 rounded-lg transition-all flex items-center justify-center gap-1.5 {{ $currentStep === 3 ? 'bg-navy-900 text-white font-bold shadow' : ($currentStep > 3 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-50 text-slate-400') }}">
+                    <button wire:click="goToStep(3)" class="dgc-wizard-step-item {{ $currentStep === 3 ? 'bg-navy-900 text-white font-bold shadow' : ($currentStep > 3 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-50 text-slate-400') }}">
                         <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] {{ $currentStep === 3 ? 'bg-gold-500 text-navy-950 font-bold' : ($currentStep > 3 ? 'bg-emerald-600 text-white' : 'bg-slate-200') }}">3</span>
                         <span>3. Visual Grid</span>
                     </button>
-                    <button wire:click="goToStep(4)" class="py-2.5 px-2 rounded-lg transition-all flex items-center justify-center gap-1.5 {{ $currentStep === 4 ? 'bg-navy-900 text-white font-bold shadow' : ($currentStep > 4 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-50 text-slate-400') }}">
+                    <button wire:click="goToStep(4)" class="dgc-wizard-step-item {{ $currentStep === 4 ? 'bg-navy-900 text-white font-bold shadow' : ($currentStep > 4 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-50 text-slate-400') }}">
                         <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] {{ $currentStep === 4 ? 'bg-gold-500 text-navy-950 font-bold' : ($currentStep > 4 ? 'bg-emerald-600 text-white' : 'bg-slate-200') }}">4</span>
                         <span>4. Preview</span>
                     </button>
-                    <button wire:click="goToStep(5)" class="py-2.5 px-2 rounded-lg transition-all flex items-center justify-center gap-1.5 {{ $currentStep === 5 ? 'bg-navy-900 text-white font-bold shadow' : 'bg-slate-50 text-slate-400' }}">
+                    <button wire:click="goToStep(5)" class="dgc-wizard-step-item {{ $currentStep === 5 ? 'bg-navy-900 text-white font-bold shadow' : 'bg-slate-50 text-slate-400' }}">
                         <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] {{ $currentStep === 5 ? 'bg-gold-500 text-navy-950 font-bold' : 'bg-slate-200' }}">5</span>
                         <span>5. Publish</span>
                     </button>
@@ -99,7 +151,7 @@
             <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-6">
                 <h3 class="text-base font-bold font-display text-navy-900 border-b pb-3">Step 1: Program & Academic Context Setup</h3>
                 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="dgc-form-grid-3">
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-1.5">Campus <span class="text-red-500">*</span></label>
                         <select wire:model.live="campus_id" class="w-full text-xs rounded-lg border-slate-300 focus:border-navy-900 focus:ring-navy-900">
@@ -149,7 +201,7 @@
                         <input type="text" wire:model.blur="section_name" placeholder="e.g. Section A" class="w-full text-xs rounded-lg border-slate-300 focus:border-navy-900 focus:ring-navy-900" />
                     </div>
 
-                    <div class="md:col-span-2">
+                    <div class="dgc-span-2">
                         <label class="block text-xs font-semibold text-slate-700 mb-1.5">Timetable Title <span class="text-red-500">*</span></label>
                         <input type="text" wire:model.blur="timetable_title" class="w-full text-xs rounded-lg border-slate-300 focus:border-navy-900 focus:ring-navy-900" />
                     </div>
@@ -632,4 +684,5 @@
             </div>
         </div>
     @endif
+    </div>
 </x-filament-panels::page>
