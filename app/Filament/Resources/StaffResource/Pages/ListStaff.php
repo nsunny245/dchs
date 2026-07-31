@@ -16,7 +16,8 @@ class ListStaff extends ListRecords
         return [
             Actions\CreateAction::make()
                 ->label('Add Teacher')
-                ->visible(fn () => filament()->auth()->user()?->hasRole('Super Admin')),
+                ->icon('heroicon-o-plus-circle')
+                ->url(fn (): string => StaffResource::getUrl('create')),
         ];
     }
 
