@@ -84,7 +84,7 @@
                 </div>
                 <h3 class="text-lg font-bold text-navy-900 font-display mb-3">Geographic Accessibility</h3>
                 <p class="text-navy-400 text-xs leading-relaxed">
-                    Establishing state-of-the-art campuses across Punjab (Okara, Sahiwal, Depalpur, Chichawatni) to keep education close to home.
+                    Establishing state-of-the-art campuses across Punjab (Okara, Haveli, Depalpur, Chichawatni) to keep education close to home.
                 </p>
             </div>
         </div>

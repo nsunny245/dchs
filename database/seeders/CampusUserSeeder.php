@@ -34,10 +34,10 @@ class CampusUserSeeder extends Seeder
                 'password' => 'chichawatni123',
             ],
             [
-                'city' => 'Sahiwal',
-                'name' => 'Sahiwal Campus Admin',
-                'email' => 'sahiwal@dchs.com',
-                'password' => 'sahiwal123',
+                'city' => 'Haveli Lakha',
+                'name' => 'Haveli Campus Admin',
+                'email' => 'haveli@dchs.com',
+                'password' => 'haveli123',
             ],
         ];
 

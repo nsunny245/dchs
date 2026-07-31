@@ -34,10 +34,10 @@ class ReceptionistUserSeeder extends Seeder
                 'password' => 'reception123',
             ],
             [
-                'city' => 'Sahiwal',
-                'name' => 'Sahiwal Receptionist / Admission Officer',
-                'email' => 'sahiwal.reception@dchs.com',
-                'password' => 'reception123',
+                'city' => 'Haveli Lakha',
+                'name' => 'Haveli Receptionist / Admission Officer',
+                'email' => 'haveli.reception@dchs.com',
+                'password' => 'haveli123',
             ],
         ];
 

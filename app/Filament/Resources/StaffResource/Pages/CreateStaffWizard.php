@@ -406,57 +406,62 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
     protected function saveRecord(string $status): void
     {
         $state = $this->form->getState();
+        $user = filament()->auth()->user();
+        $campusId = $state['campus_id'] ?? $user?->campus_id ?? Campus::first()?->id;
 
-        DB::transaction(function () use ($state, $status) {
+        DB::transaction(function () use ($state, $status, $campusId) {
             // 1. Create or Find User account if email provided
-            $user = null;
+            $userAccount = null;
             if (!empty($state['email'])) {
-                $user = User::where('email', $state['email'])->first();
-                if (!$user) {
-                    $user = User::create([
-                        'name' => $state['full_name'],
+                $userAccount = User::where('email', $state['email'])->first();
+                if (!$userAccount) {
+                    $userAccount = User::create([
+                        'name' => $state['full_name'] ?? 'Staff Member',
                         'email' => $state['email'],
                         'password' => Hash::make('password123'),
                         'phone' => $state['phone'] ?? null,
-                        'campus_id' => $state['campus_id'] ?? null,
+                        'campus_id' => $campusId,
                         'status' => true,
                     ]);
-                    $user->assignRole('Faculty');
+                    $userAccount->assignRole('Faculty');
                 }
             }
 
+            // Generate employee ID if missing
+            $empId = $state['employee_id'] ?? GenerateEmployeeIdService::generate($campusId, $state['staff_category'] ?? 'TEA');
+
             // 2. Create Staff record
             $staff = Staff::create([
-                'user_id' => $user ? $user->id : null,
-                'campus_id' => $state['campus_id'],
-                'employee_id' => $state['employee_id'],
-                'full_name' => $state['full_name'],
+                'user_id' => $userAccount ? $userAccount->id : null,
+                'campus_id' => $campusId,
+                'employee_id' => $empId,
+                'full_name' => $state['full_name'] ?? 'Staff Member',
                 'father_or_spouse_name' => $state['father_or_spouse_name'] ?? null,
-                'cnic' => $state['cnic'],
+                'cnic' => $state['cnic'] ?? null,
                 'cnic_issue_date' => $state['cnic_issue_date'] ?? null,
                 'cnic_expiry_date' => $state['cnic_expiry_date'] ?? null,
                 'date_of_birth' => $state['date_of_birth'] ?? null,
                 'gender' => $state['gender'] ?? null,
                 'marital_status' => $state['marital_status'] ?? null,
-                'phone' => $state['phone'],
+                'phone' => $state['phone'] ?? null,
                 'whatsapp' => $state['whatsapp'] ?? null,
                 'current_address' => $state['current_address'] ?? null,
                 'permanent_address' => $state['permanent_address'] ?? null,
-                'emergency_contact_name' => $state['emergency_contact_name'],
-                'emergency_contact_relationship' => $state['emergency_contact_relationship'],
-                'emergency_contact_phone' => $state['emergency_contact_phone'],
+                'emergency_contact_name' => $state['emergency_contact_name'] ?? null,
+                'emergency_contact_relationship' => $state['emergency_contact_relationship'] ?? null,
+                'emergency_contact_phone' => $state['emergency_contact_phone'] ?? null,
                 'photo_path' => $state['photo_path'] ?? null,
-                'designation' => $state['designation'],
+                'designation' => $state['designation'] ?? 'Teacher',
                 'department' => $state['department'] ?? null,
-                'hire_date' => $state['joining_date'],
-                'joining_date' => $state['joining_date'],
+                'hire_date' => $state['joining_date'] ?? now()->toDateString(),
+                'joining_date' => $state['joining_date'] ?? now()->toDateString(),
                 'staff_category' => $state['staff_category'] ?? 'teaching',
                 'record_status' => $status,
                 'is_active' => ($status === 'active'),
             ]);
 
-            // 3. Create Academic Record
-            if (!empty($state['highest_qualification']) || !empty($state['degree_title'])) {
+            // 3. Create Academic Record if provided
+            if (!empty($state['highest_qualification']) || !empty($state['degree_title']) || !empty($state['institution'])) {
                 TeacherAcademic::create([
                     'staff_id' => $staff->id,
                     'highest_qualification' => $state['highest_qualification'] ?? null,
@@ -472,14 +477,14 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                 ]);
             }
 
-            // 4. Create Registration
-            if (!empty($state['registration_number'])) {
+            // 4. Create Registration if provided
+            if (!empty($state['council_registration_number']) || !empty($state['registration_number'])) {
                 ProfessionalRegistration::create([
                     'staff_id' => $staff->id,
-                    'registration_body' => $state['registration_body'] ?? 'Pharmacy Council',
-                    'registration_number' => $state['registration_number'],
+                    'registration_body' => $state['registration_body'] ?? 'Council',
+                    'registration_number' => $state['council_registration_number'] ?? $state['registration_number'] ?? null,
                     'issue_date' => $state['reg_issue_date'] ?? null,
-                    'expiry_date' => $state['reg_expiry_date'] ?? null,
+                    'expiry_date' => $state['council_registration_expiry'] ?? $state['reg_expiry_date'] ?? null,
                     'status' => 'verified',
                 ]);
             }
@@ -487,14 +492,14 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
             // 5. Create Employment Record
             EmploymentRecord::create([
                 'staff_id' => $staff->id,
-                'campus_id' => $state['campus_id'],
+                'campus_id' => $campusId,
                 'department' => $state['department'] ?? null,
                 'programme_id' => $state['programme_id'] ?? null,
-                'designation' => $state['designation'],
+                'designation' => $state['designation'] ?? 'Teacher',
                 'reporting_officer_id' => $state['reporting_officer_id'] ?? null,
                 'employment_type' => $state['employment_type'] ?? 'full_time',
                 'appointment_status' => $state['appointment_status'] ?? 'probation',
-                'joining_date' => $state['joining_date'],
+                'joining_date' => $state['joining_date'] ?? now()->toDateString(),
                 'probation_start_date' => $state['probation_start_date'] ?? null,
                 'probation_end_date' => $state['probation_end_date'] ?? null,
                 'confirmation_date' => $state['confirmation_date'] ?? null,
@@ -504,7 +509,7 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                 'biometric_id' => $state['biometric_id'] ?? null,
                 'weekly_working_hours' => $state['weekly_working_hours'] ?? 40,
                 'weekly_teaching_hours' => $state['weekly_teaching_hours'] ?? 20,
-                'effective_from' => $state['joining_date'],
+                'effective_from' => $state['joining_date'] ?? now()->toDateString(),
                 'is_current' => true,
                 'created_by' => auth()->id(),
             ]);
@@ -529,32 +534,38 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                     'account_title' => $state['account_title'] ?? null,
                     'account_number_encrypted' => $state['account_number'] ?? null,
                     'iban_encrypted' => $state['iban'] ?? null,
-                    'effective_from' => $state['joining_date'],
+                    'effective_from' => $state['joining_date'] ?? now()->toDateString(),
                     'status' => 'approved',
                     'created_by' => auth()->id(),
                     'approved_by' => auth()->id(),
                 ]);
             }
 
-            // 7. Save Document Uploads
-            $docs = [
+            // 7. Save Document Uploads (handles strings, arrays, or empty gracefully)
+            $docsMap = [
                 'document_cnic' => 'cnic',
                 'document_degree' => 'degree',
+                'document_degrees' => 'degree',
                 'document_cv' => 'cv',
                 'document_experience' => 'experience',
             ];
 
-            foreach ($docs as $key => $docType) {
+            foreach ($docsMap as $key => $docType) {
                 if (!empty($state[$key])) {
-                    StaffDocument::create([
-                        'staff_id' => $staff->id,
-                        'document_type' => $docType,
-                        'title' => strtoupper($docType) . ' Document',
-                        'path' => $state[$key],
-                        'stored_filename' => basename($state[$key]),
-                        'status' => 'verified',
-                        'uploaded_by' => auth()->id(),
-                    ]);
+                    $paths = is_array($state[$key]) ? $state[$key] : [$state[$key]];
+                    foreach ($paths as $path) {
+                        if (is_string($path) && !empty($path)) {
+                            StaffDocument::create([
+                                'staff_id' => $staff->id,
+                                'document_type' => $docType,
+                                'title' => strtoupper($docType) . ' Document',
+                                'path' => $path,
+                                'stored_filename' => basename($path),
+                                'status' => 'verified',
+                                'uploaded_by' => auth()->id(),
+                            ]);
+                        }
+                    }
                 }
             }
 

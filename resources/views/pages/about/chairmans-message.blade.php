@@ -45,7 +45,7 @@
                 </p>
 
                 <p>
-                    At Daniyal Group of Colleges, we provide students with hands-on practice, cutting-edge clinical laboratories, and direct simulation exposure to medical environments. Our campuses in Okara, Sahiwal, Depalpur, and Chichawatni serve as centers of educational excellence, supporting students from diverse social and financial backgrounds.
+                    At Daniyal Group of Colleges, we provide students with hands-on practice, cutting-edge clinical laboratories, and direct simulation exposure to medical environments. Our campuses in Okara, Haveli, Depalpur, and Chichawatni serve as centers of educational excellence, supporting students from diverse social and financial backgrounds.
                 </p>
 
                 <p>

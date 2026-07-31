@@ -37,9 +37,9 @@ class CampusAndCourseSeeder extends Seeder
                 'is_active' => true
             ],
             [
-                'city' => 'Sahiwal',
-                'name' => 'Daniyal College Sahiwal',
-                'address' => 'High Street, Opp. GC University, Sahiwal',
+                'city' => 'Haveli Lakha',
+                'name' => 'Daniyal College Haveli',
+                'address' => 'Depalpur-Vasavewala Road, Haveli Lakha',
                 'phone' => '+923217729533',
                 'email' => 'info@daniyalgroupofcolleges.com',
                 'is_active' => true
