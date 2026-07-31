@@ -98,4 +98,9 @@ class Staff extends Model
     {
         return $this->hasMany(Timetable::class);
     }
+
+    public function getFullNameAttribute(): string
+    {
+        return $this->user?->name ?? "Staff #{$this->id}";
+    }
 }

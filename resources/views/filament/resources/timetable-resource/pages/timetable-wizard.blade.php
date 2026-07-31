@@ -11,7 +11,12 @@
     $campuses = Campus::all();
     $courses = Course::all();
     $sessions = AcademicSession::all();
-    $teachers = Staff::where('is_active', true)->get();
+    $teachers = Staff::where(function ($q) {
+        $q->where('status', 'active')->orWhereNull('status');
+    })->get();
+    if ($teachers->count() === 0) {
+        $teachers = Staff::all();
+    }
     $rooms = Room::where('campus_id', $campus_id)->get();
     if ($rooms->count() === 0) {
         $rooms = Room::all();
