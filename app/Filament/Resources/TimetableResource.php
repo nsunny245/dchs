@@ -17,6 +17,7 @@ class TimetableResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
     protected static ?string $navigationGroup = 'Academic Management';
+    protected static ?string $navigationLabel = 'Program Timetables';
     protected static ?int $navigationSort = 3;
 
     public static function shouldRegisterNavigation(): bool
@@ -31,47 +32,8 @@ class TimetableResource extends Resource
 
     public static function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Schedule Details')
-                    ->schema([
-                        Forms\Components\Select::make('campus_id')
-                            ->relationship('campus', 'name')
-                            ->required()
-                            ->default(fn () => filament()->auth()->user()->campus_id)
-                            ->disabled(fn () => !filament()->auth()->user()->hasRole('Super Admin'))
-                            ->dehydrated(),
-                        Forms\Components\Select::make('course_id')
-                            ->relationship('course', 'name')
-                            ->required(),
-                        Forms\Components\Select::make('staff_id')
-                            ->relationship('staff', 'id')
-                            ->getOptionLabelFromRecordUsing(fn ($record) => $record->user?->name ?? 'Unknown')
-                            ->label('Teacher')
-                            ->searchable()
-                            ->required(),
-                        Forms\Components\TextInput::make('subject_name')
-                            ->required()
-                            ->maxLength(255),
-                        Forms\Components\Select::make('day_of_week')
-                            ->options([
-                                'Monday' => 'Monday',
-                                'Tuesday' => 'Tuesday',
-                                'Wednesday' => 'Wednesday',
-                                'Thursday' => 'Thursday',
-                                'Friday' => 'Friday',
-                                'Saturday' => 'Saturday',
-                                'Sunday' => 'Sunday',
-                            ])
-                            ->required(),
-                        Forms\Components\TimePicker::make('start_time')
-                            ->required(),
-                        Forms\Components\TimePicker::make('end_time')
-                            ->required(),
-                        Forms\Components\TextInput::make('room_number')
-                            ->maxLength(255),
-                    ])->columns(2),
-            ]);
+        // Custom TimetableWizard handles multi-step form execution
+        return $form->schema([]);
     }
 
     public static function table(Table $table): Table
@@ -79,30 +41,71 @@ class TimetableResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('S.No')->rowIndex(),
-                Tables\Columns\TextColumn::make('day_of_week')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('subject_name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('course.name')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('staff.user.name')
-                    ->label('Teacher')
+                Tables\Columns\TextColumn::make('title')
+                    ->label('Timetable Title')
                     ->searchable()
+                    ->sortable()
+                    ->weight('bold'),
+                Tables\Columns\TextColumn::make('campus.name')
+                    ->label('Campus')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('start_time')
-                    ->time(),
-                Tables\Columns\TextColumn::make('end_time')
-                    ->time(),
+                Tables\Columns\TextColumn::make('course.name')
+                    ->label('Program / Course')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('semester_name')
+                    ->label('Semester / Year')
+                    ->badge()
+                    ->color('info'),
+                Tables\Columns\TextColumn::make('section_name')
+                    ->label('Section')
+                    ->badge()
+                    ->color('slate'),
+                Tables\Columns\TextColumn::make('effective_from')
+                    ->label('Effective Date')
+                    ->date('d M Y')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->colors([
+                        'warning' => 'draft',
+                        'info' => 'pending_approval',
+                        'success' => 'published',
+                        'gray' => 'archived',
+                    ])
+                    ->formatStateUsing(fn ($state) => strtoupper($state)),
+                Tables\Columns\TextColumn::make('slots_count')
+                    ->counts('slots')
+                    ->label('Classes')
+                    ->badge()
+                    ->color('success'),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('campus')
                     ->relationship('campus', 'name')
                     ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin')),
                 Tables\Filters\SelectFilter::make('course')
-                    ->relationship('course', 'name'),
+                    ->relationship('course', 'name')
+                    ->label('Program'),
+                Tables\Filters\SelectFilter::make('status')
+                    ->options([
+                        'draft' => 'Draft',
+                        'published' => 'Published',
+                        'archived' => 'Archived',
+                    ]),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('edit_wizard')
+                    ->label('Edit Timetable')
+                    ->icon('heroicon-o-pencil-square')
+                    ->color('primary')
+                    ->url(fn (Timetable $record) => static::getUrl('edit', ['record' => $record->id])),
+                Tables\Actions\Action::make('export_pdf')
+                    ->label('PDF')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('gray')
+                    ->url(fn (Timetable $record) => route('pdf.timetable', $record->id))
+                    ->openUrlInNewTab(),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
@@ -114,10 +117,11 @@ class TimetableResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()->with(['campus', 'course', 'academicSession', 'slots']);
         
-        if (!filament()->auth()->user()->hasRole('Super Admin')) {
-            $query->where('campus_id', filament()->auth()->user()->campus_id);
+        $user = filament()->auth()->user();
+        if ($user && !$user->hasRole('Super Admin') && $user->campus_id !== null) {
+            $query->where('campus_id', $user->campus_id);
         }
 
         return $query;
@@ -132,8 +136,8 @@ class TimetableResource extends Resource
     {
         return [
             'index' => Pages\ListTimetables::route('/'),
-            'create' => Pages\CreateTimetable::route('/create'),
-            'edit' => Pages\EditTimetable::route('/{record}/edit'),
+            'create' => Pages\TimetableWizard::route('/create'),
+            'edit' => Pages\TimetableWizard::route('/{record}/edit'),
         ];
     }
 }

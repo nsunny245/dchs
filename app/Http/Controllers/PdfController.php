@@ -163,4 +163,15 @@ class PdfController extends Controller
 
         return $pdf->stream("teacher-summary-{$staff->employee_id}.pdf");
     }
+
+    public function timetable(\App\Models\Timetable $timetable)
+    {
+        $timetable->load(['campus', 'course', 'academicSession', 'timetableSubjects.subject', 'slots.teacher', 'slots.room']);
+        $periods = \App\Models\TimetablePeriod::where('is_active', true)->orderBy('sort_order')->get();
+
+        $pdf = Pdf::loadView('pdf.timetable', compact('timetable', 'periods'));
+        $pdf->setPaper('A4', 'landscape');
+
+        return $pdf->stream("timetable-{$timetable->id}.pdf");
+    }
 }
