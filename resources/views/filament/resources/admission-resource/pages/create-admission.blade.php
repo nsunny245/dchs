@@ -4,7 +4,7 @@
         'fi-resource-' . str_replace('/', '-', $this->getResource()::getSlug()),
     ])
 >
-    <div wire:poll.15s="autosaveDraft" aria-live="polite" class="sr-only">
+    <div class="sr-only">
         {{ $this->autosaveStatus }}
     </div>
 

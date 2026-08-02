@@ -58,14 +58,30 @@ class CreateAdmission extends CreateRecord
 
         Notification::make()
             ->success()
-            ->title('Admission draft saved')
-            ->body('Autosave complete. This draft can be resumed from this URL.')
+            ->title('Admission Draft Saved')
+            ->body('Draft saved successfully. You can resume this application anytime using this URL.')
             ->send();
     }
 
     public function autosaveDraft(): void
     {
-        $this->saveDraft();
+        $state = $this->form->getRawState();
+
+        if (! $this->draftUuid && blank($state['applicant_name'] ?? null) && blank($state['cnic'] ?? null) && empty($state['student_photo'] ?? [])) {
+            return;
+        }
+
+        try {
+            $draft = app(AdmissionDraftService::class)->save(
+                $state,
+                filament()->auth()->user(),
+                $this->draftUuid,
+            );
+            $this->draftUuid = $draft->uuid;
+            $this->autosaveStatus = 'Saved '.now()->format('H:i:s');
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
     }
 
     protected function mutateFormDataBeforeCreate(array $data): array
