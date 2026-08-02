@@ -63,33 +63,9 @@ class CreateAdmission extends CreateRecord
             ->send();
     }
 
-    public function updatedData(): void
-    {
-        try {
-            $state = $this->form->getRawState();
-
-            if (! $this->draftUuid && blank($state['applicant_name'] ?? null) && blank($state['cnic'] ?? null) && empty($state['student_photo'] ?? [])) {
-                $this->autosaveStatus = 'Waiting for input';
-
-                return;
-            }
-
-            $draft = app(AdmissionDraftService::class)->save(
-                $state,
-                filament()->auth()->user(),
-                $this->draftUuid,
-            );
-            $this->draftUuid = $draft->uuid;
-            $this->autosaveStatus = 'Saved '.now()->format('H:i:s');
-        } catch (\Throwable $exception) {
-            report($exception);
-            $this->autosaveStatus = 'Autosave pending';
-        }
-    }
-
     public function autosaveDraft(): void
     {
-        $this->updatedData();
+        $this->saveDraft();
     }
 
     protected function mutateFormDataBeforeCreate(array $data): array

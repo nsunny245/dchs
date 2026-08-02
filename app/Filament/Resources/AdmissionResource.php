@@ -36,6 +36,20 @@ class AdmissionResource extends Resource
         return Forms\Components\Placeholder::make("admission_sidebar_step_{$stepIndex}")
             ->label('')
             ->content(function (Forms\Get $get) use ($stepIndex, $percentage) {
+                static $coursesCache = null;
+                static $campusesCache = null;
+                static $sessionsCache = null;
+
+                if ($coursesCache === null) {
+                    $coursesCache = Course::pluck('name', 'id')->toArray();
+                }
+                if ($campusesCache === null) {
+                    $campusesCache = Campus::pluck('name', 'id')->toArray();
+                }
+                if ($sessionsCache === null) {
+                    $sessionsCache = AcademicSession::pluck('name', 'id')->toArray();
+                }
+
                 $courseId = $get('course_id');
                 $campusId = $get('campus_id');
                 $sessionId = $get('academic_session_id');
@@ -44,9 +58,9 @@ class AdmissionResource extends Resource
                     'stepIndex' => $stepIndex,
                     'percentage' => $percentage,
                     'studentName' => $get('applicant_name') ?: 'Not entered yet',
-                    'course' => $courseId ? (Course::find($courseId)?->name ?: 'Not selected yet') : 'Not selected yet',
-                    'campus' => $campusId ? (Campus::find($campusId)?->name ?: 'Not selected yet') : 'Not selected yet',
-                    'session' => $sessionId ? (AcademicSession::find($sessionId)?->name ?: 'Not selected yet') : 'Not selected yet',
+                    'course' => $courseId ? ($coursesCache[$courseId] ?? 'Not selected yet') : 'Not selected yet',
+                    'campus' => $campusId ? ($campusesCache[$campusId] ?? 'Not selected yet') : 'Not selected yet',
+                    'session' => $sessionId ? ($sessionsCache[$sessionId] ?? 'Not selected yet') : 'Not selected yet',
                     'shift' => filled($get('shift')) ? ucfirst((string) $get('shift')) : 'Not selected yet',
                 ]);
             })
@@ -604,13 +618,13 @@ class AdmissionResource extends Resource
 
                                         Forms\Components\Grid::make(3)
                                             ->schema([
-                                                Forms\Components\Section::make('One-time Charges')
+                                                 Forms\Components\Section::make('One-time Charges')
                                                     ->schema([
                                                         Forms\Components\TextInput::make('custom_admission_fee')
                                                             ->label('Admission Fee')
                                                             ->numeric()
                                                             ->prefix('PKR')
-                                                            ->live()
+                                                            ->live(onBlur: true)
                                                             ->disabled(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
                                                             ->dehydrated()
                                                             ->required(),
@@ -618,7 +632,7 @@ class AdmissionResource extends Resource
                                                             ->label('Verification Fee')
                                                             ->numeric()
                                                             ->prefix('PKR')
-                                                            ->live()
+                                                            ->live(onBlur: true)
                                                             ->disabled(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
                                                             ->dehydrated()
                                                             ->required(),
@@ -626,7 +640,7 @@ class AdmissionResource extends Resource
                                                             ->label('Enrollment Fee')
                                                             ->numeric()
                                                             ->prefix('PKR')
-                                                            ->live()
+                                                            ->live(onBlur: true)
                                                             ->disabled(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
                                                             ->dehydrated()
                                                             ->required(),
@@ -639,14 +653,14 @@ class AdmissionResource extends Resource
                                                             ->label('Tuition Fee Total')
                                                             ->numeric()
                                                             ->prefix('PKR')
-                                                            ->live()
+                                                            ->live(onBlur: true)
                                                             ->disabled(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
                                                             ->dehydrated()
                                                             ->required(),
                                                         Forms\Components\TextInput::make('custom_installment_count')
                                                             ->label('Number of Installments')
                                                             ->numeric()
-                                                            ->live()
+                                                            ->live(onBlur: true)
                                                             ->required(),
                                                         Forms\Components\Placeholder::make('monthly_installment_preview')
                                                             ->label('Monthly Installment Amount')
@@ -667,7 +681,7 @@ class AdmissionResource extends Resource
                                                             ->label('Examination Fee')
                                                             ->numeric()
                                                             ->prefix('PKR')
-                                                            ->live()
+                                                            ->live(onBlur: true)
                                                             ->disabled(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
                                                             ->dehydrated()
                                                             ->required(),
@@ -675,7 +689,7 @@ class AdmissionResource extends Resource
                                                             ->label('Other / Miscellaneous Fee')
                                                             ->numeric()
                                                             ->prefix('PKR')
-                                                            ->live()
+                                                            ->live(onBlur: true)
                                                             ->disabled(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
                                                             ->dehydrated()
                                                             ->required(),
@@ -704,7 +718,7 @@ class AdmissionResource extends Resource
                                                     ->numeric()
                                                     ->prefix('PKR')
                                                     ->default(0.00)
-                                                    ->live()
+                                                    ->live(onBlur: true)
                                                     ->visible(fn (Forms\Get $get) => $get('concession_type') !== 'none'),
                                                 Forms\Components\Select::make('concession_value_type')
                                                     ->label('Calculation Method')
