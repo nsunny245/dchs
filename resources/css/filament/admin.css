@@ -973,7 +973,7 @@ div[role="tabpanel"].fi-fo-wizard-step {
 .admission-page .fi-fo-wizard-header {
     background: transparent !important;
     display: grid !important;
-    grid-template-columns: repeat(7, minmax(8.6rem, 1fr)) !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
     margin: 0 0 1.1rem !important;
     min-width: 0 !important;
     overflow: visible !important;
@@ -1055,8 +1055,6 @@ div[role="tabpanel"].fi-fo-wizard-step {
 .admission-page .fi-fo-wizard-header-step:nth-child(3) .fi-fo-wizard-header-step-label::before { content: "03" !important; }
 .admission-page .fi-fo-wizard-header-step:nth-child(4) .fi-fo-wizard-header-step-label::before { content: "04" !important; }
 .admission-page .fi-fo-wizard-header-step:nth-child(5) .fi-fo-wizard-header-step-label::before { content: "05" !important; }
-.admission-page .fi-fo-wizard-header-step:nth-child(6) .fi-fo-wizard-header-step-label::before { content: "06" !important; }
-.admission-page .fi-fo-wizard-header-step:nth-child(7) .fi-fo-wizard-header-step-label::before { content: "07" !important; }
 
 .admission-page .fi-fo-wizard-header-step::after {
     bottom: .58rem;
@@ -1131,8 +1129,8 @@ div[role="tabpanel"].fi-fo-wizard-step {
 .admission-page .admission-split-grid > .fi-fo-component-ctn {
     align-items: start !important;
     display: grid !important;
-    gap: 1rem !important;
-    grid-template-columns: minmax(0, 3.35fr) minmax(17.5rem, 1fr) !important;
+    gap: 1.25rem !important;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 320px) !important;
     min-width: 0 !important;
     width: 100% !important;
 }
@@ -1140,7 +1138,7 @@ div[role="tabpanel"].fi-fo-wizard-step {
 .admission-page .admission-split-grid > .fi-fo-component-ctn > * {
     grid-column: auto !important;
     max-width: 100% !important;
-    width: auto !important;
+    width: 100% !important;
 }
 
 .admission-page .admission-main-column {
@@ -1151,13 +1149,14 @@ div[role="tabpanel"].fi-fo-wizard-step {
     gap: 0 !important;
     min-width: 0;
     overflow: hidden;
-    padding: 1.1rem 1.25rem 1.25rem;
+    padding: 1.25rem 1.5rem 1.5rem;
+    width: 100% !important;
 }
 
 .admission-page .admission-photo-step .filepond--root {
-    height: 25rem !important;
-    margin: .5rem auto 0;
-    max-width: 34rem;
+    margin: .5rem 0 0;
+    max-width: 100% !important;
+    width: 100% !important;
 }
 
 .admission-page .admission-photo-step .filepond--panel-root {

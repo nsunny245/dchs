@@ -1,12 +1,10 @@
 @php
     $tips = [
-        1 => 'Use a clear portrait with a white or light-blue background. Keep the face centered and fully visible.',
-        2 => 'Double-check CNIC/B-Form and Date of Birth. These details must match official records.',
-        3 => 'Confirm the guardian CNIC, mobile number, and emergency contact before continuing.',
-        4 => 'Enter marks exactly as shown on the result card. Percentage is calculated automatically.',
-        5 => 'Ensure all required documents are clear and verified. Add notes for anything still pending.',
-        6 => 'Review the official fee plan, concession, and installment schedule before proceeding.',
-        7 => 'Review every completed section carefully. Admission documents are generated after submission.',
+        1 => 'Upload a clear student portrait and fill out personal, contact, and guardian details.',
+        2 => 'Enter qualifications accurately. BISE boards and university options load automatically.',
+        3 => 'Upload front and back CNIC copies for both student and guardian.',
+        4 => 'Select tuition fee, charge options, discounts, and build custom installment dates.',
+        5 => 'Review all details carefully before submitting the admission.',
     ];
 @endphp
 
@@ -20,7 +18,7 @@
             <span>Progress Overview</span>
         </header>
         <div class="admission-progress-card__meta">
-            <span>Step {{ $stepIndex }} of 7 {{ $stepIndex === 7 ? 'Completed' : 'Active' }}</span>
+            <span>Step {{ $stepIndex }} of 5 {{ $stepIndex === 5 ? 'Completed' : 'Active' }}</span>
             <strong>{{ $percentage }}%</strong>
         </div>
         <div class="admission-progress-card__track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $percentage }}">
