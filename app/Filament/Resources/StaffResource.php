@@ -4,7 +4,9 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\StaffResource\Pages;
 use App\Models\Staff;
+use App\Services\HR\GenerateEmployeeIdService;
 use App\Support\DashboardImage;
+use App\Support\StaffOnboardingOptions;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -15,9 +17,13 @@ use Illuminate\Database\Eloquent\Builder;
 class StaffResource extends Resource
 {
     protected static ?string $model = Staff::class;
+
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
+
     protected static ?string $navigationGroup = 'Administration';
+
     protected static ?string $navigationLabel = 'Teachers & Staff';
+
     protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
@@ -36,14 +42,14 @@ class StaffResource extends Resource
                                     ->schema([
                                         Forms\Components\Select::make('campus_id')
                                             ->label('Assigned Campus')
-                                            ->options(\App\Models\Campus::pluck('name', 'id'))
+                                            ->options(StaffOnboardingOptions::campuses())
                                             ->required()
                                             ->searchable()
-                                            ->disabled(!$isSuperAdmin)
+                                            ->disabled(! $isSuperAdmin)
                                             ->dehydrated()
                                             ->reactive()
                                             ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
-                                                $set('employee_id', \App\Services\HR\GenerateEmployeeIdService::generate($state, $get('staff_category') ?? 'TEA'));
+                                                $set('employee_id', GenerateEmployeeIdService::generate($state, $get('staff_category') ?? 'TEA'));
                                             }),
                                         Forms\Components\TextInput::make('employee_id')
                                             ->label('Employee ID')
@@ -71,10 +77,6 @@ class StaffResource extends Resource
                                         Forms\Components\TextInput::make('cnic')
                                             ->label('CNIC Number')
                                             ->placeholder('38403-1234567-1'),
-                                        Forms\Components\DatePicker::make('cnic_issue_date')
-                                            ->label('CNIC Issue Date'),
-                                        Forms\Components\DatePicker::make('cnic_expiry_date')
-                                            ->label('CNIC Expiry Date'),
                                         Forms\Components\DatePicker::make('date_of_birth')
                                             ->label('Date of Birth'),
                                         Forms\Components\Select::make('gender')
@@ -113,7 +115,7 @@ class StaffResource extends Resource
                                         Forms\Components\TextInput::make('department')->placeholder('e.g. Pharmacy, Allied Health'),
                                         Forms\Components\Select::make('programme_id')
                                             ->label('Associated Course / Programme')
-                                            ->options(\App\Models\Course::pluck('name', 'id')),
+                                            ->options(StaffOnboardingOptions::courses()),
                                         Forms\Components\Select::make('designation')
                                             ->options([
                                                 'Principal' => 'Principal',
@@ -131,7 +133,7 @@ class StaffResource extends Resource
                                             ])->searchable(),
                                         Forms\Components\Select::make('reporting_officer_id')
                                             ->label('Reporting Officer')
-                                            ->options(\App\Models\User::pluck('name', 'id'))
+                                            ->options(StaffOnboardingOptions::reportingOfficers())
                                             ->searchable(),
                                         Forms\Components\Select::make('employment_type')
                                             ->options([
@@ -161,21 +163,38 @@ class StaffResource extends Resource
                             ->icon('heroicon-o-academic-cap')
                             ->schema([
                                 Forms\Components\Section::make('Qualifications')
+                                    ->relationship('academics')
                                     ->schema([
                                         Forms\Components\Select::make('highest_qualification')
-                                            ->options([
-                                                'PhD' => 'Doctorate (PhD)',
-                                                'MPhil' => 'M.Phil / MS',
-                                                'Master' => 'Master Degree',
-                                                'Bachelor' => 'Bachelor Degree',
-                                                'Diploma' => 'Diploma / Certification',
-                                            ]),
-                                        Forms\Components\TextInput::make('degree_title'),
-                                        Forms\Components\TextInput::make('specialization'),
-                                        Forms\Components\TextInput::make('institution'),
-                                        Forms\Components\TextInput::make('passing_year')->numeric(),
-                                        Forms\Components\TextInput::make('teaching_experience_years')->numeric()->default(0),
-                                        Forms\Components\TextInput::make('clinical_experience_years')->numeric()->default(0),
+                                            ->options(StaffOnboardingOptions::highestQualifications())
+                                            ->searchable()
+                                            ->native(false),
+                                        Forms\Components\Select::make('degree_title')
+                                            ->options(StaffOnboardingOptions::degreeTitles())
+                                            ->searchable()
+                                            ->native(false),
+                                        Forms\Components\Select::make('specialization')
+                                            ->options(StaffOnboardingOptions::specializations())
+                                            ->searchable()
+                                            ->native(false),
+                                        Forms\Components\Select::make('institution')
+                                            ->options(StaffOnboardingOptions::institutions())
+                                            ->searchable()
+                                            ->native(false),
+                                        Forms\Components\Select::make('passing_year')
+                                            ->options(StaffOnboardingOptions::passingYears())
+                                            ->searchable()
+                                            ->native(false),
+                                        Forms\Components\Select::make('teaching_experience_years')
+                                            ->options(StaffOnboardingOptions::experienceYears())
+                                            ->searchable()
+                                            ->native(false)
+                                            ->default(0),
+                                        Forms\Components\Select::make('clinical_experience_years')
+                                            ->options(StaffOnboardingOptions::experienceYears())
+                                            ->searchable()
+                                            ->native(false)
+                                            ->default(0),
                                         Forms\Components\TextInput::make('previous_employer'),
                                         Forms\Components\TextInput::make('previous_designation'),
                                         Forms\Components\Textarea::make('professional_summary')->columnSpanFull(),
@@ -204,12 +223,12 @@ class StaffResource extends Resource
                                     ])->columns(3),
 
                                 Forms\Components\Section::make('Documents')
+                                    ->description('Documents are optional during onboarding. Use the Staff Documents panel below to upload missing files or replace files later.')
                                     ->schema([
-                                        Forms\Components\FileUpload::make('document_cnic')->directory('staff/documents/cnic'),
-                                        Forms\Components\FileUpload::make('document_degree')->directory('staff/documents/degrees'),
-                                        Forms\Components\FileUpload::make('document_cv')->directory('staff/documents/cv'),
-                                        Forms\Components\FileUpload::make('document_experience')->directory('staff/documents/experience'),
-                                    ])->columns(2),
+                                        Forms\Components\Placeholder::make('document_management')
+                                            ->hiddenLabel()
+                                            ->content('Missing documents do not block saving this staff profile.'),
+                                    ]),
                             ]),
                     ])->columnSpanFull(),
             ]);
@@ -319,6 +338,13 @@ class StaffResource extends Resource
             'create' => Pages\CreateStaffWizard::route('/create'),
             'view' => Pages\ViewStaffProfile::route('/{record}'),
             'edit' => Pages\EditStaff::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            StaffResource\RelationManagers\DocumentsRelationManager::class,
         ];
     }
 }

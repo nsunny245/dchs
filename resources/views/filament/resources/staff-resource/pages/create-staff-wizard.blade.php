@@ -70,21 +70,13 @@
             <div class="bg-white dark:bg-gray-900 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-800 space-y-4">
                 <div class="flex justify-between items-center">
                     <h4 class="font-bold text-xs uppercase tracking-wider text-gray-700 dark:text-gray-300">Profile Readiness</h4>
-                    <span class="text-xs font-bold text-navy-900 dark:text-gold-400">Step {{ $currentStep }} of 5</span>
+                    <span class="text-xs font-bold text-navy-900 dark:text-gold-400">5-step onboarding</span>
                 </div>
 
                 <div>
                     <div class="flex justify-between text-xs text-gray-500 mb-1">
-                        <span>Completion Indicator</span>
-                        <span class="font-bold text-gray-800 dark:text-gray-200">
-                            @php
-                                $compPercent = 20 * max(1, $currentStep);
-                            @endphp
-                            {{ $compPercent }}%
-                        </span>
-                    </div>
-                    <div class="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
-                        <div class="bg-gradient-to-r from-gold-500 to-navy-900 h-2 rounded-full transition-all duration-500" style="width: {{ $compPercent }}%"></div>
+                        <span>Move between sections instantly</span>
+                        <span class="font-bold text-gray-800 dark:text-gray-200">Final check on submit</span>
                     </div>
                 </div>
 
@@ -112,12 +104,28 @@
                             <span>Remuneration Approved</span>
                         </li>
                         <li class="flex items-center">
-                            @if (!empty($this->data['document_cnic']))
+                            @if (!empty($this->data['document_cnic_front']) && !empty($this->data['document_cnic_back']))
                                 <svg class="w-4 h-4 mr-2 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             @else
-                                <svg class="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <svg class="w-4 h-4 mr-2 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             @endif
-                            <span>CNIC Copy Uploaded</span>
+                            <span>CNIC Front & Back: {{ !empty($this->data['document_cnic_front']) && !empty($this->data['document_cnic_back']) ? 'Uploaded' : 'Missing (optional)' }}</span>
+                        </li>
+                        <li class="flex items-center">
+                            @if (!empty($this->data['document_education']))
+                                <svg class="w-4 h-4 mr-2 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            @else
+                                <svg class="w-4 h-4 mr-2 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            @endif
+                            <span>Degree / Transcript: {{ !empty($this->data['document_education']) ? 'Uploaded' : 'Missing (optional)' }}</span>
+                        </li>
+                        <li class="flex items-center">
+                            @if (!empty($this->data['document_cv']) || !empty($this->data['document_experience']))
+                                <svg class="w-4 h-4 mr-2 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            @else
+                                <svg class="w-4 h-4 mr-2 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            @endif
+                            <span>CV / Experience: {{ !empty($this->data['document_cv']) || !empty($this->data['document_experience']) ? 'Uploaded' : 'Missing (optional)' }}</span>
                         </li>
                     </ul>
                 </div>

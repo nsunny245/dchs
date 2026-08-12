@@ -5,9 +5,9 @@ namespace App\Models;
 use App\Traits\ScopedByCampus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Staff extends Model
 {
@@ -101,6 +101,8 @@ class Staff extends Model
 
     public function getFullNameAttribute(): string
     {
-        return $this->user?->name ?? "Staff #{$this->id}";
+        return $this->user?->name
+            ?? $this->attributes['full_name']
+            ?? "Staff #{$this->id}";
     }
 }
