@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -21,20 +23,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        \Illuminate\Support\Facades\Schema::defaultStringLength(191);
+        Schema::defaultStringLength(191);
 
         \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {
             return $user->hasRole('Super Admin') ? true : null;
         });
 
-        \Illuminate\Support\Facades\View::composer('*', function ($view) {
-            if (\Illuminate\Support\Facades\Schema::hasTable('courses') && \Illuminate\Support\Facades\Schema::hasTable('campuses')) {
-                $view->with('globalPrograms', \App\Models\Course::where('is_active', true)->orderBy('name')->get());
-                $view->with('globalCampuses', \App\Models\Campus::where('is_active', true)->orderBy('city')->get());
-            } else {
-                $view->with('globalPrograms', collect());
-                $view->with('globalCampuses', collect());
-            }
+        // Only the public site layout consumes this value. Applying the
+        // composer to every nested Filament view repeated these queries many
+        // times during each Livewire render.
+        View::composer('layouts.app', function ($view) {
+            $view->with(
+                'globalPrograms',
+                Schema::hasTable('courses')
+                    ? \App\Models\Course::query()->where('is_active', true)->orderBy('name')->get()
+                    : collect(),
+            );
         });
     }
 }

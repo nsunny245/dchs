@@ -7,9 +7,6 @@ use App\Models\AcademicSession;
 use App\Models\Admission;
 use App\Models\Campus;
 use App\Models\Course;
-use App\Models\FeeHead;
-use App\Services\Fees\InstallmentPlanGenerator;
-use App\Services\Fees\OfficialFeeStructureResolver;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -18,6 +15,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Js;
 
 class AdmissionResource extends Resource
 {
@@ -133,24 +131,24 @@ class AdmissionResource extends Resource
         'Other University' => 'Other University',
     ];
 
+    /**
+     * Load shared wizard lookup lists once per request.
+     */
+    protected static function getAdmissionLookups(): array
+    {
+        return once(fn (): array => [
+            'courses' => Course::query()->orderBy('name')->pluck('name', 'id')->all(),
+            'campuses' => Campus::query()->orderBy('name')->pluck('name', 'id')->all(),
+            'sessions' => AcademicSession::query()->orderByDesc('start_date')->pluck('name', 'id')->all(),
+        ]);
+    }
+
     protected static function getSidebarPlaceholder(int $stepIndex, int $percentage): Forms\Components\Placeholder
     {
         return Forms\Components\Placeholder::make("admission_sidebar_step_{$stepIndex}")
             ->label('')
             ->content(function (Forms\Get $get) use ($stepIndex, $percentage) {
-                static $coursesCache = null;
-                static $campusesCache = null;
-                static $sessionsCache = null;
-
-                if ($coursesCache === null) {
-                    $coursesCache = Course::pluck('name', 'id')->toArray();
-                }
-                if ($campusesCache === null) {
-                    $campusesCache = Campus::pluck('name', 'id')->toArray();
-                }
-                if ($sessionsCache === null) {
-                    $sessionsCache = AcademicSession::pluck('name', 'id')->toArray();
-                }
+                $lookups = self::getAdmissionLookups();
 
                 $courseId = $get('course_id');
                 $campusId = $get('campus_id');
@@ -160,9 +158,9 @@ class AdmissionResource extends Resource
                     'stepIndex' => $stepIndex,
                     'percentage' => $percentage,
                     'studentName' => $get('applicant_name') ?: 'Not entered yet',
-                    'course' => $courseId ? ($coursesCache[$courseId] ?? 'Not selected yet') : 'Not selected yet',
-                    'campus' => $campusId ? ($campusesCache[$campusId] ?? 'Not selected yet') : 'Not selected yet',
-                    'session' => $sessionId ? ($sessionsCache[$sessionId] ?? 'Not selected yet') : 'Not selected yet',
+                    'course' => $courseId ? ($lookups['courses'][$courseId] ?? 'Not selected yet') : 'Not selected yet',
+                    'campus' => $campusId ? ($lookups['campuses'][$campusId] ?? 'Not selected yet') : 'Not selected yet',
+                    'session' => $sessionId ? ($lookups['sessions'][$sessionId] ?? 'Not selected yet') : 'Not selected yet',
                     'shift' => filled($get('shift')) ? ucfirst((string) $get('shift')) : 'Not selected yet',
                 ]);
             })
@@ -321,8 +319,7 @@ class AdmissionResource extends Resource
                                                 Forms\Components\TextInput::make('phone')
                                                     ->label('Mobile Number')
                                                     ->tel()
-                                                    ->helperText('Format: 03001234567')
-                                                    ->live(onBlur: true),
+                                                    ->helperText('Format: 03001234567'),
                                                 Forms\Components\TextInput::make('email')
                                                     ->label('Email Address (Optional)')
                                                     ->email()
@@ -355,7 +352,7 @@ class AdmissionResource extends Resource
                                                     ])
                                                     ->default('morning'),
                                                 Forms\Components\Select::make('campus_id')
-                                                    ->relationship('campus', 'name')
+                                                    ->options(fn () => self::getAdmissionLookups()['campuses'])
                                                     ->label('Preferred Campus')
                                                     ->default(fn () => filament()->auth()->user()->campus_id)
                                                     ->disabled(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
@@ -370,7 +367,7 @@ class AdmissionResource extends Resource
                                                     ])
                                                     ->default('Facebook'),
                                                 Forms\Components\Select::make('academic_session_id')
-                                                    ->relationship('academicSession', 'name')
+                                                    ->options(fn () => self::getAdmissionLookups()['sessions'])
                                                     ->label('Academic Session'),
                                             ])->columns(4),
 
@@ -628,45 +625,55 @@ class AdmissionResource extends Resource
                                                 Forms\Components\Grid::make(3)
                                                     ->schema([
                                                         Forms\Components\Select::make('campus_id')
-                                                            ->relationship('campus', 'name')
+                                                            ->options(fn () => self::getAdmissionLookups()['campuses'])
                                                             ->required()
                                                             ->default(fn () => filament()->auth()->user()->campus_id)
                                                             ->disabled(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
                                                             ->dehydrated(),
                                                         Forms\Components\Select::make('academic_session_id')
-                                                            ->relationship('academicSession', 'name')
+                                                            ->options(fn () => self::getAdmissionLookups()['sessions'])
                                                             ->label('Academic Session')
                                                             ->required(),
                                                         Forms\Components\Select::make('course_id')
-                                                            ->relationship('course', 'name')
+                                                            ->options(fn () => self::getAdmissionLookups()['courses'])
                                                             ->label('Assigned Course / Program')
                                                             ->required()
-                                                            ->live()
-                                                            ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
-                                                                if (! $state) {
-                                                                    return;
-                                                                }
-                                                                $course = Course::find($state);
-                                                                if (! $course) {
-                                                                    return;
-                                                                }
+                                                            ->extraInputAttributes(function (): array {
+                                                                $previewUrl = Js::from(route('admin.admissions.fee-plan-preview'));
 
-                                                                $structure = app(OfficialFeeStructureResolver::class)->resolve(
-                                                                    (int) $state,
-                                                                    $get('campus_id'),
-                                                                    $get('academic_session_id'),
-                                                                    $get('admission_date'),
-                                                                );
-                                                                if ($structure) {
-                                                                    $set('custom_tuition_fee', $structure->total_fee);
-                                                                    $set('custom_installment_count', $structure->installment_count ?: 12);
-                                                                } else {
-                                                                    $set('custom_tuition_fee', 0.00);
-                                                                    $set('custom_installment_count', 12);
-                                                                }
+                                                                return [
+                                                                    'x-on:change' => str_replace('__PREVIEW_URL__', (string) $previewUrl, <<<'JS'
+                                                                    const courseId = $event.target.value
 
-                                                                $admissionHead = FeeHead::where('course_id', $state)->where('category', 'admission')->first();
-                                                                $set('custom_admission_fee', $admissionHead?->default_amount ?: 0.00);
+                                                                    if (! courseId) {
+                                                                        return
+                                                                    }
+
+                                                                    const params = new URLSearchParams({
+                                                                        course_id: courseId,
+                                                                        campus_id: $wire.data.campus_id ?? '',
+                                                                        academic_session_id: $wire.data.academic_session_id ?? '',
+                                                                        admission_date: $wire.data.admission_date ?? '',
+                                                                    })
+
+                                                                    fetch(__PREVIEW_URL__ + '?' + params.toString(), {
+                                                                        headers: { Accept: 'application/json' },
+                                                                    })
+                                                                        .then((response) => {
+                                                                            if (! response.ok) {
+                                                                                throw new Error('Fee plan preview failed')
+                                                                            }
+
+                                                                            return response.json()
+                                                                        })
+                                                                        .then((plan) => {
+                                                                            Object.entries(plan).forEach(([field, value]) => {
+                                                                                $wire.$set(`data.${field}`, value, false)
+                                                                            })
+                                                                        })
+                                                                        .catch(() => {})
+                                                                JS),
+                                                                ];
                                                             }),
                                                         Forms\Components\DatePicker::make('admission_date')
                                                             ->label('Admission Date')
@@ -683,7 +690,6 @@ class AdmissionResource extends Resource
                                                             ->label('Total Course Tuition Fee')
                                                             ->numeric()
                                                             ->prefix('PKR')
-                                                            ->live(onBlur: true)
                                                             ->required(),
 
                                                         Forms\Components\Select::make('workflow_metadata.applicable_charge_type')
@@ -694,29 +700,25 @@ class AdmissionResource extends Resource
                                                                 'both' => 'Admission + Examination Fee',
                                                                 'none' => 'Tuition Fee Only',
                                                             ])
-                                                            ->default('admission')
-                                                            ->live(),
+                                                            ->default('admission'),
 
                                                         Forms\Components\TextInput::make('custom_admission_fee')
                                                             ->label('Admission Fee Amount')
                                                             ->numeric()
                                                             ->prefix('PKR')
-                                                            ->default(0.00)
-                                                            ->live(onBlur: true),
+                                                            ->default(0.00),
 
                                                         Forms\Components\TextInput::make('custom_examination_fee')
                                                             ->label('Examination Fee Amount')
                                                             ->numeric()
                                                             ->prefix('PKR')
-                                                            ->default(0.00)
-                                                            ->live(onBlur: true),
+                                                            ->default(0.00),
 
                                                         Forms\Components\TextInput::make('concession_amount')
                                                             ->label('Special Discount / Concession Amount')
                                                             ->numeric()
                                                             ->prefix('PKR')
-                                                            ->default(0.00)
-                                                            ->live(onBlur: true),
+                                                            ->default(0.00),
 
                                                         Forms\Components\TextInput::make('concession_reason')
                                                             ->label('Discount Reason / Notes')
@@ -730,8 +732,7 @@ class AdmissionResource extends Resource
                                                 Forms\Components\TextInput::make('custom_installment_count')
                                                     ->label('Number of Installments')
                                                     ->numeric()
-                                                    ->default(5)
-                                                    ->live(onBlur: true),
+                                                    ->default(5),
 
                                                 Forms\Components\Repeater::make('custom_installments')
                                                     ->label('Custom Installment Rows (Optional)')
@@ -755,45 +756,7 @@ class AdmissionResource extends Resource
 
                                         Forms\Components\Placeholder::make('live_total_preview')
                                             ->label('Live Fee Summary')
-                                            ->content(function (Forms\Get $get) {
-                                                $tuition = (float) $get('custom_tuition_fee');
-                                                $admissionFee = (float) $get('custom_admission_fee');
-                                                $examFee = (float) $get('custom_examination_fee');
-                                                $concession = (float) $get('concession_amount');
-                                                $installments = (int) $get('custom_installment_count') ?: 5;
-
-                                                $totalPackage = $tuition + $admissionFee + $examFee;
-                                                $netPayable = max(0, $totalPackage - $concession);
-                                                $perInstallment = $installments > 0 ? round(($tuition - $concession) / $installments, 2) : 0;
-                                                if ($perInstallment < 0) {
-                                                    $perInstallment = 0;
-                                                }
-
-                                                return new HtmlString(sprintf(
-                                                    '<div class="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                                                        <div class="text-sm font-bold text-slate-800 border-b pb-2">Fee Package Summary</div>
-                                                        <div class="grid grid-cols-2 gap-4 text-xs">
-                                                            <div class="space-y-1">
-                                                                <div><strong>Tuition Fee Total:</strong> PKR %s</div>
-                                                                <div><strong>Admission/Exam Fee:</strong> PKR %s</div>
-                                                                <div><strong>Discount Waived:</strong> -PKR %s</div>
-                                                                <div class="text-emerald-700 font-bold text-sm pt-1">Net Total Payable: PKR %s</div>
-                                                            </div>
-                                                            <div class="space-y-1">
-                                                                <div><strong>Installment Plan:</strong> %d Custom Installments</div>
-                                                                <div><strong>Approx per Installment:</strong> PKR %s</div>
-                                                                <div class="text-xs text-amber-700 font-semibold pt-1">Late Fee Rule: PKR 50/day after 10-day grace period</div>
-                                                            </div>
-                                                        </div>
-                                                    </div>',
-                                                    number_format($tuition, 2),
-                                                    number_format($admissionFee + $examFee, 2),
-                                                    number_format($concession, 2),
-                                                    number_format($netPayable, 2),
-                                                    $installments,
-                                                    number_format($perInstallment, 2)
-                                                ));
-                                            })
+                                            ->content(view('filament.admissions.components.fee-summary'))
                                             ->columnSpanFull(),
                                     ])->extraAttributes(['class' => 'admission-main-column admission-fee-step'])->columnSpan(9),
                                     Forms\Components\Group::make([
@@ -829,9 +792,9 @@ class AdmissionResource extends Resource
                                                     'guardianPhone' => $get('father_phone') ?: 'Not entered',
                                                     'qualificationCount' => count($academic),
                                                     'documentCount' => collect(['student_photo', 'student_cnic_front', 'student_cnic_back', 'father_cnic_front', 'father_cnic_back', 'matric_copy', 'inter_copy', 'domicile_copy'])->filter(fn ($k) => filled($get($k)))->count(),
-                                                    'course' => Course::find($get('course_id'))?->name ?: 'Pending selection',
-                                                    'campus' => Campus::find($get('campus_id'))?->name ?: 'Pending selection',
-                                                    'session' => AcademicSession::find($get('academic_session_id'))?->name ?: 'Pending selection',
+                                                    'course' => self::getAdmissionLookups()['courses'][$get('course_id')] ?? 'Pending selection',
+                                                    'campus' => self::getAdmissionLookups()['campuses'][$get('campus_id')] ?? 'Pending selection',
+                                                    'session' => self::getAdmissionLookups()['sessions'][$get('academic_session_id')] ?? 'Pending selection',
                                                     'shift' => ucfirst((string) ($get('shift') ?: 'morning')),
                                                     'totalFee' => $total,
                                                     'installments' => (int) ($get('custom_installment_count') ?: 5),
@@ -845,7 +808,29 @@ class AdmissionResource extends Resource
                                 ]),
                         ]),
                 ])
-                ->submitAction(new HtmlString('<button type="submit" wire:loading.attr="disabled" class="fi-btn fi-btn-size-md relative inline-grid grid-flow-col items-center justify-center font-bold rounded-lg shadow-md px-8 py-3 text-base bg-emerald-600 hover:bg-emerald-500 text-white transition focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">🎓 Submit &amp; Generate Admission Documents</button>'))
+                // Step changes are local and immediate. The final submit still
+                // validates the complete form on the server before saving.
+                ->skippable()
+                ->nextAction(fn (Forms\Components\Actions\Action $action) => $action
+                    ->alpineClickHandler('$event.stopPropagation(); nextStep()'))
+                ->extraAlpineAttributes([
+                    'x-on:admission-validation-failed.window' => <<<'JS'
+                        $nextTick(() => {
+                            const invalidField = $el.querySelector('.fi-fo-field-wrp-error-message')
+                            const invalidStep = invalidField?.closest('[role="tabpanel"]')
+
+                            if (! invalidStep) {
+                                return
+                            }
+
+                            step = invalidStep.id
+                            autofocusFields()
+                            scroll()
+                        })
+                    JS,
+                ])
+                // Use the standard Filament form actions in the shared footer.
+                ->submitAction('')
                 ->columnSpanFull(),
             ]);
     }

@@ -7,6 +7,7 @@ APP_DIR="${DGC_APP_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
 DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
 PHP_BIN="${PHP_BIN:-php}"
 COMPOSER_BIN="${COMPOSER_BIN:-}"
+DGC_MAINTENANCE_MODE="${DGC_MAINTENANCE_MODE:-0}"
 
 cd "${APP_DIR}"
 
@@ -52,14 +53,22 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
     exit 1
 fi
 
-bring_application_up() {
-    "${PHP_BIN}" artisan up >/dev/null 2>&1 || true
-}
+# Additive migrations and cache rebuilds used by the normal shared-hosting
+# deployment do not require a visible outage. Maintenance mode remains
+# available as an explicit opt-in for exceptional incompatible releases.
+"${PHP_BIN}" artisan up >/dev/null 2>&1 || true
 
-trap bring_application_up EXIT
+if [[ "${DGC_MAINTENANCE_MODE}" == "1" ]]; then
+    bring_application_up() {
+        "${PHP_BIN}" artisan up >/dev/null 2>&1 || true
+    }
 
-echo "Enabling maintenance mode..."
-"${PHP_BIN}" artisan down --retry=60 || true
+    trap bring_application_up EXIT
+    echo "Enabling maintenance mode for this deployment..."
+    "${PHP_BIN}" artisan down --retry=60 || true
+else
+    echo "Deploying without Laravel maintenance mode..."
+fi
 
 echo "Updating ${DEPLOY_BRANCH} from GitHub..."
 git fetch origin "${DEPLOY_BRANCH}"
@@ -71,7 +80,7 @@ echo "Installing production PHP dependencies..."
     --no-dev \
     --prefer-dist \
     --no-interaction \
-    --optimize-autoloader
+    --classmap-authoritative
 
 echo "Clearing stale Laravel caches..."
 "${PHP_BIN}" artisan optimize:clear
@@ -94,10 +103,13 @@ fi
 
 echo "Rebuilding production caches..."
 "${PHP_BIN}" artisan config:cache
+"${PHP_BIN}" artisan route:cache
 "${PHP_BIN}" artisan view:cache
 
-echo "Clearing maintenance mode..."
-"${PHP_BIN}" artisan up || true
-trap - EXIT
+if [[ "${DGC_MAINTENANCE_MODE}" == "1" ]]; then
+    echo "Clearing maintenance mode..."
+    "${PHP_BIN}" artisan up || true
+    trap - EXIT
+fi
 
 echo "Deployment completed successfully."

@@ -13,6 +13,7 @@ use App\Services\Fees\OfficialFeePlanData;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Validation\ValidationException;
 
 class CreateAdmission extends CreateRecord
 {
@@ -158,6 +159,19 @@ class CreateAdmission extends CreateRecord
                 ->submit('create')
                 ->extraAttributes(['class' => 'admission-action admission-action--final admission-action--generate']),
         ];
+    }
+
+    protected function onValidationError(ValidationException $exception): void
+    {
+        parent::onValidationError($exception);
+
+        $this->dispatch('admission-validation-failed');
+
+        Notification::make()
+            ->danger()
+            ->title('Admission could not be submitted')
+            ->body('Please complete the highlighted required fields, then submit again.')
+            ->send();
     }
 
     protected function getRedirectUrl(): string

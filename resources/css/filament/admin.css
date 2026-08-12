@@ -1535,13 +1535,13 @@ div[role="tabpanel"].fi-fo-wizard-step {
     box-shadow: none !important;
     display: flex !important;
     justify-content: flex-end !important;
-    margin-top: -4.65rem !important;
+    margin-top: 0 !important;
     min-height: 4.65rem;
     padding: .8rem 0 !important;
     pointer-events: none;
     left: auto;
     position: fixed !important;
-    right: 15.5rem;
+    right: 10.5rem;
     width: max-content;
     z-index: 31 !important;
 }
@@ -1555,16 +1555,12 @@ div[role="tabpanel"].fi-fo-wizard-step {
     display: none !important;
 }
 
-.admission-page form:has(.fi-fo-wizard-header-step:nth-child(7).fi-active) .admission-action--final {
+.admission-page form:has(.fi-fo-wizard-header-step:nth-child(5).fi-active) .admission-action--final {
     display: inline-flex !important;
 }
 
-.admission-page form:has(.fi-fo-wizard-header-step:nth-child(7).fi-active) .admission-action--autosave {
-    display: none !important;
-}
-
-.admission-page form:has(.fi-fo-wizard-header-step:nth-child(7).fi-active) .fi-form-actions {
-    padding-right: 1rem !important;
+.admission-page form:has(.fi-fo-wizard-header-step:nth-child(5).fi-active) .fi-form-actions {
+    right: 2.5rem;
 }
 
 .admission-page .admission-action--generate {
@@ -1921,25 +1917,24 @@ div[role="tabpanel"].fi-fo-wizard-step {
         border-radius: .7rem;
         flex-wrap: wrap;
         gap: .5rem;
-        min-height: 4.25rem;
+        min-height: 7.75rem;
         padding: .65rem !important;
         left: .7rem;
         right: .7rem;
     }
 
     .admission-page .fi-form-actions {
-        bottom: 4.75rem !important;
-        left: .7rem;
-        right: .7rem;
+        bottom: .65rem !important;
+        left: auto;
+        right: 6rem;
     }
 
-    .admission-page form:has(.fi-fo-wizard-header-step:nth-child(7).fi-active) .fi-form-actions {
-        background: rgba(255, 255, 255, .98) !important;
-        border: 1px solid var(--dgc-border) !important;
-        border-radius: .65rem !important;
-        bottom: 4.6rem !important;
+    .admission-page form:has(.fi-fo-wizard-header-step:nth-child(5).fi-active) .fi-form-actions {
+        background: transparent !important;
+        border: 0 !important;
+        bottom: .65rem !important;
         flex-wrap: wrap;
-        left: .7rem;
+        left: 5.25rem;
         right: .7rem;
     }
 
