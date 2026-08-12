@@ -668,16 +668,8 @@ div[role="tabpanel"].fi-fo-wizard-step {
     border-top: 1px solid #D9E2EC !important;
 }
 
-.fi-form-actions {
-    position: sticky !important;
-    bottom: 0 !important;
-    z-index: 30 !important;
-    padding: 14px 18px !important;
-    border: 1px solid var(--dgc-border) !important;
-    border-radius: 12px !important;
-    background: rgba(255, 255, 255, .96) !important;
-    box-shadow: 0 -8px 24px rgba(6, 25, 46, .08) !important;
-    backdrop-filter: blur(10px);
+.admission-page .fi-form-actions {
+    display: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

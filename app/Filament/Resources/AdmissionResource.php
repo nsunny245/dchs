@@ -734,25 +734,22 @@ class AdmissionResource extends Resource
                                                     ->live(onBlur: true),
 
                                                 Forms\Components\Repeater::make('custom_installments')
-                                                    ->label('Custom Installment Rows')
+                                                    ->label('Custom Installment Rows (Optional)')
                                                     ->schema([
                                                         Forms\Components\TextInput::make('title')
-                                                            ->label('Installment Title')
-                                                            ->required(),
+                                                            ->label('Installment Title'),
                                                         Forms\Components\TextInput::make('amount')
                                                             ->label('Amount (PKR)')
                                                             ->numeric()
-                                                            ->prefix('PKR')
-                                                            ->required(),
+                                                            ->prefix('PKR'),
                                                         Forms\Components\DatePicker::make('due_date')
-                                                            ->label('Due Date')
-                                                            ->required(),
+                                                            ->label('Due Date'),
                                                     ])
                                                     ->columns(3)
                                                     ->collapsible()
                                                     ->cloneable()
                                                     ->reorderable()
-                                                    ->defaultItems(5)
+                                                    ->defaultItems(0)
                                                     ->columnSpanFull(),
                                             ]),
 
@@ -848,6 +845,7 @@ class AdmissionResource extends Resource
                                 ]),
                         ]),
                 ])
+                ->submitAction(new HtmlString('<button type="submit" wire:loading.attr="disabled" class="fi-btn fi-btn-size-md relative inline-grid grid-flow-col items-center justify-center font-bold rounded-lg shadow-md px-8 py-3 text-base bg-emerald-600 hover:bg-emerald-500 text-white transition focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">🎓 Submit &amp; Generate Admission Documents</button>'))
                 ->columnSpanFull(),
             ]);
     }

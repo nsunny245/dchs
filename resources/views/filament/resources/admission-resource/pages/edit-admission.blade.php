@@ -27,6 +27,9 @@
             max-width: 100% !important;
             width: 100% !important;
         }
+        .admission-page .fi-form-actions {
+            display: none !important;
+        }
     </style>
     <x-filament-panels::form
         id="form"
