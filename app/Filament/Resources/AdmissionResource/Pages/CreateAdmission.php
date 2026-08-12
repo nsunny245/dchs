@@ -86,34 +86,13 @@ class CreateAdmission extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        if (! filament()->auth()->user()->hasRole('Super Admin')) {
-            $data = array_merge($data, app(OfficialFeePlanData::class)->forAdmission($data));
-            $data['concession_status'] = ($data['concession_type'] ?? 'none') === 'none' ? 'approved' : 'pending';
-        }
+        $data['concession_status'] = 'approved';
+        $data['concession_approved_by'] = filament()->auth()->id();
+        $data['concession_approved_at'] = now();
 
         if (($data['concession_type'] ?? 'none') !== 'none') {
-            $money = app(InstallmentPlanGenerator::class);
-            $packagePaisa = collect([
-                'custom_tuition_fee',
-                'custom_admission_fee',
-                'custom_enrollment_fee',
-                'custom_verification_fee',
-                'custom_examination_fee',
-                'custom_other_misc',
-            ])->sum(fn (string $field) => $money->toPaisa($data[$field] ?? 0));
-            $concessionPaisa = app(ConcessionCalculator::class)->calculate(
-                number_format($packagePaisa / 100, 2, '.', ''),
-                $data['concession_value_type'] ?? 'fixed',
-                $data['concession_value'] ?? $data['concession_amount'] ?? 0,
-            );
-            $data['concession_amount'] = number_format($concessionPaisa / 100, 2, '.', '');
             $data['concession_requested_by'] = filament()->auth()->id();
             $data['concession_requested_at'] = now();
-
-            if (($data['concession_status'] ?? null) === 'approved') {
-                $data['concession_approved_by'] = filament()->auth()->id();
-                $data['concession_approved_at'] = now();
-            }
         }
 
         return $data;

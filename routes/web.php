@@ -37,6 +37,7 @@ Route::middleware('auth:admin,campus')->prefix('pdf')->name('pdf.')->group(funct
     Route::get('/fee-voucher/{voucher}', [PdfController::class, 'feeVoucher'])->name('fee-voucher');
     Route::get('/payment-receipt/{payment}', [PdfController::class, 'paymentReceipt'])->name('payment-receipt');
     Route::get('/teacher-profile-summary/{staff}', [PdfController::class, 'teacherProfileSummary'])->name('teacher-profile-summary');
+    Route::get('/download-documents-zip/{admission}', [PdfController::class, 'downloadDocumentsZip'])->name('download-documents-zip');
     Route::get('/timetable/{timetable}', [PdfController::class, 'timetable'])->name('timetable');
 });
 

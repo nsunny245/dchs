@@ -46,6 +46,55 @@ class PdfController extends Controller
         ]);
     }
 
+    /**
+     * Download all uploaded student documents in a ZIP archive
+     */
+    public function downloadDocumentsZip(Admission $admission)
+    {
+        $this->authorize('view', $admission);
+
+        $files = [
+            '01_Student_Photo' => $admission->student_photo,
+            '02_Student_CNIC_Front' => $admission->student_cnic_front ?: $admission->cnic_copy,
+            '03_Student_CNIC_Back' => $admission->student_cnic_back,
+            '04_Father_CNIC_Front' => $admission->father_cnic_front ?: $admission->father_cnic_copy,
+            '05_Father_CNIC_Back' => $admission->father_cnic_back,
+            '06_Matric_Certificate' => $admission->matric_copy,
+            '07_Intermediate_Certificate' => $admission->inter_copy,
+            '08_Domicile_Certificate' => $admission->domicile_copy,
+            '09_Character_Certificate' => $admission->character_certificate_copy,
+            '10_Other_Document' => $admission->other_docs,
+        ];
+
+        $validFiles = [];
+        foreach ($files as $name => $relativePath) {
+            if ($relativePath) {
+                $fullPath = storage_path('app/public/' . $relativePath);
+                if (file_exists($fullPath)) {
+                    $ext = pathinfo($fullPath, PATHINFO_EXTENSION) ?: 'jpg';
+                    $validFiles["{$name}.{$ext}"] = $fullPath;
+                }
+            }
+        }
+
+        if (empty($validFiles)) {
+            return back()->with('error', 'No uploaded document files were found for this student.');
+        }
+
+        $zipFileName = 'Student_Documents_' . \Illuminate\Support\Str::slug($admission->applicant_name ?: 'Student') . '_' . $admission->id . '.zip';
+        $tempZipPath = storage_path('app/' . $zipFileName);
+
+        $zip = new \ZipArchive();
+        if ($zip->open($tempZipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
+            foreach ($validFiles as $zipEntryName => $filePath) {
+                $zip->addFile($filePath, $zipEntryName);
+            }
+            $zip->close();
+        }
+
+        return response()->download($tempZipPath, $zipFileName)->deleteFileAfterSend(true);
+    }
+
     public function installmentSchedule(Admission $admission)
     {
         $this->authorize('view', $admission);

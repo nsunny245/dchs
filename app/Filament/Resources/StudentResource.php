@@ -84,6 +84,13 @@ class StudentResource extends Resource
                     ->color('success')
                     ->url(fn ($record) => route('pdf.report-card', $record))
                     ->openUrlInNewTab(),
+                Tables\Actions\Action::make('downloadDocsZip')
+                    ->label('Docs ZIP')
+                    ->icon('heroicon-o-folder-arrow-down')
+                    ->color('warning')
+                    ->visible(fn ($record) => $record->admission_id !== null)
+                    ->url(fn ($record) => route('pdf.download-documents-zip', $record->admission_id))
+                    ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])

@@ -8,10 +8,8 @@ use App\Models\Admission;
 use App\Models\Campus;
 use App\Models\Course;
 use App\Models\FeeHead;
-use App\Services\EnrollmentService;
 use App\Services\Fees\InstallmentPlanGenerator;
 use App\Services\Fees\OfficialFeeStructureResolver;
-use App\Services\Fees\VoucherGenerationService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -30,6 +28,110 @@ class AdmissionResource extends Resource
     protected static ?string $navigationGroup = 'Student Relations';
 
     protected static ?int $navigationSort = 1;
+
+    public static array $pakistanCities = [
+        'Okara' => 'Okara',
+        'Okara Cantonment' => 'Okara Cantonment',
+        'Sahiwal' => 'Sahiwal',
+        'Pakpattan' => 'Pakpattan',
+        'Lahore' => 'Lahore',
+        'Multan' => 'Multan',
+        'Faisalabad' => 'Faisalabad',
+        'Islamabad' => 'Islamabad',
+        'Rawalpindi' => 'Rawalpindi',
+        'Karachi' => 'Karachi',
+        'Peshawar' => 'Peshawar',
+        'Quetta' => 'Quetta',
+        'Gujranwala' => 'Gujranwala',
+        'Sargodha' => 'Sargodha',
+        'Bahawalpur' => 'Bahawalpur',
+        'DG Khan' => 'DG Khan',
+        'Sheikhupura' => 'Sheikhupura',
+        'Kasur' => 'Kasur',
+        'Jhang' => 'Jhang',
+        'Vehari' => 'Vehari',
+        'Rahim Yar Khan' => 'Rahim Yar Khan',
+        'Attock' => 'Attock',
+        'Chiniot' => 'Chiniot',
+        'Gujrat' => 'Gujrat',
+        'Hafizabad' => 'Hafizabad',
+        'Khanewal' => 'Khanewal',
+        'Layyah' => 'Layyah',
+        'Lodhran' => 'Lodhran',
+        'Mianwali' => 'Mianwali',
+        'Muzaffargarh' => 'Muzaffargarh',
+        'Nankana Sahib' => 'Nankana Sahib',
+        'Narowal' => 'Narowal',
+        'Rajanpur' => 'Rajanpur',
+        'Sialkot' => 'Sialkot',
+        'Toba Tek Singh' => 'Toba Tek Singh',
+        'Other' => 'Other City',
+    ];
+
+    public static array $pakistanDistricts = [
+        'Okara' => 'Okara',
+        'Sahiwal' => 'Sahiwal',
+        'Pakpattan' => 'Pakpattan',
+        'Lahore' => 'Lahore',
+        'Multan' => 'Multan',
+        'Faisalabad' => 'Faisalabad',
+        'Rawalpindi' => 'Rawalpindi',
+        'Islamabad' => 'Islamabad',
+        'Gujranwala' => 'Gujranwala',
+        'Sargodha' => 'Sargodha',
+        'Bahawalpur' => 'Bahawalpur',
+        'DG Khan' => 'Dera Ghazi Khan',
+        'Sheikhupura' => 'Sheikhupura',
+        'Kasur' => 'Kasur',
+        'Jhang' => 'Jhang',
+        'Vehari' => 'Vehari',
+        'Rahim Yar Khan' => 'Rahim Yar Khan',
+        'Attock' => 'Attock',
+        'Chiniot' => 'Chiniot',
+        'Gujrat' => 'Gujrat',
+        'Hafizabad' => 'Hafizabad',
+        'Khanewal' => 'Khanewal',
+        'Layyah' => 'Layyah',
+        'Lodhran' => 'Lodhran',
+        'Mianwali' => 'Mianwali',
+        'Muzaffargarh' => 'Muzaffargarh',
+        'Nankana Sahib' => 'Nankana Sahib',
+        'Narowal' => 'Narowal',
+        'Rajanpur' => 'Rajanpur',
+        'Sialkot' => 'Sialkot',
+        'Toba Tek Singh' => 'Toba Tek Singh',
+        'Other' => 'Other District',
+    ];
+
+    public static array $biseBoards = [
+        'BISE Sahiwal' => 'BISE Sahiwal',
+        'BISE Lahore' => 'BISE Lahore',
+        'BISE Multan' => 'BISE Multan',
+        'BISE Faisalabad' => 'BISE Faisalabad',
+        'BISE Gujranwala' => 'BISE Gujranwala',
+        'BISE Rawalpindi' => 'BISE Rawalpindi',
+        'BISE Sargodha' => 'BISE Sargodha',
+        'BISE Bahawalpur' => 'BISE Bahawalpur',
+        'BISE DG Khan' => 'BISE DG Khan',
+        'Federal Board (FBISE) Islamabad' => 'Federal Board (FBISE) Islamabad',
+        'Aga Khan Examination Board' => 'Aga Khan Examination Board',
+        'PBTE (Technical Board) Lahore' => 'PBTE (Technical Board) Lahore',
+        'Other Board' => 'Other Board',
+    ];
+
+    public static array $pakistanUniversities = [
+        'University of Okara' => 'University of Okara',
+        'Bahauddin Zakariya University (BZU) Multan' => 'Bahauddin Zakariya University (BZU) Multan',
+        'University of the Punjab (PU) Lahore' => 'University of the Punjab (PU) Lahore',
+        'GC University (GCU) Lahore' => 'GC University (GCU) Lahore',
+        'UET Lahore' => 'UET Lahore',
+        'Islamia University Bahawalpur (IUB)' => 'Islamia University Bahawalpur (IUB)',
+        'University of Agriculture Faisalabad (UAF)' => 'University of Agriculture Faisalabad (UAF)',
+        'University of Health Sciences (UHS) Lahore' => 'University of Health Sciences (UHS) Lahore',
+        'Virtual University of Pakistan' => 'Virtual University of Pakistan',
+        'Allama Iqbal Open University (AIOU)' => 'Allama Iqbal Open University (AIOU)',
+        'Other University' => 'Other University',
+    ];
 
     protected static function getSidebarPlaceholder(int $stepIndex, int $percentage): Forms\Components\Placeholder
     {
@@ -70,13 +172,11 @@ class AdmissionResource extends Resource
     protected static function getStepIntroPlaceholder(int $stepIndex): Forms\Components\Placeholder
     {
         $steps = [
-            1 => ['Student Photo', 'Upload a clear passport-size photograph of the applicant.', 'heroicon-o-camera'],
-            2 => ['Student Information', "Enter the applicant's personal and contact details.", 'heroicon-o-user'],
-            3 => ['Parent or Guardian', "Add the applicant's parent, guardian, and emergency contact details.", 'heroicon-o-users'],
-            4 => ['Academic Details', "Record the applicant's previous qualifications and results.", 'heroicon-o-academic-cap'],
-            5 => ['Documents Vault', "Upload and verify the applicant's required documents.", 'heroicon-o-folder-open'],
-            6 => ['Course & Fee Plan', 'Assign course details and configure the student fee plan.', 'heroicon-o-banknotes'],
-            7 => ['Review & Confirm', 'Review all details before submitting the admission.', 'heroicon-o-shield-check'],
+            1 => ['Student & Guardian Profile', 'Upload photo, personal details, contact information, and parent/guardian details.', 'heroicon-o-user'],
+            2 => ['Academic Qualifications', "Record the applicant's previous qualifications, BISE boards/universities, and marks.", 'heroicon-o-academic-cap'],
+            3 => ['Documents Vault', 'Upload student and guardian CNIC copies (front/back) and certificates.', 'heroicon-o-folder-open'],
+            4 => ['Course & Fee Plan', 'Assign course, configure tuition/admission fees, and customize installment schedule.', 'heroicon-o-banknotes'],
+            5 => ['Review & Confirm', 'Review all details before submitting the admission.', 'heroicon-o-shield-check'],
         ];
 
         [$title, $description, $icon] = $steps[$stepIndex];
@@ -135,49 +235,35 @@ class AdmissionResource extends Resource
                     ->columnSpanFull(),
 
                 Forms\Components\Wizard::make([
-                    // Step 1: Student Photo
-                    Forms\Components\Wizard\Step::make('Student Photo')
-                        ->icon('heroicon-o-camera')
-                        ->description('Upload the passport-size picture of the student')
-                        ->schema([
-                            Forms\Components\Grid::make(12)
-                                ->extraAttributes(['class' => 'admission-split-grid'])
-                                ->schema([
-                                    Forms\Components\Group::make([
-                                        self::getStepIntroPlaceholder(1),
-                                        Forms\Components\FileUpload::make('student_photo')
-                                            ->label('Student Profile Photo')
-                                            ->directory('student-photos')
-                                            ->image()
-                                            ->imagePreviewHeight('320')
-                                            ->panelAspectRatio('4:5')
-                                            ->imageEditor()
-                                            ->imageEditorAspectRatios(['4:5'])
-                                            ->acceptedFileTypes(['image/jpeg', 'image/png'])
-                                            ->maxSize(4096)
-                                            ->helperText('Use a clear passport-style photograph with a white or light-blue background. JPG or PNG, maximum 4 MB.')
-                                            ->columnSpanFull(),
-                                    ])->extraAttributes(['class' => 'admission-main-column admission-photo-step'])->columnSpan(9),
-                                    Forms\Components\Group::make([
-                                        self::getSidebarPlaceholder(1, 14),
-                                    ])->extraAttributes(['class' => 'admission-context-column'])->columnSpan(3),
-                                ]),
-                        ]),
-
-                    // Step 2: Student Information
-                    Forms\Components\Wizard\Step::make('Student Information')
+                    // Step 1: Student & Guardian Profile
+                    Forms\Components\Wizard\Step::make('Student & Guardian Profile')
                         ->icon('heroicon-o-user')
                         ->schema([
                             Forms\Components\Grid::make(12)
                                 ->extraAttributes(['class' => 'admission-split-grid'])
                                 ->schema([
                                     Forms\Components\Group::make([
-                                        self::getStepIntroPlaceholder(2),
+                                        self::getStepIntroPlaceholder(1),
+                                        Forms\Components\Section::make('Student Profile Photo')
+                                            ->schema([
+                                                Forms\Components\FileUpload::make('student_photo')
+                                                    ->label('Upload Student Photo (Passport Size)')
+                                                    ->directory('student-photos')
+                                                    ->image()
+                                                    ->imagePreviewHeight('220')
+                                                    ->panelAspectRatio('4:5')
+                                                    ->acceptedFileTypes(['image/jpeg', 'image/png'])
+                                                    ->maxSize(4096)
+                                                    ->helperText('Upload a clear passport-size photo with white/blue background. Max size 4MB.')
+                                                    ->columnSpanFull(),
+                                            ]),
+
                                         Forms\Components\Section::make('Personal Identity')
                                             ->schema([
                                                 Forms\Components\TextInput::make('applicant_name')
                                                     ->label('Student Full Name')
                                                     ->default('Draft Student')
+                                                    ->required()
                                                     ->maxLength(255),
                                                 Forms\Components\TextInput::make('cnic')
                                                     ->label('Student CNIC or B-Form #')
@@ -205,7 +291,8 @@ class AdmissionResource extends Resource
                                                         'male' => 'Male',
                                                         'female' => 'Female',
                                                         'other' => 'Other',
-                                                    ]),
+                                                    ])
+                                                    ->default('male'),
                                                 Forms\Components\Select::make('blood_group')
                                                     ->label('Blood Group')
                                                     ->options([
@@ -233,32 +320,24 @@ class AdmissionResource extends Resource
                                                 Forms\Components\TextInput::make('phone')
                                                     ->label('Mobile Number')
                                                     ->tel()
-                                                    ->helperText('Format: 03001234567 or +923001234567')
-                                                    ->live(onBlur: true)
-                                                    ->afterStateUpdated(function ($state) {
-                                                        if (empty($state)) {
-                                                            return;
-                                                        }
-                                                        if (Admission::where('phone', $state)->exists()) {
-                                                            Notification::make()
-                                                                ->title('Warning: Possible Duplicate Mobile')
-                                                                ->body("An admission application with mobile number {$state} already exists.")
-                                                                ->warning()
-                                                                ->send();
-                                                        }
-                                                    }),
+                                                    ->helperText('Format: 03001234567')
+                                                    ->live(onBlur: true),
                                                 Forms\Components\TextInput::make('email')
-                                                    ->label('Email (Optional)')
+                                                    ->label('Email Address (Optional)')
                                                     ->email()
                                                     ->maxLength(255),
-                                                Forms\Components\TextInput::make('city')
+                                                Forms\Components\Select::make('city')
                                                     ->label('City')
+                                                    ->searchable()
+                                                    ->options(self::$pakistanCities)
                                                     ->default('Okara'),
-                                                Forms\Components\TextInput::make('domicile_district')
+                                                Forms\Components\Select::make('domicile_district')
                                                     ->label('Domicile (District)')
-                                                    ->maxLength(255),
+                                                    ->searchable()
+                                                    ->options(self::$pakistanDistricts)
+                                                    ->default('Okara'),
                                                 Forms\Components\Textarea::make('address')
-                                                    ->label('Current Address')
+                                                    ->label('Current Residential Address')
                                                     ->rows(2)
                                                     ->columnSpanFull(),
                                             ])->columns(4),
@@ -266,10 +345,12 @@ class AdmissionResource extends Resource
                                         Forms\Components\Section::make('Admission Preferences')
                                             ->schema([
                                                 Forms\Components\Select::make('shift')
-                                                    ->label('Shift Preference')
+                                                    ->label('Shift / Category Preference')
                                                     ->options([
-                                                        'morning' => 'Morning',
-                                                        'evening' => 'Evening',
+                                                        'morning' => 'Morning Shift',
+                                                        'evening' => 'Evening Shift',
+                                                        'weekend' => 'Weekend Shift',
+                                                        'offline' => 'Private / Offline (Exams Only)',
                                                     ])
                                                     ->default('morning'),
                                                 Forms\Components\Select::make('campus_id')
@@ -289,49 +370,24 @@ class AdmissionResource extends Resource
                                                     ->default('Facebook'),
                                                 Forms\Components\Select::make('academic_session_id')
                                                     ->relationship('academicSession', 'name')
-                                                    ->label('Session'),
+                                                    ->label('Academic Session'),
                                             ])->columns(4),
-                                    ])->extraAttributes(['class' => 'admission-main-column admission-student-step'])->columnSpan(9),
-                                    Forms\Components\Group::make([
-                                        self::getSidebarPlaceholder(2, 28),
-                                    ])->extraAttributes(['class' => 'admission-context-column'])->columnSpan(3),
-                                ]),
-                        ]),
 
-                    // Step 3: Parent or Guardian
-                    Forms\Components\Wizard\Step::make('Parent or Guardian')
-                        ->icon('heroicon-o-users')
-                        ->schema([
-                            Forms\Components\Grid::make(12)
-                                ->extraAttributes(['class' => 'admission-split-grid'])
-                                ->schema([
-                                    Forms\Components\Group::make([
-                                        self::getStepIntroPlaceholder(3),
-                                        Forms\Components\Section::make('Parent & Guardian Information')
+                                        Forms\Components\Section::make('Parent & Guardian Details')
                                             ->schema([
                                                 Forms\Components\TextInput::make('father_name')
-                                                    ->label("Father's or Guardian's Name")
+                                                    ->label("Father's / Guardian's Full Name")
+                                                    ->required()
                                                     ->maxLength(255),
                                                 Forms\Components\TextInput::make('father_cnic')
-                                                    ->label('Father/Guardian CNIC #')
+                                                    ->label('Father / Guardian CNIC #')
                                                     ->maxLength(255),
                                                 Forms\Components\TextInput::make('father_phone')
-                                                    ->label("Father's Mobile Number")
+                                                    ->label("Father's / Guardian's Mobile Number")
                                                     ->tel(),
-                                                Forms\Components\TextInput::make('mother_cnic')
-                                                    ->label("Mother's CNIC #")
-                                                    ->maxLength(255),
-                                                Forms\Components\TextInput::make('mother_phone')
-                                                    ->label("Mother's Contact #")
-                                                    ->tel(),
-                                                Forms\Components\TextInput::make('father_occupation')
-                                                    ->label("Father's/Guardian's Occupation")
-                                                    ->maxLength(255),
                                                 Forms\Components\TextInput::make('emergency_contact')
                                                     ->label('Emergency Contact Number')
                                                     ->tel(),
-                                                Forms\Components\TextInput::make('workflow_metadata.emergency_contact_relation')
-                                                    ->label('Emergency Contact Relationship'),
                                                 Forms\Components\Select::make('workflow_metadata.guardian_relation')
                                                     ->label('Relationship to Student')
                                                     ->options([
@@ -355,28 +411,28 @@ class AdmissionResource extends Resource
                                                     ->dehydrated()
                                                     ->columnSpanFull(),
                                             ])->columns(3),
-                                    ])->extraAttributes(['class' => 'admission-main-column admission-guardian-step'])->columnSpan(9),
+                                    ])->extraAttributes(['class' => 'admission-main-column admission-student-step'])->columnSpan(9),
                                     Forms\Components\Group::make([
-                                        self::getSidebarPlaceholder(3, 42),
+                                        self::getSidebarPlaceholder(1, 20),
                                     ])->extraAttributes(['class' => 'admission-context-column'])->columnSpan(3),
                                 ]),
                         ]),
 
-                    // Step 4: Academic Details
-                    Forms\Components\Wizard\Step::make('Academic Details')
+                    // Step 2: Academic Details
+                    Forms\Components\Wizard\Step::make('Academic Qualifications')
                         ->icon('heroicon-o-academic-cap')
                         ->schema([
                             Forms\Components\Grid::make(12)
                                 ->extraAttributes(['class' => 'admission-split-grid'])
                                 ->schema([
                                     Forms\Components\Group::make([
-                                        self::getStepIntroPlaceholder(4),
-                                        Forms\Components\Section::make('Academic Qualifications')
-                                            ->description('Add academic details of the applicant')
+                                        self::getStepIntroPlaceholder(2),
+                                        Forms\Components\Section::make('Previous Academic Qualifications')
+                                            ->description('Add academic details of the applicant (Matric, Intermediate, Graduation)')
                                             ->schema([
                                                 Forms\Components\Repeater::make('academic_details')
                                                     ->label('')
-                                                    ->addActionLabel('Add Another Qualification')
+                                                    ->addActionLabel('+ Add Qualification')
                                                     ->collapsible()
                                                     ->cloneable()
                                                     ->reorderable()
@@ -386,14 +442,14 @@ class AdmissionResource extends Resource
                                                             ->options([
                                                                 'matric' => 'Matriculation / SSC',
                                                                 'intermediate' => 'Intermediate / HSSC',
-                                                                'graduation' => 'Graduation',
+                                                                'graduation' => 'Graduation / Degree',
                                                             ])
                                                             ->required()
                                                             ->live(),
 
                                                         Forms\Components\Grid::make(3)
                                                             ->schema([
-                                                                 Forms\Components\Select::make('degree_title')
+                                                                Forms\Components\Select::make('degree_title')
                                                                     ->label('Degree Title')
                                                                     ->options(fn (Forms\Get $get) => match ($get('level')) {
                                                                         'matric' => [
@@ -411,8 +467,7 @@ class AdmissionResource extends Resource
                                                                         default => [],
                                                                     })
                                                                     ->searchable()
-                                                                    ->visible(fn (Forms\Get $get) => in_array($get('level'), ['matric', 'intermediate']))
-                                                                    ->placeholder('Select degree option'),
+                                                                    ->visible(fn (Forms\Get $get) => in_array($get('level'), ['matric', 'intermediate'])),
 
                                                                 Forms\Components\TextInput::make('degree_title_custom')
                                                                     ->label('Degree Title')
@@ -420,14 +475,18 @@ class AdmissionResource extends Resource
                                                                     ->afterStateUpdated(fn ($state, Forms\Set $set) => $set('degree_title', $state))
                                                                     ->placeholder('e.g. BS Computer Science'),
 
-                                                                Forms\Components\TextInput::make('board_university')
-                                                                    ->label('Board / University'),
+                                                                Forms\Components\Select::make('board_university')
+                                                                    ->label('Board / University')
+                                                                    ->searchable()
+                                                                    ->options(fn (Forms\Get $get) => match ($get('level')) {
+                                                                        'graduation' => self::$pakistanUniversities,
+                                                                        default => self::$biseBoards,
+                                                                    }),
 
-                                                                Forms\Components\TextInput::make('passing_year')
+                                                                Forms\Components\Select::make('passing_year')
                                                                     ->label('Passing Year')
-                                                                    ->numeric()
-                                                                    ->minValue(1950)
-                                                                    ->maxValue((int) now()->year),
+                                                                    ->searchable()
+                                                                    ->options(array_combine(range((int) now()->year, 1990), range((int) now()->year, 1990))),
 
                                                                 Forms\Components\TextInput::make('roll_no')
                                                                     ->label('Roll Number'),
@@ -436,13 +495,27 @@ class AdmissionResource extends Resource
                                                                     ->label('Obtained Marks')
                                                                     ->numeric()
                                                                     ->minValue(0)
-                                                                    ->lte('total_marks')
                                                                     ->live(onBlur: true)
                                                                     ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set) {
+                                                                        $obtained = (float) $get('obtained_marks');
                                                                         $total = (float) $get('total_marks');
-                                                                        $set('percentage', $total > 0
-                                                                            ? number_format(((float) $get('obtained_marks') / $total) * 100, 2, '.', '')
-                                                                            : null);
+                                                                        if ($total > 0 && $obtained >= 0) {
+                                                                            $pct = ($obtained / $total) * 100;
+                                                                            $set('percentage', number_format($pct, 2, '.', ''));
+                                                                            if ($pct >= 80) {
+                                                                                $set('grade', 'A+ / 1st Div');
+                                                                            } elseif ($pct >= 70) {
+                                                                                $set('grade', 'A / 1st Div');
+                                                                            } elseif ($pct >= 60) {
+                                                                                $set('grade', 'B / 1st Div');
+                                                                            } elseif ($pct >= 50) {
+                                                                                $set('grade', 'C / 2nd Div');
+                                                                            } elseif ($pct >= 33) {
+                                                                                $set('grade', 'D / 3rd Div');
+                                                                            } else {
+                                                                                $set('grade', 'F / Fail');
+                                                                            }
+                                                                        }
                                                                     }),
 
                                                                 Forms\Components\TextInput::make('total_marks')
@@ -452,19 +525,36 @@ class AdmissionResource extends Resource
                                                                     ->default(1100)
                                                                     ->live(onBlur: true)
                                                                     ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set) {
+                                                                        $obtained = (float) $get('obtained_marks');
                                                                         $total = (float) $get('total_marks');
-                                                                        $set('percentage', $total > 0
-                                                                            ? number_format(((float) $get('obtained_marks') / $total) * 100, 2, '.', '')
-                                                                            : null);
+                                                                        if ($total > 0 && $obtained >= 0) {
+                                                                            $pct = ($obtained / $total) * 100;
+                                                                            $set('percentage', number_format($pct, 2, '.', ''));
+                                                                            if ($pct >= 80) {
+                                                                                $set('grade', 'A+ / 1st Div');
+                                                                            } elseif ($pct >= 70) {
+                                                                                $set('grade', 'A / 1st Div');
+                                                                            } elseif ($pct >= 60) {
+                                                                                $set('grade', 'B / 1st Div');
+                                                                            } elseif ($pct >= 50) {
+                                                                                $set('grade', 'C / 2nd Div');
+                                                                            } elseif ($pct >= 33) {
+                                                                                $set('grade', 'D / 3rd Div');
+                                                                            } else {
+                                                                                $set('grade', 'F / Fail');
+                                                                            }
+                                                                        }
                                                                     }),
 
                                                                 Forms\Components\TextInput::make('grade')
-                                                                    ->label('Division / Grade')
-                                                                    ->placeholder('e.g. A+ or First'),
+                                                                    ->label('Division & Grade (Auto)')
+                                                                    ->placeholder('Auto calculated')
+                                                                    ->dehydrated(),
+
                                                                 Forms\Components\TextInput::make('percentage')
                                                                     ->label('Percentage')
                                                                     ->suffix('%')
-                                                                    ->disabled()
+                                                                    ->placeholder('Auto calculated')
                                                                     ->dehydrated(),
 
                                                                 Forms\Components\TextInput::make('biology_marks')
@@ -481,58 +571,60 @@ class AdmissionResource extends Resource
                                             ]),
                                     ])->extraAttributes(['class' => 'admission-main-column admission-academic-step'])->columnSpan(9),
                                     Forms\Components\Group::make([
-                                        self::getSidebarPlaceholder(4, 57),
+                                        self::getSidebarPlaceholder(2, 40),
                                     ])->extraAttributes(['class' => 'admission-context-column'])->columnSpan(3),
                                 ]),
                         ]),
 
-                    // Step 5: Documents Vault
+                    // Step 3: Documents Vault
                     Forms\Components\Wizard\Step::make('Documents Vault')
-                        ->icon('heroicon-o-document-duplicate')
+                        ->icon('heroicon-o-folder-open')
                         ->schema([
                             Forms\Components\Grid::make(12)
                                 ->extraAttributes(['class' => 'admission-split-grid'])
                                 ->schema([
                                     Forms\Components\Group::make([
-                                        self::getStepIntroPlaceholder(5),
-                                        Forms\Components\Section::make('Upload Credentials')
+                                        self::getStepIntroPlaceholder(3),
+                                        Forms\Components\Section::make('Upload Student & Guardian Documents')
                                             ->schema([
                                                 Forms\Components\Grid::make(2)
                                                     ->extraAttributes(['class' => 'admission-document-grid'])
                                                     ->schema([
-                                                        self::getDocumentCard('cnic_copy', 'cnic_copy_status', '1. Student CNIC / B-Form', 'CNIC Status', 'Drop file here or click to upload'),
-                                                        self::getDocumentCard('father_cnic_copy', 'father_cnic_copy_status', '2. Father / Guardian CNIC', 'Father CNIC Status', 'Drop file here or click to upload'),
-                                                        self::getDocumentCard('matric_copy', 'matric_copy_status', '3. Matric Certificate', 'Matric Status', 'Drop file here or click to upload'),
-                                                        self::getDocumentCard('inter_copy', 'inter_copy_status', '4. Intermediate Certificate', 'Intermediate Status', 'Drop file here or click to upload'),
-                                                        self::getDocumentCard('domicile_copy', 'domicile_copy_status', '5. Domicile Certificate', 'Domicile Status', 'Drop file here or click to upload'),
-                                                        self::getDocumentCard('character_certificate_copy', 'character_certificate_copy_status', '6. Character Certificate', 'Character Status', 'Drop file here or click to upload'),
+                                                        self::getDocumentCard('student_cnic_front', 'student_cnic_front_status', '1. Student CNIC / B-Form (Front)', 'CNIC Front Status', 'Drop front image here'),
+                                                        self::getDocumentCard('student_cnic_back', 'student_cnic_back_status', '2. Student CNIC / B-Form (Back)', 'CNIC Back Status', 'Drop back image here'),
+                                                        self::getDocumentCard('father_cnic_front', 'father_cnic_front_status', '3. Father / Guardian CNIC (Front)', 'Father Front Status', 'Drop front image here'),
+                                                        self::getDocumentCard('father_cnic_back', 'father_cnic_back_status', '4. Father / Guardian CNIC (Back)', 'Father Back Status', 'Drop back image here'),
+                                                        self::getDocumentCard('matric_copy', 'matric_copy_status', '5. Matric Certificate Copy', 'Matric Status', 'Drop file here'),
+                                                        self::getDocumentCard('inter_copy', 'inter_copy_status', '6. Intermediate Certificate Copy', 'Inter Status', 'Drop file here'),
+                                                        self::getDocumentCard('domicile_copy', 'domicile_copy_status', '7. Domicile Certificate', 'Domicile Status', 'Drop file here'),
+                                                        self::getDocumentCard('character_certificate_copy', 'character_certificate_copy_status', '8. Character Certificate', 'Character Status', 'Drop file here'),
                                                     ]),
 
                                                 Forms\Components\Textarea::make('missing_documents')
-                                                    ->label('Missing Documents Notes')
-                                                    ->placeholder('Enter any missing documents notes here...')
-                                                    ->rows(3)
+                                                    ->label('Missing Documents Notes (Optional)')
+                                                    ->placeholder('Enter any missing document notes here...')
+                                                    ->rows(2)
                                                     ->columnSpanFull(),
                                             ]),
                                     ])->extraAttributes(['class' => 'admission-main-column admission-documents-step'])->columnSpan(9),
                                     Forms\Components\Group::make([
-                                        self::getSidebarPlaceholder(5, 71),
+                                        self::getSidebarPlaceholder(3, 60),
                                     ])->extraAttributes(['class' => 'admission-context-column'])->columnSpan(3),
                                 ]),
                         ]),
 
-                    // Step 6: Course and Fee Plan
+                    // Step 4: Course and Fee Plan
                     Forms\Components\Wizard\Step::make('Course & Fee Plan')
-                        ->icon('heroicon-o-currency-dollar')
+                        ->icon('heroicon-o-banknotes')
                         ->schema([
                             Forms\Components\Grid::make(12)
                                 ->extraAttributes(['class' => 'admission-split-grid'])
                                 ->schema([
                                     Forms\Components\Group::make([
-                                        self::getStepIntroPlaceholder(6),
+                                        self::getStepIntroPlaceholder(4),
                                         Forms\Components\Section::make('Course Assignment')
                                             ->schema([
-                                                Forms\Components\Grid::make(4)
+                                                Forms\Components\Grid::make(3)
                                                     ->schema([
                                                         Forms\Components\Select::make('campus_id')
                                                             ->relationship('campus', 'name')
@@ -572,43 +664,9 @@ class AdmissionResource extends Resource
                                                                     $set('custom_installment_count', 12);
                                                                 }
 
-                                                                // Fetch course-specific fee heads
                                                                 $admissionHead = FeeHead::where('course_id', $state)->where('category', 'admission')->first();
                                                                 $set('custom_admission_fee', $admissionHead?->default_amount ?: 0.00);
-
-                                                                $verificationHead = FeeHead::where('course_id', $state)->where('code', 'like', 'VERIFICATION_%')->first();
-                                                                $set('custom_verification_fee', $verificationHead?->default_amount ?: 0.00);
-
-                                                                $endowmentHead = FeeHead::where('course_id', $state)->where('category', 'affiliation')->first();
-                                                                $set('custom_enrollment_fee', $endowmentHead?->default_amount ?: 0.00);
-
-                                                                $examHead = FeeHead::where('course_id', $state)->where('code', 'like', 'EXAM_%')->first();
-                                                                $set('custom_examination_fee', $examHead?->default_amount ?: 0.00);
-
-                                                                $miscHead = FeeHead::where('course_id', $state)->where('category', 'miscellaneous')->first();
-                                                                $hostelHead = FeeHead::where('course_id', $state)->where('category', 'hostel')->first();
-                                                                $totalMisc = ($miscHead?->default_amount ?: 0.00) + ($hostelHead?->default_amount ?: 0.00);
-                                                                $set('custom_other_misc', $totalMisc);
                                                             }),
-                                                        Forms\Components\Placeholder::make('official_fee_plan_notice')
-                                                            ->label('')
-                                                            ->content(function (Forms\Get $get) {
-                                                                $course = Course::find($get('course_id'));
-                                                                $session = AcademicSession::find($get('academic_session_id'));
-                                                                $structure = $course
-                                                                    ? app(OfficialFeeStructureResolver::class)->resolve(
-                                                                        (int) $course->id,
-                                                                        $get('campus_id'),
-                                                                        $get('academic_session_id'),
-                                                                        $get('admission_date'),
-                                                                    )
-                                                                    : null;
-
-                                                                return $course
-                                                                    ? "Official fee plan v{$structure?->version} loaded for {$course->name} — ".($session?->name ?: 'session pending')
-                                                                    : 'Select a course to load its approved official fee plan.';
-                                                            })
-                                                            ->columnSpanFull(),
                                                         Forms\Components\DatePicker::make('admission_date')
                                                             ->label('Admission Date')
                                                             ->default(now())
@@ -616,161 +674,97 @@ class AdmissionResource extends Resource
                                                     ]),
                                             ]),
 
-                                        Forms\Components\Grid::make(3)
+                                        Forms\Components\Section::make('Fee Structure Breakdown')
                                             ->schema([
-                                                 Forms\Components\Section::make('One-time Charges')
-                                                    ->schema([
-                                                        Forms\Components\TextInput::make('custom_admission_fee')
-                                                            ->label('Admission Fee')
-                                                            ->numeric()
-                                                            ->prefix('PKR')
-                                                            ->live(onBlur: true)
-                                                            ->disabled(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
-                                                            ->dehydrated()
-                                                            ->required(),
-                                                        Forms\Components\TextInput::make('custom_verification_fee')
-                                                            ->label('Verification Fee')
-                                                            ->numeric()
-                                                            ->prefix('PKR')
-                                                            ->live(onBlur: true)
-                                                            ->disabled(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
-                                                            ->dehydrated()
-                                                            ->required(),
-                                                        Forms\Components\TextInput::make('custom_enrollment_fee')
-                                                            ->label('Enrollment Fee')
-                                                            ->numeric()
-                                                            ->prefix('PKR')
-                                                            ->live(onBlur: true)
-                                                            ->disabled(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
-                                                            ->dehydrated()
-                                                            ->required(),
-                                                    ])
-                                                    ->columnSpan(1),
-
-                                                Forms\Components\Section::make('Recurring Tuition')
+                                                Forms\Components\Grid::make(3)
                                                     ->schema([
                                                         Forms\Components\TextInput::make('custom_tuition_fee')
-                                                            ->label('Tuition Fee Total')
+                                                            ->label('Total Course Tuition Fee')
                                                             ->numeric()
                                                             ->prefix('PKR')
                                                             ->live(onBlur: true)
-                                                            ->disabled(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
-                                                            ->dehydrated()
                                                             ->required(),
-                                                        Forms\Components\TextInput::make('custom_installment_count')
-                                                            ->label('Number of Installments')
+
+                                                        Forms\Components\Select::make('workflow_metadata.applicable_charge_type')
+                                                            ->label('Applicable Extra Charges')
+                                                            ->options([
+                                                                'admission' => 'Admission Fee Only',
+                                                                'examination' => 'Examination Fee Only',
+                                                                'both' => 'Admission + Examination Fee',
+                                                                'none' => 'Tuition Fee Only',
+                                                            ])
+                                                            ->default('admission')
+                                                            ->live(),
+
+                                                        Forms\Components\TextInput::make('custom_admission_fee')
+                                                            ->label('Admission Fee Amount')
                                                             ->numeric()
-                                                            ->live(onBlur: true)
-                                                            ->required(),
-                                                        Forms\Components\Placeholder::make('monthly_installment_preview')
-                                                            ->label('Monthly Installment Amount')
-                                                            ->content(function (Forms\Get $get) {
-                                                                $tuition = (float) $get('custom_tuition_fee');
-                                                                $installments = (int) $get('custom_installment_count') ?: 12;
-                                                                $concession = (float) $get('concession_amount');
-                                                                $perInstallment = $installments > 0 ? round(($tuition - $concession) / $installments, 2) : 0;
+                                                            ->prefix('PKR')
+                                                            ->default(0.00)
+                                                            ->live(onBlur: true),
 
-                                                                return new HtmlString("<div class='p-3 bg-amber-50 rounded-lg text-center font-bold text-amber-700'>PKR ".number_format($perInstallment, 2).'</div>');
-                                                            }),
-                                                    ])
-                                                    ->columnSpan(1),
-
-                                                Forms\Components\Section::make('Additional Charges')
-                                                    ->schema([
                                                         Forms\Components\TextInput::make('custom_examination_fee')
-                                                            ->label('Examination Fee')
+                                                            ->label('Examination Fee Amount')
                                                             ->numeric()
                                                             ->prefix('PKR')
-                                                            ->live(onBlur: true)
-                                                            ->disabled(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
-                                                            ->dehydrated()
-                                                            ->required(),
-                                                        Forms\Components\TextInput::make('custom_other_misc')
-                                                            ->label('Other / Miscellaneous Fee')
+                                                            ->default(0.00)
+                                                            ->live(onBlur: true),
+
+                                                        Forms\Components\TextInput::make('concession_amount')
+                                                            ->label('Special Discount / Concession Amount')
                                                             ->numeric()
                                                             ->prefix('PKR')
-                                                            ->live(onBlur: true)
-                                                            ->disabled(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
-                                                            ->dehydrated()
-                                                            ->required(),
-                                                        Forms\Components\TextInput::make('reference')
-                                                            ->label('Other Charge Description')
-                                                            ->placeholder('e.g. ID Card, Library Fee'),
-                                                    ])
-                                                    ->columnSpan(1),
+                                                            ->default(0.00)
+                                                            ->live(onBlur: true),
+
+                                                        Forms\Components\TextInput::make('concession_reason')
+                                                            ->label('Discount Reason / Notes')
+                                                            ->placeholder('e.g. Kinship discount, Merit waiver'),
+                                                    ]),
                                             ]),
 
-                                        Forms\Components\Section::make('Scholarship / Fee Concession')
+                                        Forms\Components\Section::make('Custom Fee Installments Schedule Builder')
+                                            ->description('Define custom installment titles, dates, and amounts for this student. (A late fee of PKR 50/day will apply 10 days after the due date).')
                                             ->schema([
-                                                Forms\Components\Select::make('concession_type')
-                                                    ->label('Concession Type')
-                                                    ->options([
-                                                        'none' => 'None',
-                                                        'merit' => 'Merit Scholarship',
-                                                        'need' => 'Need-based concession',
-                                                        'sibling' => 'Kinship / Sibling concession',
-                                                        'special' => 'Special discount / Orphan scholarship',
-                                                    ])
-                                                    ->default('none')
-                                                    ->live(),
-                                                Forms\Components\TextInput::make('concession_amount')
-                                                    ->label('Approved Concession Amount')
+                                                Forms\Components\TextInput::make('custom_installment_count')
+                                                    ->label('Number of Installments')
                                                     ->numeric()
-                                                    ->prefix('PKR')
-                                                    ->default(0.00)
-                                                    ->live(onBlur: true)
-                                                    ->visible(fn (Forms\Get $get) => $get('concession_type') !== 'none'),
-                                                Forms\Components\Select::make('concession_value_type')
-                                                    ->label('Calculation Method')
-                                                    ->options([
-                                                        'fixed' => 'Fixed Amount',
-                                                        'percentage' => 'Percentage',
+                                                    ->default(5)
+                                                    ->live(onBlur: true),
+
+                                                Forms\Components\Repeater::make('custom_installments')
+                                                    ->label('Custom Installment Rows')
+                                                    ->schema([
+                                                        Forms\Components\TextInput::make('title')
+                                                            ->label('Installment Title')
+                                                            ->required(),
+                                                        Forms\Components\TextInput::make('amount')
+                                                            ->label('Amount (PKR)')
+                                                            ->numeric()
+                                                            ->prefix('PKR')
+                                                            ->required(),
+                                                        Forms\Components\DatePicker::make('due_date')
+                                                            ->label('Due Date')
+                                                            ->required(),
                                                     ])
-                                                    ->default('fixed')
-                                                    ->visible(fn (Forms\Get $get) => $get('concession_type') !== 'none'),
-                                                Forms\Components\TextInput::make('concession_value')
-                                                    ->label('Requested Value')
-                                                    ->numeric()
-                                                    ->minValue(0)
-                                                    ->default(0)
-                                                    ->visible(fn (Forms\Get $get) => $get('concession_type') !== 'none'),
-                                                Forms\Components\TextInput::make('concession_approver')
-                                                    ->label('Approving Authority / Officer')
-                                                    ->visible(fn (Forms\Get $get) => $get('concession_type') !== 'none'),
-                                                Forms\Components\TextInput::make('workflow_metadata.concession_approval_reference')
-                                                    ->label('Approval Reference')
-                                                    ->visible(fn (Forms\Get $get) => $get('concession_type') !== 'none'),
-                                                Forms\Components\Select::make('concession_status')
-                                                    ->label('Approval Status')
-                                                    ->options([
-                                                        'draft' => 'Draft',
-                                                        'pending' => 'Pending Approval',
-                                                        'approved' => 'Approved',
-                                                        'rejected' => 'Rejected',
-                                                        'cancelled' => 'Cancelled',
-                                                    ])
-                                                    ->default('pending')
-                                                    ->disabled(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
-                                                    ->dehydrated(),
-                                                Forms\Components\Textarea::make('concession_reason')
-                                                    ->label('Reason / Supporting Notes')
-                                                    ->visible(fn (Forms\Get $get) => $get('concession_type') !== 'none')
+                                                    ->columns(3)
+                                                    ->collapsible()
+                                                    ->cloneable()
+                                                    ->reorderable()
+                                                    ->defaultItems(5)
                                                     ->columnSpanFull(),
-                                            ])->columns(3),
+                                            ]),
 
                                         Forms\Components\Placeholder::make('live_total_preview')
-                                            ->label('Live Customized Fee Summary')
+                                            ->label('Live Fee Summary')
                                             ->content(function (Forms\Get $get) {
                                                 $tuition = (float) $get('custom_tuition_fee');
-                                                $admission = (float) $get('custom_admission_fee');
-                                                $enrollment = (float) $get('custom_enrollment_fee');
-                                                $verification = (float) $get('custom_verification_fee');
-                                                $exam = (float) $get('custom_examination_fee');
-                                                $misc = (float) $get('custom_other_misc');
-                                                $installments = (int) $get('custom_installment_count') ?: 12;
+                                                $admissionFee = (float) $get('custom_admission_fee');
+                                                $examFee = (float) $get('custom_examination_fee');
                                                 $concession = (float) $get('concession_amount');
+                                                $installments = (int) $get('custom_installment_count') ?: 5;
 
-                                                $totalPackage = $tuition + $admission + $enrollment + $verification + $exam + $misc;
+                                                $totalPackage = $tuition + $admissionFee + $examFee;
                                                 $netPayable = max(0, $totalPackage - $concession);
                                                 $perInstallment = $installments > 0 ? round(($tuition - $concession) / $installments, 2) : 0;
                                                 if ($perInstallment < 0) {
@@ -778,158 +772,81 @@ class AdmissionResource extends Resource
                                                 }
 
                                                 return new HtmlString(sprintf(
-                                                    '<div class="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
-                                                        <div class="text-sm font-bold text-slate-800 border-b pb-2">Live Fee Summary (Real-time calculation)</div>
+                                                    '<div class="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                                                        <div class="text-sm font-bold text-slate-800 border-b pb-2">Fee Package Summary</div>
                                                         <div class="grid grid-cols-2 gap-4 text-xs">
                                                             <div class="space-y-1">
-                                                                <div><strong>Official Package Total:</strong> PKR %s</div>
-                                                                <div><strong>Concession Amount:</strong> -PKR %s</div>
-                                                                <div class="text-emerald-700 font-bold text-sm">Net Payable Amount: PKR %s</div>
+                                                                <div><strong>Tuition Fee Total:</strong> PKR %s</div>
+                                                                <div><strong>Admission/Exam Fee:</strong> PKR %s</div>
+                                                                <div><strong>Discount Waived:</strong> -PKR %s</div>
+                                                                <div class="text-emerald-700 font-bold text-sm pt-1">Net Total Payable: PKR %s</div>
                                                             </div>
                                                             <div class="space-y-1">
-                                                                <div><strong>Payable at Admission:</strong> PKR %s</div>
-                                                                <div><strong>Remaining Balance:</strong> PKR %s</div>
-                                                                <div class="text-xs text-slate-500 font-bold">%d Installments x PKR %s</div>
+                                                                <div><strong>Installment Plan:</strong> %d Custom Installments</div>
+                                                                <div><strong>Approx per Installment:</strong> PKR %s</div>
+                                                                <div class="text-xs text-amber-700 font-semibold pt-1">Late Fee Rule: PKR 50/day after 10-day grace period</div>
                                                             </div>
                                                         </div>
-                                                        <div class="border-t pt-3 mt-3 flex items-center justify-between text-xs text-slate-600">
-                                                            <span>Installment Timeline: Admission → tuition installments → examination dues</span>
-                                                        </div>
                                                     </div>',
-                                                    number_format($totalPackage, 2),
+                                                    number_format($tuition, 2),
+                                                    number_format($admissionFee + $examFee, 2),
                                                     number_format($concession, 2),
                                                     number_format($netPayable, 2),
-                                                    number_format($admission + ($tuition / $installments), 2),
-                                                    number_format($netPayable - ($admission + ($tuition / $installments)), 2),
                                                     $installments,
                                                     number_format($perInstallment, 2)
                                                 ));
                                             })
                                             ->columnSpanFull(),
-                                        Forms\Components\Actions::make([
-                                            Forms\Components\Actions\Action::make('previewAllVouchers')
-                                                ->label('Preview All Vouchers')
-                                                ->icon('heroicon-o-eye')
-                                                ->color('gray')
-                                                ->modalHeading('Read-only Voucher Preview')
-                                                ->modalWidth('6xl')
-                                                ->modalSubmitAction(false)
-                                                ->modalCancelActionLabel('Close Preview')
-                                                ->modalContent(function (Forms\Get $get) {
-                                                    $money = app(InstallmentPlanGenerator::class);
-                                                    $oneTimePaisa = collect([
-                                                        $get('custom_admission_fee'),
-                                                        $get('custom_enrollment_fee'),
-                                                        $get('custom_verification_fee'),
-                                                        $get('custom_other_misc'),
-                                                    ])->sum(fn ($amount) => $money->toPaisa($amount ?: 0));
-                                                    $schedule = app(VoucherGenerationService::class)->previewPlan([
-                                                        'tuition' => $get('custom_tuition_fee') ?: 0,
-                                                        'one_time' => number_format($oneTimePaisa / 100, 2, '.', ''),
-                                                        'examination' => $get('custom_examination_fee') ?: 0,
-                                                        'concession' => $get('concession_amount') ?: 0,
-                                                        'installment_count' => $get('custom_installment_count') ?: 1,
-                                                        'admission_date' => $get('admission_date') ?: now(),
-                                                    ]);
-
-                                                    return view('admissions.voucher-preview', compact('schedule'));
-                                                }),
-                                        ])->columnSpanFull(),
                                     ])->extraAttributes(['class' => 'admission-main-column admission-fee-step'])->columnSpan(9),
                                     Forms\Components\Group::make([
-                                        self::getSidebarPlaceholder(6, 85),
+                                        self::getSidebarPlaceholder(4, 80),
                                     ])->extraAttributes(['class' => 'admission-context-column'])->columnSpan(3),
                                 ]),
                         ]),
 
-                    // Step 7: Review and Confirm
+                    // Step 5: Review & Confirm
                     Forms\Components\Wizard\Step::make('Review & Confirm')
-                        ->icon('heroicon-o-check-circle')
+                        ->icon('heroicon-o-shield-check')
                         ->schema([
                             Forms\Components\Grid::make(12)
                                 ->extraAttributes(['class' => 'admission-split-grid'])
                                 ->schema([
                                     Forms\Components\Group::make([
-                                        self::getStepIntroPlaceholder(7),
+                                        self::getStepIntroPlaceholder(5),
                                         Forms\Components\Placeholder::make('review_summary')
                                             ->label('')
                                             ->content(function (Forms\Get $get) {
-                                                $courseId = $get('course_id');
-                                                $campusId = $get('campus_id');
-                                                $sessionId = $get('academic_session_id');
-                                                $documents = collect([
-                                                    $get('cnic_copy'),
-                                                    $get('father_cnic_copy'),
-                                                    $get('matric_copy'),
-                                                    $get('inter_copy'),
-                                                    $get('domicile_copy'),
-                                                    $get('character_certificate_copy'),
-                                                ])->filter()->count();
-                                                $totalFee = collect([
-                                                    $get('custom_tuition_fee'),
-                                                    $get('custom_admission_fee'),
-                                                    $get('custom_enrollment_fee'),
-                                                    $get('custom_verification_fee'),
-                                                    $get('custom_examination_fee'),
-                                                    $get('custom_other_misc'),
-                                                ])->sum(fn ($amount) => (float) $amount);
+                                                $academic = $get('academic_details') ?: [];
+                                                $tuition = (float) $get('custom_tuition_fee');
+                                                $admissionFee = (float) $get('custom_admission_fee');
+                                                $concession = (float) $get('concession_amount');
+                                                $total = max(0, $tuition + $admissionFee - $concession);
 
                                                 return view('filament.admissions.components.review-summary', [
-                                                    'studentName' => $get('applicant_name') ?: 'Not entered yet',
-                                                    'cnic' => $get('cnic') ?: 'Not entered yet',
-                                                    'dob' => $get('dob') ?: 'Not entered yet',
-                                                    'gender' => filled($get('gender')) ? ucfirst((string) $get('gender')) : 'Not entered yet',
-                                                    'guardian' => $get('father_name') ?: 'Not entered yet',
-                                                    'guardianPhone' => $get('father_phone') ?: 'Not entered yet',
-                                                    'qualificationCount' => count($get('academic_details') ?: []),
-                                                    'documentCount' => $documents,
-                                                    'course' => $courseId ? (Course::find($courseId)?->name ?: 'Not selected yet') : 'Not selected yet',
-                                                    'campus' => $campusId ? (Campus::find($campusId)?->name ?: 'Not selected yet') : 'Not selected yet',
-                                                    'session' => $sessionId ? (AcademicSession::find($sessionId)?->name ?: 'Not selected yet') : 'Not selected yet',
-                                                    'shift' => filled($get('shift')) ? ucfirst((string) $get('shift')) : 'Not selected yet',
-                                                    'totalFee' => $totalFee,
-                                                    'installments' => (int) ($get('custom_installment_count') ?: 0),
+                                                    'studentName' => $get('applicant_name') ?: 'Not entered',
+                                                    'cnic' => $get('cnic') ?: 'Not entered',
+                                                    'dob' => $get('dob') ?: 'Not entered',
+                                                    'gender' => ucfirst((string) ($get('gender') ?: 'Male')),
+                                                    'guardian' => $get('father_name') ?: 'Not entered',
+                                                    'guardianPhone' => $get('father_phone') ?: 'Not entered',
+                                                    'qualificationCount' => count($academic),
+                                                    'documentCount' => collect(['student_photo', 'student_cnic_front', 'student_cnic_back', 'father_cnic_front', 'father_cnic_back', 'matric_copy', 'inter_copy', 'domicile_copy'])->filter(fn ($k) => filled($get($k)))->count(),
+                                                    'course' => Course::find($get('course_id'))?->name ?: 'Pending selection',
+                                                    'campus' => Campus::find($get('campus_id'))?->name ?: 'Pending selection',
+                                                    'session' => AcademicSession::find($get('academic_session_id'))?->name ?: 'Pending selection',
+                                                    'shift' => ucfirst((string) ($get('shift') ?: 'morning')),
+                                                    'totalFee' => $total,
+                                                    'installments' => (int) ($get('custom_installment_count') ?: 5),
                                                 ]);
                                             })
                                             ->columnSpanFull(),
-
-                                        Forms\Components\Select::make('status')
-                                            ->label('Initial Operational Status')
-                                            ->options([
-                                                'draft' => 'Draft / Incomplete',
-                                                'submitted' => 'Submitted / Complete',
-                                                'under_review' => 'Under Review',
-                                                'documents_pending' => 'Documents Pending',
-                                                'fee_pending' => 'Fee Pending',
-                                                'approved' => 'Approved / Awaiting Enrollment',
-                                                'rejected' => 'Rejected',
-                                                'cancelled' => 'Cancelled',
-                                            ])
-                                            ->default('submitted')
-                                            ->required(),
-                                        Forms\Components\Checkbox::make('declaration_accepted')
-                                            ->label('I confirm that I have reviewed the student information, guardian details, academic qualifications, documents, course assignment, fee plan, concession details, and installment schedule.')
-                                            ->accepted()
-                                            ->dehydrated(false)
-                                            ->columnSpanFull(),
                                     ])->extraAttributes(['class' => 'admission-main-column admission-review-step'])->columnSpan(9),
                                     Forms\Components\Group::make([
-                                        self::getSidebarPlaceholder(7, 100),
+                                        self::getSidebarPlaceholder(5, 100),
                                     ])->extraAttributes(['class' => 'admission-context-column'])->columnSpan(3),
                                 ]),
                         ]),
-                ])
-                    ->nextAction(fn (Forms\Components\Actions\Action $action) => $action
-                        ->label('Save & Continue')
-                        ->icon('heroicon-o-arrow-right')
-                        ->extraAttributes(['class' => 'admission-next-action']))
-                    ->previousAction(fn (Forms\Components\Actions\Action $action) => $action
-                        ->label('Back')
-                        ->icon('heroicon-o-arrow-left')
-                        ->extraAttributes(['class' => 'admission-back-action']))
-                    ->persistStepInQueryString()
-                    ->extraAttributes(['class' => 'admission-wizard'])
-                    ->columnSpanFull(),
+                ]),
             ]);
     }
 
@@ -938,85 +855,73 @@ class AdmissionResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('S.No')->rowIndex(),
+                Tables\Columns\ImageColumn::make('student_photo')
+                    ->label('Photo')
+                    ->circular(),
                 Tables\Columns\TextColumn::make('applicant_name')
-                    ->label('Applicant Name')
+                    ->label('Student Name')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\IconColumn::make('missing_docs')
-                    ->label('Docs Missing')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-exclamation-triangle')
-                    ->trueColor('warning')
-                    ->falseIcon('heroicon-o-check-circle')
-                    ->falseColor('success')
-                    ->state(fn ($record) => empty($record->cnic_copy) || empty($record->matric_copy) || empty($record->domicile_copy)),
+                Tables\Columns\TextColumn::make('cnic')
+                    ->label('CNIC / B-Form')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('father_name')
+                    ->label('Father / Guardian')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('phone')
+                    ->label('Mobile #')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('campus.name')
+                    ->label('Campus')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('course.name')
                     ->label('Course')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('academicSession.name')
-                    ->label('Session')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('phone')
-                    ->label('Contact')
-                    ->searchable(),
-                Tables\Columns\BadgeColumn::make('status')
-                    ->colors([
-                        'gray' => fn ($state) => in_array($state, ['draft', 'cancelled', 'waitlisted']),
-                        'info' => 'submitted',
-                        'warning' => 'under_review',
-                        'danger' => fn ($state) => in_array($state, ['documents_pending', 'fee_pending', 'rejected']),
-                        'success' => fn ($state) => in_array($state, ['approved', 'enrolled']),
-                    ]),
+                Tables\Columns\TextColumn::make('shift')
+                    ->label('Shift')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'morning' => 'success',
+                        'evening' => 'warning',
+                        'weekend' => 'info',
+                        'offline' => 'gray',
+                        default => 'primary',
+                    }),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('campus')
-                    ->relationship('campus', 'name')
-                    ->hidden(fn () => filament()->getCurrentPanel()?->getId() === 'campus'),
-                Tables\Filters\SelectFilter::make('academicSession')
-                    ->relationship('academicSession', 'name'),
-                Tables\Filters\SelectFilter::make('status'),
+                    ->relationship('campus', 'name'),
+                Tables\Filters\SelectFilter::make('course')
+                    ->relationship('course', 'name'),
+                Tables\Filters\SelectFilter::make('shift')
+                    ->options([
+                        'morning' => 'Morning',
+                        'evening' => 'Evening',
+                        'weekend' => 'Weekend',
+                        'offline' => 'Offline / Exams',
+                    ]),
             ])
             ->actions([
-                Tables\Actions\Action::make('approveAndEnroll')
-                    ->label('Approve & Enroll')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->visible(fn ($record) => $record->status !== 'enrolled')
-                    ->action(function ($record) {
-                        try {
-                            EnrollmentService::enroll($record, filament()->auth()->id());
-                            Notification::make()
-                                ->title('Enrolled Successfully')
-                                ->body('Student has been registered and fee ledger vouchers generated.')
-                                ->success()
-                                ->send();
-                        } catch (\Exception $e) {
-                            Notification::make()
-                                ->title('Enrollment Failed')
-                                ->body($e->getMessage())
-                                ->danger()
-                                ->send();
-                        }
-                    }),
-                Tables\Actions\Action::make('printAgreement')
-                    ->label('Print Agreement')
-                    ->icon('heroicon-o-printer')
-                    ->color('info')
+                Tables\Actions\Action::make('downloadAgreement')
+                    ->label('Agreement')
+                    ->icon('heroicon-o-document-text')
+                    ->color('primary')
                     ->url(fn ($record) => route('pdf.admission-agreement', $record))
                     ->openUrlInNewTab(),
-                Tables\Actions\Action::make('downloadForm')
-                    ->label('Download PDF')
+
+                Tables\Actions\Action::make('downloadZip')
+                    ->label('Docs ZIP')
                     ->icon('heroicon-o-arrow-down-tray')
-                    ->color('success')
-                    ->url(fn ($record) => route('pdf.admission-letter', $record))
+                    ->color('warning')
+                    ->url(fn ($record) => route('pdf.download-documents-zip', $record))
                     ->openUrlInNewTab(),
+
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -1028,12 +933,18 @@ class AdmissionResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
+        $user = filament()->auth()->user();
 
-        if (! filament()->auth()->user()->hasRole('Super Admin')) {
-            $query->where('campus_id', filament()->auth()->user()->campus_id);
+        if ($user && $user->campus_id !== null) {
+            $query->where('campus_id', $user->campus_id);
         }
 
         return $query;
+    }
+
+    public static function getRelations(): array
+    {
+        return [];
     }
 
     public static function getPages(): array

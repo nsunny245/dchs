@@ -17,10 +17,15 @@ class Admission extends Model
         return [
             'student_photo',
             'cnic_copy',
+            'student_cnic_front',
+            'student_cnic_back',
             'father_cnic_copy',
+            'father_cnic_front',
+            'father_cnic_back',
             'matric_copy',
             'inter_copy',
             'domicile_copy',
+            'character_certificate_copy',
             'other_docs',
         ];
     }
