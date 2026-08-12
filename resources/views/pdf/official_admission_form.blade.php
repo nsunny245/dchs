@@ -42,7 +42,7 @@
             color: #64748B;
         }
         .doc-title {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             color: #0A1526;
             text-transform: uppercase;
@@ -59,6 +59,18 @@
             height: 85px;
             border: 2px solid #0A1526;
             border-radius: 4px;
+            object-fit: cover;
+            object-position: center;
+        }
+        .student-photo-placeholder-pdf {
+            width: 70px;
+            height: 85px;
+            border: 2px dashed #0A1526;
+            border-radius: 4px;
+            color: #64748B;
+            font-size: 8px;
+            text-align: center;
+            padding-top: 29px;
         }
 
         /* Grid Cards using tables for DomPDF */
@@ -241,16 +253,23 @@
         <div class="header">
             <table class="header-table">
                 <tr>
-                    <td style="width: 65%;">
+                    <td style="width: 56%;">
                         <img src="{{ public_path('images/branding/daniyal-group-of-colleges-logo.png') }}" alt="Daniyal Group of Colleges" style="width: 58px; height: 58px; object-fit: contain; float: left; margin-right: 12px;">
                         <div class="brand-text">
                             <h1>Daniyal Group of Colleges</h1>
                             <p>WHERE SUCCESS IS A TRADITION — {{ strtoupper($admission->campus->name ?? 'CAMPUS PENDING') }}</p>
                         </div>
                     </td>
-                    <td style="width: 35%; text-align: right;">
+                    <td style="width: 31%; text-align: right; white-space: nowrap;">
                         <div class="doc-title">STUDENT AGREEMENT</div>
                         <div class="doc-ref">Ref: #{{ $admission->enrollment_number ?? 'ADM-' . date('Y') . '-' . str_pad($admission->id, 5, '0', STR_PAD_LEFT) }}</div>
+                    </td>
+                    <td style="width: 13%; text-align: right; padding-left: 10px;">
+                        @if($studentPhotoDataUri)
+                            <img src="{{ $studentPhotoDataUri }}" class="student-photo-pdf" alt="Student photo">
+                        @else
+                            <div class="student-photo-placeholder-pdf">AFFIX PHOTO<br>HERE</div>
+                        @endif
                     </td>
                 </tr>
             </table>

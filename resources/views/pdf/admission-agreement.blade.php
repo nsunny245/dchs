@@ -381,8 +381,8 @@
                     <div class="doc-title">ADMISSION AGREEMENT</div>
                     <div class="doc-ref">Ref: #{{ $admission->enrollment_no ?? 'ADM-' . date('Y') . '-' . str_pad($admission->id, 5, '0', STR_PAD_LEFT) }}</div>
                 </div>
-                @if($admission->student_photo && file_exists(public_path('storage/' . $admission->student_photo)))
-                    <img src="{{ asset('storage/' . $admission->student_photo) }}" class="student-photo">
+                @if($studentPhotoDataUri)
+                    <img src="{{ $studentPhotoDataUri }}" class="student-photo" alt="Student photo">
                 @else
                     <div class="student-photo-placeholder">
                         <span>Affix Photo<br>Here</span>

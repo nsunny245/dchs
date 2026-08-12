@@ -9,6 +9,7 @@ use App\Models\FeePayment;
 use App\Models\FeeVoucher;
 use App\Models\Student;
 use App\Models\StudentInstallment;
+use App\Services\Documents\DocumentImageService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
@@ -19,13 +20,14 @@ class PdfController extends Controller
     /**
      * Generate Admission Letter PDF
      */
-    public function admissionLetter(Admission $admission)
+    public function admissionLetter(Admission $admission, DocumentImageService $documentImages)
     {
         $this->authorize('view', $admission);
         $admission->load(['campus', 'course', 'academicSession']);
 
         $pdf = Pdf::loadView('pdf.official_admission_form', [
             'admission' => $admission,
+            'studentPhotoDataUri' => $documentImages->fromPublicDisk($admission->student_photo),
         ]);
 
         $pdf->setPaper('A4', 'portrait');
@@ -36,13 +38,14 @@ class PdfController extends Controller
     /**
      * Display Web Printable Student Agreement
      */
-    public function admissionAgreement(Admission $admission)
+    public function admissionAgreement(Admission $admission, DocumentImageService $documentImages)
     {
         $this->authorize('view', $admission);
         $admission->load(['campus', 'course', 'academicSession']);
 
         return view('pdf.admission-agreement', [
             'admission' => $admission,
+            'studentPhotoDataUri' => $documentImages->fromPublicDisk($admission->student_photo),
         ]);
     }
 
