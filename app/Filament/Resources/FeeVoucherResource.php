@@ -108,31 +108,31 @@ class FeeVoucherResource extends Resource
                                     ->numeric()
                                     ->prefix('PKR')
                                     ->default(0.00)
-                                    ->live()
+                                    ->live(onBlur: true)
                                     ->afterStateUpdated(fn ($state, Forms\Set $set, Forms\Get $get) => self::updateTotal($set, $get)),
                                 Forms\Components\TextInput::make('scholarship_amount')
                                     ->numeric()
                                     ->prefix('PKR')
                                     ->default(0.00)
-                                    ->live()
+                                    ->live(onBlur: true)
                                     ->afterStateUpdated(fn ($state, Forms\Set $set, Forms\Get $get) => self::updateTotal($set, $get)),
                                 Forms\Components\TextInput::make('previous_balance')
                                     ->numeric()
                                     ->prefix('PKR')
                                     ->default(0.00)
-                                    ->live()
+                                    ->live(onBlur: true)
                                     ->afterStateUpdated(fn ($state, Forms\Set $set, Forms\Get $get) => self::updateTotal($set, $get)),
                                 Forms\Components\TextInput::make('late_fee_amount')
                                     ->numeric()
                                     ->prefix('PKR')
                                     ->default(0.00)
-                                    ->live()
+                                    ->live(onBlur: true)
                                     ->afterStateUpdated(fn ($state, Forms\Set $set, Forms\Get $get) => self::updateTotal($set, $get)),
                                 Forms\Components\TextInput::make('fine_amount')
                                     ->numeric()
                                     ->prefix('PKR')
                                     ->default(0.00)
-                                    ->live()
+                                    ->live(onBlur: true)
                                     ->afterStateUpdated(fn ($state, Forms\Set $set, Forms\Get $get) => self::updateTotal($set, $get)),
                                 Forms\Components\Placeholder::make('total_display')
                                     ->label('Total Payable (PKR)')
@@ -148,6 +148,7 @@ class FeeVoucherResource extends Resource
                     ->schema([
                         Forms\Components\Repeater::make('items')
                             ->relationship('items')
+                            ->defaultItems(0)
                             ->schema([
                                 Forms\Components\Select::make('fee_head_id')
                                     ->label('Fee Head')
@@ -170,7 +171,7 @@ class FeeVoucherResource extends Resource
                                     ->numeric()
                                     ->default(1)
                                     ->required()
-                                    ->live()
+                                    ->live(onBlur: true)
                                     ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get) {
                                         $qty = (int)$get('quantity');
                                         $unit = (float)$get('unit_amount');
@@ -180,7 +181,7 @@ class FeeVoucherResource extends Resource
                                     ->numeric()
                                     ->prefix('PKR')
                                     ->required()
-                                    ->live()
+                                    ->live(onBlur: true)
                                     ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get) {
                                         $qty = (int)$get('quantity');
                                         $unit = (float)$get('unit_amount');

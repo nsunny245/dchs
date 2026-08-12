@@ -45,7 +45,7 @@ class ExpenseResource extends Resource
                 Forms\Components\TextInput::make('amount')
                     ->numeric()
                     ->prefix('PKR')
-                    ->live()
+                    ->live(onBlur: true)
                     ->required(),
                 Forms\Components\Select::make('expense_source')
                     ->label('Expense Source')

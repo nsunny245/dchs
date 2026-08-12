@@ -81,7 +81,7 @@ class FeeStructureResource extends Resource
                             ->label('Course Fee (Total Tuition)')
                             ->numeric()
                             ->prefix('PKR')
-                            ->live()
+                            ->live(onBlur: true)
                             ->required(),
                         Forms\Components\TextInput::make('installment_count')
                             ->label('Number of Tuition Installments')
