@@ -28,7 +28,18 @@
             width: 100% !important;
         }
         .admission-page .fi-form-actions {
-            display: none !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+            gap: 1rem !important;
+            margin-top: 1.5rem !important;
+            padding: 1rem 1.25rem !important;
+            background: #ffffff !important;
+            border: 1px solid var(--dgc-border, #E2E8F0) !important;
+            border-radius: 0.75rem !important;
+            position: relative !important;
+            bottom: auto !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
         }
     </style>
     <x-filament-panels::form

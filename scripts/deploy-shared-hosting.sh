@@ -94,10 +94,10 @@ fi
 
 echo "Rebuilding production caches..."
 "${PHP_BIN}" artisan config:cache
-"${PHP_BIN}" artisan route:cache
 "${PHP_BIN}" artisan view:cache
 
-bring_application_up
+echo "Clearing maintenance mode..."
+"${PHP_BIN}" artisan up || true
 trap - EXIT
 
 echo "Deployment completed successfully."

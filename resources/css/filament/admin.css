@@ -669,7 +669,20 @@ div[role="tabpanel"].fi-fo-wizard-step {
 }
 
 .admission-page .fi-form-actions {
-    display: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 1rem !important;
+    margin-top: 2rem !important;
+    padding: 1.25rem 1.5rem !important;
+    background: #ffffff !important;
+    border: 1px solid var(--dgc-border, #E2E8F0) !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 4px 12px rgba(6, 25, 46, .06) !important;
+    position: relative !important;
+    bottom: auto !important;
+    z-index: 10 !important;
+    backdrop-filter: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
