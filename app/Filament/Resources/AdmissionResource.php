@@ -245,76 +245,76 @@ class AdmissionResource extends Resource
                                 ->schema([
                                     Forms\Components\Group::make([
                                         self::getStepIntroPlaceholder(1),
-                                        Forms\Components\Section::make('Student Profile Photo')
-                                            ->schema([
-                                                Forms\Components\FileUpload::make('student_photo')
-                                                    ->label('Upload Student Photo (Passport Size)')
-                                                    ->directory('student-photos')
-                                                    ->image()
-                                                    ->imagePreviewHeight('220')
-                                                    ->panelAspectRatio('4:5')
-                                                    ->acceptedFileTypes(['image/jpeg', 'image/png'])
-                                                    ->maxSize(4096)
-                                                    ->helperText('Upload a clear passport-size photo with white/blue background. Max size 4MB.')
-                                                    ->columnSpanFull(),
-                                            ]),
+                                        Forms\Components\Section::make('Personal Identity & Student Photo')
+                                             ->schema([
+                                                 Forms\Components\FileUpload::make('student_photo')
+                                                     ->label('Student Photo')
+                                                     ->directory('student-photos')
+                                                     ->image()
+                                                     ->imagePreviewHeight('100')
+                                                     ->acceptedFileTypes(['image/jpeg', 'image/png'])
+                                                     ->maxSize(4096)
+                                                     ->helperText('Passport-size photo (Max 4MB)')
+                                                     ->columnSpan(1),
 
-                                        Forms\Components\Section::make('Personal Identity')
-                                            ->schema([
-                                                Forms\Components\TextInput::make('applicant_name')
-                                                    ->label('Student Full Name')
-                                                    ->default('Draft Student')
-                                                    ->required()
-                                                    ->maxLength(255),
-                                                Forms\Components\TextInput::make('cnic')
-                                                    ->label('Student CNIC or B-Form #')
-                                                    ->maxLength(255)
-                                                    ->helperText('Format: 35202-1234567-1')
-                                                    ->live(onBlur: true)
-                                                    ->afterStateUpdated(function ($state) {
-                                                        if (empty($state)) {
-                                                            return;
-                                                        }
-                                                        if (Admission::where('cnic', $state)->exists()) {
-                                                            Notification::make()
-                                                                ->title('Warning: Possible Duplicate')
-                                                                ->body("An admission application with CNIC/B-Form {$state} already exists.")
-                                                                ->warning()
-                                                                ->send();
-                                                        }
-                                                    }),
-                                                Forms\Components\DatePicker::make('dob')
-                                                    ->label('Date of Birth')
-                                                    ->maxDate(now()),
-                                                Forms\Components\Select::make('gender')
-                                                    ->label('Gender')
-                                                    ->options([
-                                                        'male' => 'Male',
-                                                        'female' => 'Female',
-                                                        'other' => 'Other',
-                                                    ])
-                                                    ->default('male'),
-                                                Forms\Components\Select::make('blood_group')
-                                                    ->label('Blood Group')
-                                                    ->options([
-                                                        'A+' => 'A+', 'A-' => 'A-', 'B+' => 'B+', 'B-' => 'B-',
-                                                        'O+' => 'O+', 'O-' => 'O-', 'AB+' => 'AB+', 'AB-' => 'AB-',
-                                                    ]),
-                                                Forms\Components\Select::make('workflow_metadata.nationality')
-                                                    ->label('Nationality')
-                                                    ->options(['Pakistani' => 'Pakistani'])
-                                                    ->default('Pakistani'),
-                                                Forms\Components\Select::make('workflow_metadata.religion')
-                                                    ->label('Religion')
-                                                    ->options([
-                                                        'Islam' => 'Islam', 'Christianity' => 'Christianity',
-                                                        'Hinduism' => 'Hinduism', 'Sikhism' => 'Sikhism', 'Other' => 'Other',
-                                                    ])
-                                                    ->default('Islam'),
-                                                Forms\Components\TextInput::make('caste')
-                                                    ->label('Caste (Optional)')
-                                                    ->maxLength(255),
-                                            ])->columns(4),
+                                                 Forms\Components\Grid::make(3)
+                                                     ->columnSpan(3)
+                                                     ->schema([
+                                                         Forms\Components\TextInput::make('applicant_name')
+                                                             ->label('Student Full Name')
+                                                             ->default('Draft Student')
+                                                             ->required()
+                                                             ->maxLength(255),
+                                                         Forms\Components\TextInput::make('cnic')
+                                                             ->label('Student CNIC or B-Form #')
+                                                             ->maxLength(255)
+                                                             ->helperText('Format: 35202-1234567-1')
+                                                             ->live(onBlur: true)
+                                                             ->afterStateUpdated(function ($state) {
+                                                                 if (empty($state)) {
+                                                                     return;
+                                                                 }
+                                                                 if (Admission::where('cnic', $state)->exists()) {
+                                                                     Notification::make()
+                                                                         ->title('Warning: Possible Duplicate')
+                                                                         ->body("An admission application with CNIC/B-Form {$state} already exists.")
+                                                                         ->warning()
+                                                                         ->send();
+                                                                 }
+                                                             }),
+                                                         Forms\Components\DatePicker::make('dob')
+                                                             ->label('Date of Birth')
+                                                             ->maxDate(now()),
+                                                         Forms\Components\Select::make('gender')
+                                                             ->label('Gender')
+                                                             ->options([
+                                                                 'male' => 'Male',
+                                                                 'female' => 'Female',
+                                                                 'other' => 'Other',
+                                                             ])
+                                                             ->default('male'),
+                                                         Forms\Components\Select::make('blood_group')
+                                                             ->label('Blood Group')
+                                                             ->options([
+                                                                 'A+' => 'A+', 'A-' => 'A-', 'B+' => 'B+', 'B-' => 'B-',
+                                                                 'O+' => 'O+', 'O-' => 'O-', 'AB+' => 'AB+', 'AB-' => 'AB-',
+                                                             ]),
+                                                         Forms\Components\Select::make('workflow_metadata.nationality')
+                                                             ->label('Nationality')
+                                                             ->options(['Pakistani' => 'Pakistani'])
+                                                             ->default('Pakistani'),
+                                                         Forms\Components\Select::make('workflow_metadata.religion')
+                                                             ->label('Religion')
+                                                             ->options([
+                                                                 'Islam' => 'Islam', 'Christianity' => 'Christianity',
+                                                                 'Hinduism' => 'Hinduism', 'Sikhism' => 'Sikhism', 'Other' => 'Other',
+                                                             ])
+                                                             ->default('Islam'),
+                                                         Forms\Components\TextInput::make('caste')
+                                                             ->label('Caste (Optional)')
+                                                             ->maxLength(255),
+                                                     ]),
+                                             ])->columns(4),
 
                                         Forms\Components\Section::make('Contact Details')
                                             ->schema([

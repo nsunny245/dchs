@@ -1154,10 +1154,12 @@ div[role="tabpanel"].fi-fo-wizard-step {
     width: 100% !important;
 }
 
-.admission-page .admission-photo-step .filepond--root {
-    margin: .5rem 0 0;
+.admission-page .filepond--root {
+    margin: 0;
     max-width: 100% !important;
     width: 100% !important;
+    min-height: 90px !important;
+    max-height: 140px !important;
 }
 
 .admission-page .admission-photo-step .filepond--panel-root {
