@@ -9,7 +9,7 @@
         <!-- Student Profile Card -->
         <div class="lg:col-span-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm space-y-4">
             <div class="flex flex-col items-center text-center">
-                <img src="{{ $record->student->student_photo ? asset('storage/' . $record->student->student_photo) : url('images/default-avatar.png') }}" 
+                <img src="{{ \App\Support\DashboardImage::url($record->student->student_photo) ?? \App\Support\DashboardImage::avatar($record->student->full_name) }}"
                      alt="Profile photo" 
                      class="w-32 h-32 rounded-full border-4 border-slate-100 dark:border-slate-800 object-cover shadow">
                 <h3 class="mt-4 text-xl font-bold text-slate-800 dark:text-slate-200">{{ $record->student->full_name }}</h3>

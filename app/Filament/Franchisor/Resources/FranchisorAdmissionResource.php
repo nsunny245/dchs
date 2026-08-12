@@ -5,6 +5,7 @@ namespace App\Filament\Franchisor\Resources;
 use App\Filament\Franchisor\Resources\FranchisorAdmissionResource\Pages;
 use App\Models\Admission;
 use App\Models\Franchisor;
+use App\Support\DashboardImage;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -126,6 +127,14 @@ class FranchisorAdmissionResource extends Resource
 
                 Forms\Components\Section::make('Student Profile')
                     ->schema([
+                        Forms\Components\FileUpload::make('student_photo')
+                            ->label('Student Photo')
+                            ->disk('public')
+                            ->directory('student-photos')
+                            ->image()
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                            ->maxSize(4096)
+                            ->columnSpanFull(),
                         Forms\Components\TextInput::make('applicant_name')
                             ->label('Applicant Full Name')
                             ->required()
@@ -202,6 +211,12 @@ class FranchisorAdmissionResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('S.No')->rowIndex(),
+                Tables\Columns\ImageColumn::make('student_photo')
+                    ->label('Photo')
+                    ->getStateUsing(fn (Admission $record): ?string => DashboardImage::url($record->student_photo))
+                    ->defaultImageUrl(fn (Admission $record): string => DashboardImage::avatar($record->applicant_name))
+                    ->circular()
+                    ->size(44),
                 Tables\Columns\TextColumn::make('applicant_name')->label('Student Name')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('franchisor.name')->label('Institution')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('course.name')->label('Program')->sortable(),

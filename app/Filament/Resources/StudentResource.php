@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\StudentResource\Pages;
 use App\Models\Student;
+use App\Support\DashboardImage;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -57,6 +58,12 @@ class StudentResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('S.No')->rowIndex(),
+                Tables\Columns\ImageColumn::make('student_photo')
+                    ->label('Photo')
+                    ->getStateUsing(fn (Student $record): ?string => DashboardImage::url($record->student_photo))
+                    ->defaultImageUrl(fn (Student $record): string => DashboardImage::avatar($record->full_name))
+                    ->circular()
+                    ->size(44),
                 Tables\Columns\TextColumn::make('enrollment_number')
                     ->searchable()
                     ->sortable(),
@@ -103,7 +110,7 @@ class StudentResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()->with('admission');
         $user = filament()->auth()->user();
 
         if ($user && $user->campus_id !== null) {

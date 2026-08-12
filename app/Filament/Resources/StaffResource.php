@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\StaffResource\Pages;
 use App\Models\Staff;
+use App\Support\DashboardImage;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -59,6 +60,7 @@ class StaffResource extends Resource
                                         Forms\Components\FileUpload::make('photo_path')
                                             ->label('Profile Photograph')
                                             ->image()
+                                            ->disk('public')
                                             ->directory('staff/photos')
                                             ->columnSpanFull(),
                                         Forms\Components\TextInput::make('full_name')
@@ -219,8 +221,10 @@ class StaffResource extends Resource
             ->columns([
                 Tables\Columns\ImageColumn::make('photo_path')
                     ->label('Photo')
+                    ->getStateUsing(fn (Staff $record): ?string => DashboardImage::url($record->photo_path))
                     ->circular()
-                    ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->full_name) . '&background=081F35&color=C9963C'),
+                    ->size(44)
+                    ->defaultImageUrl(fn (Staff $record): string => DashboardImage::avatar($record->full_name)),
                 Tables\Columns\TextColumn::make('employee_id')
                     ->label('Employee ID')
                     ->searchable()

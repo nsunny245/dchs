@@ -27,11 +27,11 @@
 
                 <div class="flex items-center space-x-4 mb-6">
                     <div class="w-16 h-16 rounded-full bg-navy-800 border-2 border-gold-500 flex items-center justify-center text-gold-400 overflow-hidden font-bold text-xl flex-shrink-0 shadow-inner">
-                        @if (!empty($this->data['photo_path']))
-                            <img src="{{ Storage::disk('public')->url($this->data['photo_path']) }}" class="w-full h-full object-cover">
-                        @else
-                            {{ strtoupper(substr($this->data['full_name'] ?? 'T', 0, 1)) }}
-                        @endif
+                        <img
+                            src="{{ \App\Support\DashboardImage::url($this->data['photo_path'] ?? null) ?? \App\Support\DashboardImage::avatar($this->data['full_name'] ?? 'New Staff') }}"
+                            alt="Staff profile preview"
+                            class="w-full h-full object-cover"
+                        >
                     </div>
                     <div class="min-w-0 flex-1">
                         <h3 class="font-bold text-base text-white leading-snug truncate">

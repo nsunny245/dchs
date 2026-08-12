@@ -3,6 +3,7 @@
 namespace App\Filament\Franchisor\Resources\FranchisorPaymentResource\RelationManagers;
 
 use App\Models\FranchisorPaymentInstallment;
+use App\Support\DashboardImage;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -71,7 +72,9 @@ class InstallmentsRelationManager extends RelationManager
                     ->placeholder('-'),
                 Tables\Columns\ImageColumn::make('receipt_path')
                     ->label('Receipt')
-                    ->disk('public')
+                    ->getStateUsing(fn (FranchisorPaymentInstallment $record): ?string => DashboardImage::url($record->receipt_path))
+                    ->square()
+                    ->size(44)
                     ->placeholder('No Receipt'),
             ])
             ->filters([])

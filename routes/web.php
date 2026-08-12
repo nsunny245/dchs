@@ -4,6 +4,7 @@ use App\Http\Controllers\AdmissionController;
 use App\Http\Controllers\Admin\AdmissionFeePlanPreviewController;
 use App\Http\Controllers\CampusController;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\DashboardImageController;
 use App\Http\Controllers\FeeVoucherPrintController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PdfController;
@@ -29,6 +30,10 @@ Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact
 Route::middleware('auth:admin,campus')
     ->get('/admin/admission-fee-plan-preview', AdmissionFeePlanPreviewController::class)
     ->name('admin.admissions.fee-plan-preview');
+
+Route::middleware(['auth:admin,campus,web', 'signed'])
+    ->get('/dashboard/image', DashboardImageController::class)
+    ->name('dashboard.images.show');
 
 // ── Public PDF Report ──
 Route::get('/project-status-report', [PdfController::class, 'projectStatusReport'])->name('project-status-report');

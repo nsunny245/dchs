@@ -11,6 +11,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Toggle;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ImageColumn;
+use App\Support\DashboardImage;
 use Illuminate\Database\Eloquent\Builder;
 
 class UserResource extends Resource
@@ -59,6 +61,12 @@ class UserResource extends Resource
     {
         return $table->columns([
             TextColumn::make('id')->label('S.No')->rowIndex(),
+            ImageColumn::make('staff.photo_path')
+                ->label('Photo')
+                ->getStateUsing(fn (User $record): ?string => DashboardImage::url($record->staff?->photo_path))
+                ->defaultImageUrl(fn (User $record): string => DashboardImage::avatar($record->name))
+                ->circular()
+                ->size(44),
             TextColumn::make('name')->searchable()->sortable(),
             TextColumn::make('email')->searchable(),
             TextColumn::make('campus.name')->label('Campus')->placeholder('Group HQ'),

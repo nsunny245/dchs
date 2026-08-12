@@ -8,6 +8,7 @@ use App\Models\FeeVoucher;
 use App\Models\FeePayment;
 use App\Models\PaymentAllocation;
 use App\Models\FeeVoucherAudit;
+use App\Support\DashboardImage;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -72,8 +73,10 @@ class FeeCollectionResource extends Resource
                 Tables\Columns\TextColumn::make('id')->label('S.No')->rowIndex(),
                 Tables\Columns\ImageColumn::make('student.student_photo')
                     ->label('Photo')
+                    ->getStateUsing(fn ($record): ?string => DashboardImage::url($record->student?->student_photo))
                     ->circular()
-                    ->defaultImageUrl(url('images/default-avatar.png')),
+                    ->size(44)
+                    ->defaultImageUrl(fn ($record): string => DashboardImage::avatar($record->student?->full_name ?? 'Student')),
                 Tables\Columns\TextColumn::make('student.full_name')
                     ->label('Student Name')
                     ->searchable()
@@ -207,6 +210,7 @@ class FeeCollectionResource extends Resource
                                     ->columnSpanFull(),
                                 Forms\Components\FileUpload::make('office_copy')
                                     ->label('Voucher Office Copy')
+                                    ->disk('public')
                                     ->directory('payment-receipts')
                                     ->image()
                                     ->maxSize(5120)

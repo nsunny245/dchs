@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ExpenseResource\Pages;
 use App\Models\Expense;
+use App\Support\DashboardImage;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -83,6 +84,7 @@ class ExpenseResource extends Resource
                     ->default(now())
                     ->required(),
                 Forms\Components\FileUpload::make('receipt')
+                    ->disk('public')
                     ->directory('expense-receipts')
                     ->image()
                     ->maxSize(2048),
@@ -97,6 +99,12 @@ class ExpenseResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('S.No')->rowIndex(),
+                Tables\Columns\ImageColumn::make('receipt')
+                    ->label('Receipt')
+                    ->getStateUsing(fn (Expense $record): ?string => DashboardImage::url($record->receipt))
+                    ->square()
+                    ->size(44)
+                    ->placeholder('No image'),
                 Tables\Columns\TextColumn::make('expense_date')
                     ->date()
                     ->sortable(),

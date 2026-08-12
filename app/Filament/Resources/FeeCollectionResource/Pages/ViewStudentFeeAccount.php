@@ -109,6 +109,7 @@ class ViewStudentFeeAccount extends ViewRecord
                                     ->columnSpanFull(),
                                 Forms\Components\FileUpload::make('office_copy')
                                     ->label('Voucher Office Copy')
+                                    ->disk('public')
                                     ->directory('payment-receipts')
                                     ->image()
                                     ->maxSize(5120)

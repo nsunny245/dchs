@@ -98,6 +98,7 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                                     Forms\Components\FileUpload::make('photo_path')
                                         ->label('Profile Photograph')
                                         ->image()
+                                        ->disk('public')
                                         ->directory('staff/photos')
                                         ->columnSpanFull(),
                                     Forms\Components\TextInput::make('full_name')

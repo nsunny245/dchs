@@ -7,6 +7,7 @@ use App\Models\AcademicSession;
 use App\Models\Admission;
 use App\Models\Campus;
 use App\Models\Course;
+use App\Support\DashboardImage;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -247,6 +248,7 @@ class AdmissionResource extends Resource
                                              ->schema([
                                                  Forms\Components\FileUpload::make('student_photo')
                                                      ->label('Student Photo')
+                                                     ->disk('public')
                                                      ->directory('student-photos')
                                                      ->image()
                                                      ->imagePreviewHeight('100')
@@ -842,7 +844,10 @@ class AdmissionResource extends Resource
                 Tables\Columns\TextColumn::make('id')->label('S.No')->rowIndex(),
                 Tables\Columns\ImageColumn::make('student_photo')
                     ->label('Photo')
-                    ->circular(),
+                    ->getStateUsing(fn (Admission $record): ?string => DashboardImage::url($record->student_photo))
+                    ->defaultImageUrl(fn (Admission $record): string => DashboardImage::avatar($record->applicant_name))
+                    ->circular()
+                    ->size(44),
                 Tables\Columns\TextColumn::make('applicant_name')
                     ->label('Student Name')
                     ->searchable()

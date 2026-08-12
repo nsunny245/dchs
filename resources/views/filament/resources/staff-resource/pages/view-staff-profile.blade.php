@@ -15,11 +15,11 @@
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
             <div class="flex items-center space-x-5">
                 <div class="w-20 h-20 rounded-2xl bg-navy-800 border-2 border-gold-500/80 flex items-center justify-center text-gold-400 overflow-hidden font-bold text-2xl flex-shrink-0 shadow-lg">
-                    @if ($record->photo_path)
-                        <img src="{{ Storage::disk('public')->url($record->photo_path) }}" class="w-full h-full object-cover">
-                    @else
-                        {{ strtoupper(substr($record->full_name ?? 'T', 0, 1)) }}
-                    @endif
+                    <img
+                        src="{{ \App\Support\DashboardImage::url($record->photo_path) ?? \App\Support\DashboardImage::avatar($record->full_name) }}"
+                        alt="{{ $record->full_name }} profile photo"
+                        class="w-full h-full object-cover"
+                    >
                 </div>
 
                 <div class="space-y-1">

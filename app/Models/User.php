@@ -7,10 +7,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
+use App\Support\DashboardImage;
 
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements FilamentUser, HasAvatar
 {
     use HasFactory, Notifiable;
     use HasRoles {
@@ -43,6 +46,12 @@ class User extends Authenticatable implements FilamentUser
         }
 
         return true;
+    }
+
+    public function getFilamentAvatarUrl(): ?string
+    {
+        return DashboardImage::url($this->staff?->photo_path)
+            ?? DashboardImage::avatar($this->name);
     }
 
     public function hasRole($roles, $guard = null): bool
@@ -78,5 +87,10 @@ class User extends Authenticatable implements FilamentUser
     public function franchisor(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(Franchisor::class, 'user_id');
+    }
+
+    public function staff(): HasOne
+    {
+        return $this->hasOne(Staff::class);
     }
 }
