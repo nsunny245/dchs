@@ -227,6 +227,7 @@ class AdmissionResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
+            ->columns(1)
             ->schema([
                 Forms\Components\Placeholder::make('missing_docs_notice')
                     ->label('⚠️ Document Status')
@@ -846,7 +847,8 @@ class AdmissionResource extends Resource
                                     ])->extraAttributes(['class' => 'admission-context-column'])->columnSpan(3),
                                 ]),
                         ]),
-                ]),
+                ])
+                ->columnSpanFull(),
             ]);
     }
 

@@ -5,6 +5,13 @@
     ])
 >
     <style>
+        .admission-page .fi-form,
+        .admission-page .fi-form > div,
+        .admission-page .fi-fo-wizard {
+            grid-column: 1 / -1 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+        }
         .admission-page .fi-fo-wizard-header {
             display: grid !important;
             grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
