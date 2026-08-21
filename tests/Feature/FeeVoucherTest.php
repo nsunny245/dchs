@@ -264,4 +264,38 @@ class FeeVoucherTest extends TestCase
         $this->expectException(\Exception::class);
         FeeVoucherService::generateInstallmentVoucher($student, 1, 10000.00);
     }
+
+    public function test_campus_admin_can_edit_fee_voucher_without_prior_approval()
+    {
+        list($student, $account) = $this->createStudentAndAccount('Hassan Ali');
+
+        $role = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Campus Principal']);
+
+        $principal = User::create([
+            'name' => 'Campus Principal',
+            'email' => 'principal@dchs.edu.pk',
+            'password' => bcrypt('password'),
+            'campus_id' => $this->campus->id,
+            'status' => true,
+        ]);
+        $principal->assignRole($role);
+
+        $voucher = FeeVoucher::create([
+            'voucher_number' => 'DGC-TES-2026-INS-000001',
+            'title' => 'Monthly Installment',
+            'student_id' => $student->id,
+            'student_fee_account_id' => $account->id,
+            'voucher_type' => 'monthly_installment',
+            'status' => 'issued',
+            'campus_id' => $this->campus->id,
+            'due_date' => '2026-08-01',
+            'sequence_no' => 1,
+            'total_amount' => 5000.00,
+            'balance_amount' => 5000.00,
+        ]);
+
+        $policy = new \App\Policies\FeeVoucherPolicy();
+
+        $this->assertTrue($policy->update($principal, $voucher));
+    }
 }

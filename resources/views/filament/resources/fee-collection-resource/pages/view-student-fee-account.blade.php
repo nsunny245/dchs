@@ -198,45 +198,11 @@
                                                  </a>
                                              @endif
 
-                                             @if(auth()->user()?->hasRole('Super Admin'))
-                                                 <span class="text-slate-300">|</span>
-                                                 <a href="{{ url("/admin/fee-vouchers/{$voucher->id}/edit") }}" 
-                                                    class="inline-flex items-center text-xs font-bold text-amber-600 hover:text-amber-800 hover:underline">
-                                                     Edit
-                                                 </a>
-                                             @else
-                                                 @if($voucher->edit_request_status === 'approved')
-                                                     <span class="text-slate-300">|</span>
-                                                     <a href="{{ url("/campus/fee-vouchers/{$voucher->id}/edit") }}" 
-                                                        class="inline-flex items-center text-xs font-bold text-emerald-600 hover:text-emerald-800 hover:underline">
-                                                         Edit (Approved)
-                                                     </a>
-                                                 @elseif($voucher->edit_request_status === 'pending')
-                                                     <span class="text-slate-300">|</span>
-                                                     <span class="text-xs text-amber-500 font-bold cursor-default" title="Awaiting Super Admin approval">
-                                                         Edit Pending
-                                                     </span>
-                                                 @else
-                                                     @if($voucher->status === 'draft')
-                                                         <span class="text-slate-300">|</span>
-                                                         <a href="{{ url("/campus/fee-vouchers/{$voucher->id}/edit") }}" 
-                                                            class="inline-flex items-center text-xs font-bold text-amber-600 hover:text-amber-800 hover:underline">
-                                                             Edit Draft
-                                                         </a>
-                                                     @elseif($voucher->status === 'paid')
-                                                         <span class="text-slate-300">|</span>
-                                                         <span class="text-xs text-slate-400 font-semibold cursor-not-allowed" title="Voucher is already paid.">
-                                                             Request Edit
-                                                         </span>
-                                                     @else
-                                                         <span class="text-slate-300">|</span>
-                                                         <button type="button" onclick="requestVoucherEdit({{ $voucher->id }})" 
-                                                                 class="inline-flex items-center text-xs font-bold text-slate-600 hover:text-slate-800 hover:underline border-none bg-transparent p-0 cursor-pointer">
-                                                             Request Edit
-                                                         </button>
-                                                     @endif
-                                                 @endif
-                                             @endif
+                                             <span class="text-slate-300">|</span>
+                                             <a href="{{ auth()->user()?->hasRole('Super Admin') ? url("/admin/fee-vouchers/{$voucher->id}/edit") : url("/campus/fee-vouchers/{$voucher->id}/edit") }}" 
+                                                class="inline-flex items-center text-xs font-bold text-amber-600 hover:text-amber-800 hover:underline">
+                                                 Edit
+                                             </a>
                                          </td>
                                          <td class="px-4 py-3 text-center">
                                              @if($voucher->status !== 'paid' && $voucher->status !== 'waived' && $voucher->status !== 'cancelled')

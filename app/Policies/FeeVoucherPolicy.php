@@ -44,22 +44,13 @@ class FeeVoucherPolicy
             return true;
         }
 
-        // Campus scoping
+        // Campus scoping: Campus Admin can edit vouchers belonging to their campus
         if ($user->campus_id && $voucher->campus_id !== $user->campus_id) {
             return false;
         }
 
-        // Approved edit request allows editing
-        if ($voucher->edit_request_status === 'approved') {
-            return $user->hasAnyRole(['Campus Principal', 'Finance']);
-        }
-
-        // Otherwise only draft vouchers can be updated
-        if ($voucher->status !== 'draft') {
-            return false;
-        }
-
-        return $user->hasAnyRole(['Campus Principal', 'Finance']);
+        // Campus Admins (Campus Principal, Finance, Admission Officer) can edit all fee vouchers directly
+        return $user->hasAnyRole(['Campus Principal', 'Finance', 'Admission Officer']);
     }
 
     public function delete(User $user, FeeVoucher $voucher): bool
