@@ -3,25 +3,26 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Campus;
+use App\Models\Expense;
 use App\Models\FeePayment;
 use App\Models\FeeVoucher;
-use App\Models\Expense;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 
 class CampusFinancialOverviewWidget extends BaseWidget
 {
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 4;
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     public static function canView(): bool
     {
         $user = filament()->auth()->user();
-        if (!$user) {
+        if (! $user) {
             return false;
         }
+
         return $user->hasRole('Super Admin') || $user->hasRole('Campus Principal') || $user->hasRole('Finance');
     }
 
@@ -30,6 +31,7 @@ class CampusFinancialOverviewWidget extends BaseWidget
         return $table
             ->query(function () {
                 $user = filament()->auth()->user();
+
                 return $user->hasRole('Super Admin')
                     ? Campus::query()
                     : Campus::query()->where('id', $user->campus_id);

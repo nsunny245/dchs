@@ -25,6 +25,7 @@ use App\Filament\Resources\SuperAdminFranchisorPaymentResource;
 use App\Filament\Resources\UserResource;
 use App\Filament\Resources\VisitorQueryResource;
 use App\Filament\Widgets\CampusFinancialOverviewWidget;
+use App\Filament\Widgets\CampusQuickAccessWidget;
 use App\Filament\Widgets\FinancialSummaryWidget;
 use App\Filament\Widgets\OverviewStats;
 use Filament\Http\Middleware\Authenticate;
@@ -126,6 +127,7 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
                 OverviewStats::class,
+                CampusQuickAccessWidget::class,
                 FinancialSummaryWidget::class,
                 CampusFinancialOverviewWidget::class,
             ])

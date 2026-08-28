@@ -21,6 +21,7 @@ use App\Filament\Widgets\CampusFinancialOverviewWidget;
 use App\Filament\Widgets\FinancialSummaryWidget;
 use App\Filament\Widgets\OverviewStats;
 use App\Filament\Widgets\RecentAdmissionsTable;
+use App\Services\Campus\CampusDashboardAccessService;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -88,6 +89,12 @@ class CampusPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin.css')
             ->renderHook(PanelsRenderHook::USER_MENU_BEFORE, fn () => view('components.topbar-notification'))
             ->renderHook(PanelsRenderHook::USER_MENU_AFTER, fn () => view('components.topbar-user-copy'))
+            ->renderHook(
+                PanelsRenderHook::PAGE_START,
+                fn () => view('components.campus-access-banner', [
+                    'campusAccess' => app(CampusDashboardAccessService::class)->currentAccess(request()),
+                ]),
+            )
             ->resources([
                 VisitorQueryResource::class,
                 AdmissionInquiryResource::class,

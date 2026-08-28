@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Controllers\AdmissionController;
 use App\Http\Controllers\Admin\AdmissionFeePlanPreviewController;
+use App\Http\Controllers\Admin\CampusDashboardAccessController;
+use App\Http\Controllers\AdmissionController;
 use App\Http\Controllers\CampusController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\DashboardImageController;
@@ -30,6 +31,14 @@ Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact
 Route::middleware('auth:admin,campus')
     ->get('/admin/admission-fee-plan-preview', AdmissionFeePlanPreviewController::class)
     ->name('admin.admissions.fee-plan-preview');
+
+Route::middleware('auth:admin')->prefix('admin/campus-access')->name('admin.campus-access.')->group(function (): void {
+    Route::post('/{campus}/enter', [CampusDashboardAccessController::class, 'enter'])->name('enter');
+});
+
+Route::middleware('auth:campus')
+    ->post('/campus/super-admin-access/exit', [CampusDashboardAccessController::class, 'exit'])
+    ->name('campus-access.exit');
 
 Route::middleware(['auth:admin,campus,web', 'signed'])
     ->get('/dashboard/image', DashboardImageController::class)
