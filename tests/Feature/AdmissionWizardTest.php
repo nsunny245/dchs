@@ -2,17 +2,17 @@
 
 namespace Tests\Feature;
 
+use App\Models\AcademicSession;
 use App\Models\Admission;
 use App\Models\Campus;
 use App\Models\Course;
-use App\Models\AcademicSession;
-use App\Models\FeeStructure;
 use App\Models\FeeHead;
-use App\Models\Student;
-use App\Models\StudentFeeAccount;
+use App\Models\FeeStructure;
 use App\Models\FeeVoucher;
+use App\Models\StudentFeeAccount;
 use App\Models\User;
 use App\Services\EnrollmentService;
+use App\Services\Fees\FeeVoucherPdfService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -31,7 +31,7 @@ class AdmissionWizardTest extends TestCase
             'address' => 'Okara bypass',
             'phone' => '03001234567',
             'email' => 'okara@dchs.edu.pk',
-            'is_active' => true
+            'is_active' => true,
         ]);
 
         $this->course = Course::create([
@@ -40,12 +40,12 @@ class AdmissionWizardTest extends TestCase
             'duration_months' => 24,
             'eligibility' => 'Matric',
             'description' => 'Certified Nursing Assistant',
-            'is_active' => true
+            'is_active' => true,
         ]);
 
         $this->session = AcademicSession::create([
             'name' => '2026-2028',
-            'is_active' => true
+            'is_active' => true,
         ]);
 
         // Seed CNA fee heads
@@ -160,15 +160,20 @@ class AdmissionWizardTest extends TestCase
             'academic_session_id' => $this->session->id,
             'status' => 'approved',
             'admission_date' => now()->toDateString(),
-            
-            // Custom fee plan overrides: 18 installments, customized amounts
-            'custom_installment_count' => 18,
+
+            // Custom fee plan overrides with deliberately uneven, ordered rows.
+            'custom_installment_count' => 3,
             'custom_admission_fee' => 8000.00,
             'custom_tuition_fee' => 108000.00,
             'custom_verification_fee' => 1500.00,
             'custom_enrollment_fee' => 2500.00,
             'custom_examination_fee' => 4000.00,
             'custom_other_misc' => 500.00,
+            'custom_installments' => [
+                ['title' => 'Registration Installment', 'amount' => 25000.00, 'due_date' => '2026-09-15'],
+                ['title' => 'Second Custom Installment', 'amount' => 33000.00, 'due_date' => '2026-10-20'],
+                ['title' => 'Final Custom Installment', 'amount' => 50000.00, 'due_date' => '2026-11-25'],
+            ],
         ]);
 
         $student = EnrollmentService::enroll($admission);
@@ -180,23 +185,43 @@ class AdmissionWizardTest extends TestCase
         // Expected custom original fee: 108000 (tuition) + 8000 (admission) + 2500 (enrollment) + 1500 (verification) + 4000 (exam) + 500 (misc) = 124500.00
         $this->assertEquals(124500.00, $account->original_fee);
 
-        // Verify count of installment vouchers
         $installments = FeeVoucher::where('student_id', $student->id)
             ->where('voucher_type', 'monthly_installment')
             ->get();
 
-        // 17 tuition installments (vouchers 2 to 18) + 1 exam voucher = 18 monthly installment vouchers total
-        $this->assertEquals(18, $installments->count());
+        // Two remaining tuition vouchers plus the separately scheduled exam voucher.
+        $this->assertEquals(3, $installments->count());
+        $this->assertEquals(4, FeeVoucher::where('student_id', $student->id)->count());
 
-        // Total vouchers count = 19 (1 new_enrollment + 18 monthly_installment)
-        $this->assertEquals(19, FeeVoucher::where('student_id', $student->id)->count());
+        $tuitionVouchers = FeeVoucher::where('student_id', $student->id)
+            ->where('title', '!=', 'Examination Registration Dues')
+            ->orderBy('id')
+            ->get();
 
-        // Verify per-installment monthly tuition: 108000 / 18 = 6000.00
-        $installment1 = FeeVoucher::where('student_id', $student->id)
-            ->where('voucher_type', 'monthly_installment')
-            ->where('sequence_no', 2) // Installment #2 represents second month tuition
-            ->first();
+        $this->assertSame([
+            'Registration Installment',
+            'Second Custom Installment',
+            'Final Custom Installment',
+        ], $tuitionVouchers->pluck('title')->all());
+        $this->assertSame([
+            '2026-09-15',
+            '2026-10-20',
+            '2026-11-25',
+        ], $tuitionVouchers->pluck('due_date')->map->toDateString()->all());
+        $this->assertSame([
+            '37500.00',
+            '33000.00',
+            '50000.00',
+        ], $tuitionVouchers->pluck('total_amount')->all());
 
-        $this->assertEquals(6000.00, $installment1->total_amount);
+        $this->assertSame([
+            'Admission Fee',
+            'Registration Installment',
+            'Enrollment Fee',
+            'Verification Fee',
+            'Miscellaneous / Other Charges',
+        ], $tuitionVouchers->first()->items()->orderBy('id')->pluck('description')->all());
+        $this->assertEquals(124500.00, FeeVoucher::where('student_id', $student->id)->sum('total_amount'));
+        $this->assertSame(200, FeeVoucherPdfService::streamBook($admission)->getStatusCode());
     }
 }

@@ -13,6 +13,7 @@ use App\Models\StudentFeeSnapshot;
 use App\Models\User;
 use App\Services\Fees\FeeVoucherService;
 use App\Services\Fees\OfficialFeeStructureResolver;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
@@ -106,6 +107,33 @@ class EnrollmentService
             ]);
 
             // 6. Calculate Financial Dues
+            $customSchedule = collect($admission->custom_installments ?? [])
+                ->map(function (array $installment, int $index) use ($admission): array {
+                    $dueDate = filled($installment['due_date'] ?? null)
+                        ? Carbon::parse($installment['due_date'])
+                        : Carbon::parse($admission->admission_date ?: now())->addMonths($index);
+
+                    return [
+                        'title' => trim((string) ($installment['title'] ?? '')) ?: 'Tuition Installment #'.($index + 1),
+                        'amount' => round(max(0, (float) ($installment['amount'] ?? 0)), 2),
+                        'due_date' => $dueDate,
+                    ];
+                })
+                ->filter(fn (array $installment): bool => $installment['amount'] > 0)
+                ->values();
+            $hasCustomSchedule = $admission->custom_installment_count !== null && $customSchedule->isNotEmpty();
+
+            if ($hasCustomSchedule) {
+                $scheduledTotal = round((float) $customSchedule->sum('amount'), 2);
+                $declaredTuitionTotal = round((float) $admission->custom_tuition_fee, 2);
+
+                if (abs($scheduledTotal - $declaredTuitionTotal) >= 0.01) {
+                    throw ValidationException::withMessages([
+                        'custom_installments' => 'Custom installment amounts must total PKR '.number_format($declaredTuitionTotal, 2).'. Current schedule total: PKR '.number_format($scheduledTotal, 2).'.',
+                    ]);
+                }
+            }
+
             $tuitionTotal = $admission->custom_installment_count !== null
                 ? (float) $admission->custom_tuition_fee
                 : (float) $structure->total_fee;
@@ -151,13 +179,24 @@ class EnrollmentService
             ]);
 
             // 7. Generate Vouchers
-            $installmentCount = $admission->custom_installment_count !== null
+            $installmentCount = $hasCustomSchedule
+                ? $customSchedule->count()
+                : ($admission->custom_installment_count !== null
                 ? (int) $admission->custom_installment_count
-                : ($structure->installment_count ?: 12);
+                : ($structure->installment_count ?: 12));
             $monthlyTuition = $installmentCount > 0 ? ($tuitionTotal / $installmentCount) : 0.00;
+            $firstTuitionAmount = $hasCustomSchedule
+                ? (float) $customSchedule->first()['amount']
+                : $monthlyTuition;
+            $firstInstallmentTitle = $hasCustomSchedule
+                ? $customSchedule->first()['title']
+                : 'Admission & First Month Dues';
+            $firstDueDate = $hasCustomSchedule
+                ? $customSchedule->first()['due_date']
+                : ($admission->admission_date ?: now());
 
             // Voucher 1: First Month Tuition + Admission + Enrollment + Verification + Misc
-            $firstVoucherAmount = $monthlyTuition + $admissionFee + $enrollmentFee + $verificationFee + $otherMisc;
+            $firstVoucherAmount = $firstTuitionAmount + $admissionFee + $enrollmentFee + $verificationFee + $otherMisc;
             $appliedConcession = min($concession, $firstVoucherAmount);
             $firstVoucherAmount -= $appliedConcession;
             $remainingConcession = $concession - $appliedConcession;
@@ -170,7 +209,7 @@ class EnrollmentService
             $firstVoucher = FeeVoucher::create([
                 'student_id' => $student->id,
                 'admission_id' => $admission->id,
-                'title' => 'Admission & First Month Dues',
+                'title' => $firstInstallmentTitle,
                 'campus_id' => $student->campus_id,
                 'course_id' => $student->course_id,
                 'academic_session_id' => $admission->academic_session_id,
@@ -180,10 +219,10 @@ class EnrollmentService
                 'voucher_type' => 'new_enrollment',
                 'orientation' => 'portrait_three_part',
                 'issue_date' => now(),
-                'due_date' => $admission->admission_date ?: now(),
+                'due_date' => $firstDueDate,
                 'status' => 'issued',
                 'sequence_no' => $firstVoucherNumber['sequence'],
-                'subtotal' => $monthlyTuition + $admissionFee + $enrollmentFee + $verificationFee + $otherMisc,
+                'subtotal' => $firstTuitionAmount + $admissionFee + $enrollmentFee + $verificationFee + $otherMisc,
                 'discount_amount' => $appliedConcession,
                 'total_amount' => $firstVoucherAmount,
                 'paid_amount' => 0.00,
@@ -195,7 +234,7 @@ class EnrollmentService
             $order = 1;
             $firstVoucherItems = [
                 ['code' => 'ADMISSION', 'name' => 'Admission Fee', 'amount' => $admissionFee, 'category' => 'admission'],
-                ['code' => 'TUITION_1', 'name' => 'Tuition Fee / First Installment', 'amount' => $monthlyTuition, 'category' => 'tuition'],
+                ['code' => 'TUITION_1', 'name' => $hasCustomSchedule ? $firstInstallmentTitle : 'Tuition Fee / First Installment', 'amount' => $firstTuitionAmount, 'category' => 'tuition'],
                 ['code' => 'ENROLLMENT', 'name' => 'Enrollment Fee', 'amount' => $enrollmentFee, 'category' => 'affiliation'],
                 ['code' => 'VERIFICATION', 'name' => 'Verification Fee', 'amount' => $verificationFee, 'category' => 'examination'],
                 ['code' => 'MISC', 'name' => 'Miscellaneous / Other Charges', 'amount' => $otherMisc, 'category' => 'miscellaneous'],
@@ -218,7 +257,7 @@ class EnrollmentService
                     FeeVoucherItem::create([
                         'fee_voucher_id' => $firstVoucher->id,
                         'fee_head_id' => $head->id,
-                        'description' => $head->name,
+                        'description' => $item['name'],
                         'quantity' => 1,
                         'unit_amount' => $item['amount'],
                         'amount' => $item['amount'],
@@ -229,7 +268,10 @@ class EnrollmentService
 
             // Vouchers 2 to N: Remaining Monthly Tuition Installments
             for ($i = 2; $i <= $installmentCount; $i++) {
-                $voucherAmount = $monthlyTuition;
+                $scheduledInstallment = $hasCustomSchedule ? $customSchedule->get($i - 1) : null;
+                $tuitionAmount = $scheduledInstallment ? (float) $scheduledInstallment['amount'] : $monthlyTuition;
+                $installmentTitle = $scheduledInstallment['title'] ?? "Tuition Installment #{$i}";
+                $voucherAmount = $tuitionAmount;
                 $discountForThisVoucher = 0.00;
                 if ($remainingConcession > 0) {
                     $applied = min($remainingConcession, $voucherAmount);
@@ -238,10 +280,12 @@ class EnrollmentService
                     $remainingConcession -= $applied;
                 }
 
-                $baseDate = \Illuminate\Support\Carbon::parse($admission->admission_date ?: now());
-                $installmentDate = $baseDate->copy()->addMonths($i - 1);
+                $baseDate = Carbon::parse($admission->admission_date ?: now());
+                $installmentDate = $scheduledInstallment
+                    ? $scheduledInstallment['due_date']->copy()
+                    : $baseDate->copy()->addMonths($i - 1)->day(10);
                 $issueDate = $installmentDate->copy()->startOfMonth();
-                $dueDate = $installmentDate->copy()->day(10);
+                $dueDate = $installmentDate;
 
                 $installmentVoucherNumber = FeeVoucherService::generateVoucherNumber(
                     $campus,
@@ -252,7 +296,7 @@ class EnrollmentService
                 $instVoucher = FeeVoucher::create([
                     'student_id' => $student->id,
                     'admission_id' => $admission->id,
-                    'title' => "Tuition Installment #{$i}",
+                    'title' => $installmentTitle,
                     'campus_id' => $student->campus_id,
                     'course_id' => $student->course_id,
                     'academic_session_id' => $admission->academic_session_id,
@@ -266,7 +310,7 @@ class EnrollmentService
                     'due_date' => $dueDate,
                     'status' => 'upcoming',
                     'sequence_no' => $installmentVoucherNumber['sequence'],
-                    'subtotal' => $monthlyTuition,
+                    'subtotal' => $tuitionAmount,
                     'discount_amount' => $discountForThisVoucher,
                     'total_amount' => $voucherAmount,
                     'paid_amount' => 0.00,
@@ -289,10 +333,10 @@ class EnrollmentService
                 FeeVoucherItem::create([
                     'fee_voucher_id' => $instVoucher->id,
                     'fee_head_id' => $tuitionHead->id,
-                    'description' => "Tuition Installment #{$i}",
+                    'description' => $installmentTitle,
                     'quantity' => 1,
-                    'unit_amount' => $monthlyTuition,
-                    'amount' => $monthlyTuition,
+                    'unit_amount' => $tuitionAmount,
+                    'amount' => $tuitionAmount,
                     'sort_order' => 1,
                 ]);
             }
@@ -300,7 +344,7 @@ class EnrollmentService
             // Examination registration is a separately due charge and therefore
             // remains an additional voucher outside the tuition installment count.
             if ($examinationFee > 0) {
-                $baseDate = \Illuminate\Support\Carbon::parse($admission->admission_date ?: now());
+                $baseDate = Carbon::parse($admission->admission_date ?: now());
                 $examDate = $baseDate->copy()->addMonths(5);
                 $examIssueDate = $examDate->copy()->startOfMonth();
                 $examDueDate = $examDate->copy()->day(10);
