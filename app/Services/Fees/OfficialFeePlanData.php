@@ -26,14 +26,15 @@ class OfficialFeePlanData
         $amount = fn (callable $filter) => (string) ($heads->first($filter)?->default_amount ?? '0.00');
         $money = app(InstallmentPlanGenerator::class);
         $otherPaisa = $heads
-            ->whereIn('category', ['miscellaneous', 'hostel'])
+            ->whereIn('category', ['affiliation', 'miscellaneous', 'hostel'])
             ->sum(fn ($head) => $money->toPaisa($head->default_amount));
 
         return [
             'custom_tuition_fee' => $structure->total_fee,
             'custom_installment_count' => $structure->installment_count,
-            'custom_admission_fee' => $amount(fn ($head) => $head->category === 'admission'),
-            'custom_enrollment_fee' => $amount(fn ($head) => $head->category === 'affiliation'),
+            // Admission charges are included in the program tuition package.
+            'custom_admission_fee' => '0.00',
+            'custom_enrollment_fee' => '0.00',
             'custom_verification_fee' => $amount(fn ($head) => str_starts_with($head->code, 'VERIFICATION_')),
             'custom_examination_fee' => $amount(fn ($head) => str_starts_with($head->code, 'EXAM_')),
             'custom_other_misc' => number_format($otherPaisa / 100, 2, '.', ''),

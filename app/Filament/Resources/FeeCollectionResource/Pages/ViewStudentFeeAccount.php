@@ -3,15 +3,19 @@
 namespace App\Filament\Resources\FeeCollectionResource\Pages;
 
 use App\Filament\Resources\FeeCollectionResource;
-use App\Models\FeeVoucher;
 use App\Models\FeePayment;
+use App\Models\FeeVoucher;
 use App\Models\PaymentAllocation;
+use App\Services\Fees\AdmissionVoucherReconciliationService;
 use App\Services\Fees\FeeVoucherService;
-use Filament\Resources\Pages\ViewRecord;
+use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Notifications\Notification;
-use Illuminate\Support\HtmlString;
+use Filament\Resources\Pages\ViewRecord;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\HtmlString;
+use Illuminate\Validation\ValidationException;
 
 class ViewStudentFeeAccount extends ViewRecord
 {
@@ -19,15 +23,20 @@ class ViewStudentFeeAccount extends ViewRecord
 
     protected static string $view = 'filament.resources.fee-collection-resource.pages.view-student-fee-account';
 
+    public function getMaxContentWidth(): ?string
+    {
+        return 'full';
+    }
+
     public function getTitle(): string
     {
-        return "Fee Account: " . $this->record->student->full_name;
+        return 'Fee Account: '.$this->record->student->full_name;
     }
 
     protected function getActions(): array
     {
         return [
-            \Filament\Actions\Action::make('collectPayment')
+            Action::make('collectPayment')
                 ->label('Collect Payment')
                 ->color('success')
                 ->form(function (array $arguments) {
@@ -97,9 +106,13 @@ class ViewStudentFeeAccount extends ViewRecord
                                 Forms\Components\Select::make('selected_voucher_id')
                                     ->label('Target Voucher')
                                     ->options(function () {
-                                         return FeeVoucher::where('student_fee_account_id', $this->record->id)
-                                             ->whereNotIn('status', ['paid', 'waived', 'cancelled'])
-                                             ->pluck('title', 'id');
+                                        return FeeVoucher::where('student_fee_account_id', $this->record->id)
+                                            ->whereNotIn('status', ['paid', 'waived', 'cancelled'])
+                                            ->orderBy('due_date')
+                                            ->get()
+                                            ->mapWithKeys(fn (FeeVoucher $voucher) => [
+                                                $voucher->id => $voucher->title.' — Balance PKR '.number_format($voucher->balance_amount, 2),
+                                            ]);
                                     })
                                     ->default($voucherId)
                                     ->visible(fn (Forms\Get $get) => $get('allocation_rule') === 'selected_voucher')
@@ -115,12 +128,12 @@ class ViewStudentFeeAccount extends ViewRecord
                                     ->maxSize(5120)
                                     ->columnSpanFull()
                                     ->nullable(),
-                            ])
+                            ]),
                     ];
                 })
                 ->action(function (array $data) {
                     DB::transaction(function () use ($data) {
-                        $amount = (float)$data['amount'];
+                        $amount = (float) $data['amount'];
                         $rule = $data['allocation_rule'];
                         $record = $this->record;
 
@@ -128,21 +141,37 @@ class ViewStudentFeeAccount extends ViewRecord
 
                         if ($rule === 'selected_voucher') {
                             $voucherId = $data['selected_voucher_id'] ?? $data['target_voucher_id'];
-                            $voucher = FeeVoucher::find($voucherId);
-                            if ($voucher) {
-                                $allocated = min($remainingAmount, (float)$voucher->balance_amount);
-                                
+                            $voucher = FeeVoucher::query()
+                                ->where('student_fee_account_id', $record->id)
+                                ->lockForUpdate()
+                                ->find($voucherId);
+
+                            if (! $voucher) {
+                                throw ValidationException::withMessages([
+                                    'data.selected_voucher_id' => 'Select a valid outstanding installment voucher.',
+                                ]);
+                            }
+
+                            if ($remainingAmount > (float) $voucher->balance_amount) {
+                                throw ValidationException::withMessages([
+                                    'data.amount' => 'For a selected installment, the amount cannot exceed its balance of PKR '.number_format($voucher->balance_amount, 2).'.',
+                                ]);
+                            }
+
+                            if ($remainingAmount > 0) {
+                                $allocated = $remainingAmount;
+
                                 $paymentData = $data;
                                 $paymentData['amount'] = $allocated;
-                                
+
                                 $payment = FeeVoucherService::recordPayment($voucher, $paymentData);
-                                
+
                                 PaymentAllocation::create([
                                     'payment_id' => $payment->id,
                                     'fee_voucher_id' => $voucher->id,
                                     'amount' => $allocated,
                                 ]);
-                                $remainingAmount -= $allocated;
+                                $remainingAmount = 0;
                             }
                         } else {
                             $vouchers = FeeVoucher::where('student_fee_account_id', $record->id)
@@ -152,10 +181,12 @@ class ViewStudentFeeAccount extends ViewRecord
                                 ->get();
 
                             foreach ($vouchers as $voucher) {
-                                if ($remainingAmount <= 0) break;
+                                if ($remainingAmount <= 0) {
+                                    break;
+                                }
 
-                                $allocated = min($remainingAmount, (float)$voucher->balance_amount);
-                                
+                                $allocated = min($remainingAmount, (float) $voucher->balance_amount);
+
                                 $paymentData = $data;
                                 $paymentData['amount'] = $allocated;
 
@@ -178,10 +209,12 @@ class ViewStudentFeeAccount extends ViewRecord
                                 ->get();
 
                             foreach ($upcomingVouchers as $voucher) {
-                                if ($remainingAmount <= 0) break;
+                                if ($remainingAmount <= 0) {
+                                    break;
+                                }
 
-                                $allocated = min($remainingAmount, (float)$voucher->balance_amount);
-                                
+                                $allocated = min($remainingAmount, (float) $voucher->balance_amount);
+
                                 $paymentData = $data;
                                 $paymentData['amount'] = $allocated;
 
@@ -205,16 +238,61 @@ class ViewStudentFeeAccount extends ViewRecord
                         ->send();
 
                     $this->redirect(self::getResource()::getUrl('view', ['record' => $this->record]));
-                })
+                }),
+            Action::make('syncAdmissionPlan')
+                ->label('Sync From Admission Plan')
+                ->icon('heroicon-o-arrow-path')
+                ->color('warning')
+                ->requiresConfirmation()
+                ->modalHeading('Synchronize admission installments?')
+                ->modalDescription('This repairs an unpaid account so its vouchers exactly match the titles, dates and amounts saved in the admission form. Paid accounts are protected and cannot be synchronized automatically.')
+                ->visible(fn (): bool => $this->record->admission !== null && (float) $this->record->amount_paid <= 0)
+                ->action(function (): void {
+                    try {
+                        app(AdmissionVoucherReconciliationService::class)->reconcile(
+                            $this->record,
+                            filament()->auth()->id(),
+                        );
+
+                        Notification::make()
+                            ->title('Admission vouchers synchronized')
+                            ->body('The fee account now matches the saved admission installment schedule.')
+                            ->success()
+                            ->send();
+
+                        $this->redirect(self::getResource()::getUrl('view', ['record' => $this->record]));
+                    } catch (ValidationException $exception) {
+                        Notification::make()
+                            ->title('Synchronization was not applied')
+                            ->body(collect($exception->errors())->flatten()->first() ?: $exception->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                }),
         ];
     }
 
     protected function getViewData(): array
     {
         $vouchers = FeeVoucher::where('student_fee_account_id', $this->record->id)
-            ->orderBy('sequence_no', 'asc')
+            ->with('items')
             ->orderBy('due_date', 'asc')
+            ->orderBy('id', 'asc')
             ->get();
+        $activeVouchers = $vouchers->whereNotIn('status', ['cancelled', 'void'])->values();
+        $savedSchedule = collect($this->record->admission?->custom_installments ?? [])
+            ->filter(fn (array $row): bool => (float) ($row['amount'] ?? 0) > 0)
+            ->values();
+        $planMatches = $savedSchedule->isEmpty()
+            || ($savedSchedule->count() === $activeVouchers->count()
+            && $savedSchedule->every(function (array $row, int $index) use ($activeVouchers): bool {
+                $voucher = $activeVouchers->get($index);
+
+                return $voucher
+                    && trim((string) ($row['title'] ?? '')) === trim((string) $voucher->title)
+                    && Carbon::parse($row['due_date'])->toDateString() === $voucher->due_date?->toDateString()
+                    && abs((float) $row['amount'] - (float) $voucher->subtotal) < 0.01;
+            }));
 
         $payments = FeePayment::where('student_fee_account_id', $this->record->id)
             ->orderBy('payment_date', 'desc')
@@ -236,6 +314,14 @@ class ViewStudentFeeAccount extends ViewRecord
             'payments' => $payments,
             'nextVoucher' => $nextVoucher,
             'overdueAmount' => $overdue,
+            'scheduledAmount' => (float) $activeVouchers->sum('subtotal'),
+            'voucherConcession' => (float) $activeVouchers->sum(
+                fn (FeeVoucher $voucher): float => (float) $voucher->discount_amount + (float) $voucher->scholarship_amount
+            ),
+            'installmentCount' => $activeVouchers->count(),
+            'planMatches' => $planMatches,
+            'hasPaymentHistory' => $this->record->payments()->where('status', 'paid')->where('amount', '>', 0)->exists(),
+            'savedScheduleTotal' => (float) $savedSchedule->sum(fn (array $row): float => (float) $row['amount']),
         ];
     }
 }

@@ -118,8 +118,10 @@ class FranchisorResource extends Resource
                     ]),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

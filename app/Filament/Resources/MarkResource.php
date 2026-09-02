@@ -16,17 +16,19 @@ class MarkResource extends Resource
     protected static ?string $model = Mark::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
+
     protected static ?string $navigationGroup = 'Academic Management';
+
     protected static ?int $navigationSort = 5;
 
     public static function shouldRegisterNavigation(): bool
     {
-        return !(filament()->auth()->user()?->hasRole('Admission Officer') ?? false);
+        return ! (filament()->auth()->user()?->hasRole('Admission Officer') ?? false);
     }
 
     public static function canViewAny(): bool
     {
-        return !(filament()->auth()->user()?->hasRole('Admission Officer') ?? false);
+        return ! (filament()->auth()->user()?->hasRole('Admission Officer') ?? false);
     }
 
     public static function form(Form $form): Form
@@ -38,7 +40,7 @@ class MarkResource extends Resource
                         Forms\Components\Select::make('campus_id')
                             ->relationship('campus', 'name')
                             ->required()
-                            ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin'))
+                            ->hidden(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
                             ->default(filament()->auth()->user()->campus_id),
                         Forms\Components\Select::make('student_id')
                             ->relationship('student', 'id')
@@ -78,13 +80,15 @@ class MarkResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('campus')
                     ->relationship('campus', 'name')
-                    ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin')),
+                    ->hidden(fn () => ! filament()->auth()->user()->hasRole('Super Admin')),
                 Tables\Filters\SelectFilter::make('exam')
                     ->relationship('exam', 'exam_name'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -96,8 +100,8 @@ class MarkResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-        
-        if (!filament()->auth()->user()->hasRole('Super Admin')) {
+
+        if (! filament()->auth()->user()->hasRole('Super Admin')) {
             $query->where('campus_id', filament()->auth()->user()->campus_id);
         }
 

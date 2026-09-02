@@ -46,6 +46,7 @@ Route::middleware(['auth:admin,campus,web', 'signed'])
 
 // ── Public PDF Report ──
 Route::get('/project-status-report', [PdfController::class, 'projectStatusReport'])->name('project-status-report');
+Route::get('/id/verify/{token}', [PdfController::class, 'verifyStudentIdCard'])->name('student-id.verify');
 
 Route::middleware('auth:admin,campus')->prefix('pdf')->name('pdf.')->group(function () {
     Route::get('/admission-letter/{admission}', [PdfController::class, 'admissionLetter'])->name('admission-letter');
@@ -53,6 +54,8 @@ Route::middleware('auth:admin,campus')->prefix('pdf')->name('pdf.')->group(funct
     Route::get('/installment-schedule/{admission}', [PdfController::class, 'installmentSchedule'])->name('installment-schedule');
     Route::get('/fee-receipt/{feePayment}', [PdfController::class, 'feeReceipt'])->name('fee-receipt');
     Route::get('/report-card/{student}', [PdfController::class, 'reportCard'])->name('report-card');
+    Route::get('/student-id-card/{student}', [PdfController::class, 'studentIdCard'])->name('student-id-card');
+    Route::get('/student-id-card/{student}/back', [PdfController::class, 'studentIdCardBack'])->name('student-id-card.back');
     Route::get('/fee-voucher/{voucher}', [PdfController::class, 'feeVoucher'])->name('fee-voucher');
     Route::get('/payment-receipt/{payment}', [PdfController::class, 'paymentReceipt'])->name('payment-receipt');
     Route::get('/teacher-profile-summary/{staff}', [PdfController::class, 'teacherProfileSummary'])->name('teacher-profile-summary');

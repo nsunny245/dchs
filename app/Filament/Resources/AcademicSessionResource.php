@@ -16,7 +16,9 @@ class AcademicSessionResource extends Resource
     protected static ?string $model = AcademicSession::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar';
+
     protected static ?string $navigationGroup = 'Academic Management';
+
     protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
@@ -64,8 +66,10 @@ class AcademicSessionResource extends Resource
                 Tables\Filters\TernaryFilter::make('is_active'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -79,10 +83,10 @@ class AcademicSessionResource extends Resource
         $query = parent::getEloquentQuery();
         $user = filament()->auth()->user();
 
-        if ($user && $user->campus_id && !$user->hasRole('Super Admin')) {
+        if ($user && $user->campus_id && ! $user->hasRole('Super Admin')) {
             $query->where(function ($q) use ($user) {
                 $q->where('campus_id', $user->campus_id)
-                  ->orWhereNull('campus_id');
+                    ->orWhereNull('campus_id');
             });
         }
 

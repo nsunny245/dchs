@@ -75,13 +75,15 @@ class DocumentsRelationManager extends RelationManager
                     ->mutateFormDataUsing(fn (array $data): array => $this->prepareDocumentData($data)),
             ])
             ->actions([
-                Tables\Actions\Action::make('open')
-                    ->icon('heroicon-o-arrow-top-right-on-square')
-                    ->url(fn (Model $record): string => Storage::disk($record->disk ?: 'public')->url($record->path))
-                    ->openUrlInNewTab(),
-                Tables\Actions\EditAction::make()
-                    ->mutateFormDataUsing(fn (array $data): array => $this->prepareDocumentData($data)),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('open')
+                        ->icon('heroicon-o-arrow-top-right-on-square')
+                        ->url(fn (Model $record): string => Storage::disk($record->disk ?: 'public')->url($record->path))
+                        ->openUrlInNewTab(),
+                    Tables\Actions\EditAction::make()
+                        ->mutateFormDataUsing(fn (array $data): array => $this->prepareDocumentData($data)),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->emptyStateHeading('All requested documents are currently missing')
             ->emptyStateDescription('This does not block the staff record. Upload each file when the teacher provides it.')

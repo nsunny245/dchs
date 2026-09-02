@@ -33,6 +33,13 @@ class FinalizeAdmissionAction
             $admission = Admission::query()->lockForUpdate()->findOrFail($admission->getKey());
 
             if ($student = Student::where('admission_id', $admission->id)->first()) {
+                if ($admission->status !== 'enrolled') {
+                    $admission->update([
+                        'status' => 'enrolled',
+                        'enrollment_no' => $student->enrollment_number,
+                    ]);
+                }
+
                 return $student;
             }
 
@@ -73,17 +80,21 @@ class FinalizeAdmissionAction
             $account = StudentFeeAccount::where('student_id', $student->id)->firstOrFail();
 
             $generatedVouchers = FeeVoucher::where('student_id', $student->id)
-                ->orderBy('sequence_no')
+                ->orderBy('due_date')
+                ->orderBy('id')
                 ->get()
                 ->values();
-            $schedule = $this->installments->normalize(
-                $generatedVouchers->map(fn (FeeVoucher $voucher) => [
-                    'title' => $voucher->title,
-                    'due_date' => $voucher->due_date->toDateString(),
-                    'amount' => $voucher->total_amount,
-                ])->all(),
-                (string) $account->net_payable,
-            );
+            $schedule = $generatedVouchers->map(fn (FeeVoucher $voucher, int $index) => [
+                'number' => $index + 1,
+                'title' => $voucher->title,
+                'due_date' => $voucher->due_date->toDateString(),
+                'gross_paisa' => $this->installments->toPaisa($voucher->subtotal),
+                'concession_paisa' => $this->installments->toPaisa(
+                    (float) $voucher->discount_amount + (float) $voucher->scholarship_amount
+                ),
+                'net_paisa' => $this->installments->toPaisa($voucher->total_amount),
+            ])
+                ->all();
 
             foreach ($schedule as $row) {
                 $installment = StudentInstallment::firstOrCreate(

@@ -17,8 +17,11 @@ class FranchisorPaymentResource extends Resource
     protected static ?string $model = FranchisorStudentPayment::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-credit-card';
+
     protected static ?string $navigationLabel = 'Seat Payments';
+
     protected static ?string $modelLabel = 'Seat Payment';
+
     protected static ?string $pluralModelLabel = 'Seat Payments';
 
     public static function form(Form $form): Form
@@ -104,7 +107,9 @@ class FranchisorPaymentResource extends Resource
                     ]),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->bulkActions([]);
     }

@@ -84,6 +84,11 @@ class Staff extends Model
         return $this->hasMany(AttendanceCorrection::class)->orderBy('attendance_date', 'desc');
     }
 
+    public function teacherAttendances(): HasMany
+    {
+        return $this->hasMany(TeacherAttendance::class);
+    }
+
     public function agreementVersions(): HasMany
     {
         return $this->hasMany(AgreementVersion::class)->orderBy('version', 'desc');

@@ -6,9 +6,11 @@ use App\Models\FranchisorPaymentInstallment;
 use App\Support\DashboardImage;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class InstallmentsRelationManager extends RelationManager
 {
@@ -16,7 +18,7 @@ class InstallmentsRelationManager extends RelationManager
 
     protected static ?string $title = 'Installments Plan';
 
-    protected function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    protected function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->where('is_published', true);
     }
@@ -80,47 +82,49 @@ class InstallmentsRelationManager extends RelationManager
             ->filters([])
             ->headerActions([])
             ->actions([
-                Tables\Actions\Action::make('submitProof')
-                    ->label('Submit Receipt')
-                    ->icon('heroicon-o-arrow-up-tray')
-                    ->color('warning')
-                    ->visible(fn (FranchisorPaymentInstallment $record) => $record->status === 'unpaid')
-                    ->form([
-                        Forms\Components\Select::make('payment_method')
-                            ->label('Payment Method')
-                            ->options([
-                                'bank_transfer' => 'Bank Transfer / Deposit',
-                                'cheque' => 'Cheque',
-                                'online' => 'Online App Transfer',
-                                'cash' => 'Cash',
-                            ])
-                            ->required(),
-                        Forms\Components\TextInput::make('transaction_id')
-                            ->label('Transaction ID / Reference')
-                            ->required()
-                            ->maxLength(255),
-                        Forms\Components\FileUpload::make('receipt_path')
-                            ->label('Upload Receipt Image/PDF')
-                            ->directory('franchisor-receipts')
-                            ->disk('public')
-                            ->image()
-                            ->maxSize(2048)
-                            ->required(),
-                    ])
-                    ->action(function (FranchisorPaymentInstallment $record, array $data) {
-                        $record->update([
-                            'payment_method' => $data['payment_method'],
-                            'transaction_id' => $data['transaction_id'],
-                            'receipt_path' => $data['receipt_path'],
-                            'status' => 'pending',
-                        ]);
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('submitProof')
+                        ->label('Submit Receipt')
+                        ->icon('heroicon-o-arrow-up-tray')
+                        ->color('warning')
+                        ->visible(fn (FranchisorPaymentInstallment $record) => $record->status === 'unpaid')
+                        ->form([
+                            Forms\Components\Select::make('payment_method')
+                                ->label('Payment Method')
+                                ->options([
+                                    'bank_transfer' => 'Bank Transfer / Deposit',
+                                    'cheque' => 'Cheque',
+                                    'online' => 'Online App Transfer',
+                                    'cash' => 'Cash',
+                                ])
+                                ->required(),
+                            Forms\Components\TextInput::make('transaction_id')
+                                ->label('Transaction ID / Reference')
+                                ->required()
+                                ->maxLength(255),
+                            Forms\Components\FileUpload::make('receipt_path')
+                                ->label('Upload Receipt Image/PDF')
+                                ->directory('franchisor-receipts')
+                                ->disk('public')
+                                ->image()
+                                ->maxSize(2048)
+                                ->required(),
+                        ])
+                        ->action(function (FranchisorPaymentInstallment $record, array $data) {
+                            $record->update([
+                                'payment_method' => $data['payment_method'],
+                                'transaction_id' => $data['transaction_id'],
+                                'receipt_path' => $data['receipt_path'],
+                                'status' => 'pending',
+                            ]);
 
-                        \Filament\Notifications\Notification::make()
-                            ->title('Receipt Submitted')
-                            ->success()
-                            ->body('Payment proof has been submitted and is awaiting admin verification.')
-                            ->send();
-                    }),
+                            Notification::make()
+                                ->title('Receipt Submitted')
+                                ->success()
+                                ->body('Payment proof has been submitted and is awaiting admin verification.')
+                                ->send();
+                        }),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->bulkActions([]);
     }

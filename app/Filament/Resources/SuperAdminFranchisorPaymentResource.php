@@ -16,11 +16,15 @@ class SuperAdminFranchisorPaymentResource extends Resource
     protected static ?string $model = FranchisorStudentPayment::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-credit-card';
+
     protected static ?string $navigationGroup = 'Franchise Management';
+
     protected static ?int $navigationSort = 2;
 
     protected static ?string $navigationLabel = 'Franchisor Seat Payments';
+
     protected static ?string $modelLabel = 'Franchisor Seat Payment';
+
     protected static ?string $pluralModelLabel = 'Franchisor Seat Payments';
 
     public static function form(Form $form): Form
@@ -111,8 +115,10 @@ class SuperAdminFranchisorPaymentResource extends Resource
                     ]),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

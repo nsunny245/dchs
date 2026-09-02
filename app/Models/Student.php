@@ -6,6 +6,7 @@ use App\Traits\ScopedByCampus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Student extends Model
 {
@@ -40,6 +41,11 @@ class Student extends Model
         return $this->hasMany(FeePayment::class);
     }
 
+    public function feeAccount(): HasOne
+    {
+        return $this->hasOne(StudentFeeAccount::class);
+    }
+
     public function marks(): HasMany
     {
         return $this->hasMany(Mark::class);
@@ -58,6 +64,16 @@ class Student extends Model
     public function ledgerEntries(): HasMany
     {
         return $this->hasMany(StudentLedgerEntry::class);
+    }
+
+    public function idCards(): HasMany
+    {
+        return $this->hasMany(StudentIdCard::class);
+    }
+
+    public function activeIdCard(): HasOne
+    {
+        return $this->hasOne(StudentIdCard::class)->where('status', 'active')->latestOfMany();
     }
 
     public function getStudentPhotoAttribute()

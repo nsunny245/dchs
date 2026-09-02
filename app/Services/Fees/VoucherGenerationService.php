@@ -22,12 +22,7 @@ class VoucherGenerationService
         $count = max(1, (int) ($data['installment_count'] ?? 1));
         $start = Carbon::parse($data['admission_date'] ?? now());
         $schedule = $this->installments->generate((string) ($data['tuition'] ?? 0), $count, $start);
-        $oneTimePaisa = $this->installments->toPaisa($data['one_time'] ?? 0);
-        $examPaisa = $this->installments->toPaisa($data['examination'] ?? 0);
         $remainingConcession = max(0, $this->installments->toPaisa($data['concession'] ?? 0));
-
-        $schedule[0]['gross_paisa'] += $oneTimePaisa;
-        $schedule[0]['net_paisa'] += $oneTimePaisa;
 
         foreach ($schedule as &$row) {
             $applied = min($remainingConcession, $row['net_paisa']);
@@ -36,18 +31,6 @@ class VoucherGenerationService
             $remainingConcession -= $applied;
         }
         unset($row);
-
-        if ($examPaisa > 0) {
-            $applied = min($remainingConcession, $examPaisa);
-            $schedule[] = [
-                'number' => count($schedule) + 1,
-                'title' => 'Examination Registration Dues',
-                'due_date' => $start->copy()->addMonthsNoOverflow(5)->toDateString(),
-                'gross_paisa' => $examPaisa,
-                'concession_paisa' => $applied,
-                'net_paisa' => $examPaisa - $applied,
-            ];
-        }
 
         return $schedule;
     }

@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\HtmlString;
 use Livewire\WithFileUploads;
+use Spatie\Permission\Models\Role;
 
 class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
 {
@@ -401,9 +402,23 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
             : $this->form->getState();
         $user = filament()->auth()->user();
         $campusId = $state['campus_id'] ?? $user?->campus_id ?? Campus::first()?->id;
+        $duplicatePrevented = false;
 
         try {
-            DB::transaction(function () use ($state, $status, $campusId) {
+            DB::transaction(function () use ($state, $status, $campusId, &$duplicatePrevented) {
+                $identity = Staff::query()
+                    ->where('campus_id', $campusId)
+                    ->where('full_name', $state['full_name'] ?? '')
+                    ->when(! empty($state['cnic']), fn ($query) => $query->where('cnic', $state['cnic']))
+                    ->where('created_at', '>=', now()->subMinutes(2))
+                    ->lockForUpdate()
+                    ->first();
+                if ($identity) {
+                    $duplicatePrevented = true;
+                    Notification::make()->title('Duplicate submission ignored')->body('This teacher was already saved.')->warning()->send();
+
+                    return;
+                }
                 // 1. Create or Find User account if email provided
                 $userAccount = null;
                 if (! empty($state['email'])) {
@@ -417,7 +432,15 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                             'campus_id' => $campusId,
                             'status' => true,
                         ]);
-                        $userAccount->assignRole('Faculty');
+                        if (($state['staff_category'] ?? 'teaching') === 'administrative') {
+                            $campusAdmin = Role::firstOrCreate(['name' => 'Campus Admin', 'guard_name' => 'web']);
+                            if ($campusAdmin->permissions()->count() === 0) {
+                                $campusAdmin->syncPermissions(Role::findByName('Campus Principal', 'web')->permissions);
+                            }
+                            $userAccount->assignRole($campusAdmin);
+                        } else {
+                            $userAccount->assignRole('Faculty');
+                        }
                     }
                 }
 
@@ -569,7 +592,7 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                 ]);
 
                 Notification::make()
-                    ->title($status === 'draft' ? 'Staff Draft Saved' : 'Teacher Profile Created Successfully')
+                    ->title($duplicatePrevented ? 'Duplicate submission ignored' : ($status === 'draft' ? 'Staff Draft Saved' : 'Teacher Profile Created Successfully'))
                     ->success()
                     ->send();
 

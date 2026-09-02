@@ -1,13 +1,76 @@
 <x-filament-panels::page>
+    @php
+        $panelPrefix = auth()->user()?->hasRole('Super Admin') ? 'admin' : 'campus';
+    @endphp
+
     @if(session('success'))
         <div class="mb-4 p-4 text-sm text-emerald-800 rounded-lg bg-emerald-50 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800" role="alert">
             {{ session('success') }}
         </div>
     @endif
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="overflow-hidden rounded-2xl bg-gradient-to-r from-[#06192e] via-[#0b315d] to-[#104b79] p-5 text-white shadow-lg sm:p-7">
+        <div class="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+            <div>
+                <div class="mb-2 flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-amber-300">
+                    <span>Student Fee Account</span>
+                    <span class="rounded-full bg-white/10 px-2.5 py-1 text-white/80">{{ $installmentCount }} installment vouchers</span>
+                </div>
+                <h2 class="text-2xl font-black sm:text-3xl">{{ $record->student->full_name }}</h2>
+                <p class="mt-2 max-w-2xl text-sm text-blue-100">
+                    {{ $planMatches
+                        ? 'Admission installments are shown below with the same titles, dates and scheduled amounts entered in the admission form.'
+                        : 'This legacy account needs review because its saved admission schedule and generated vouchers do not fully match.' }}
+                </p>
+            </div>
+            <div class="flex flex-col gap-2 sm:flex-row">
+                <button type="button"
+                        wire:click="mountAction('collectPayment')"
+                        class="inline-flex min-h-11 items-center justify-center rounded-xl bg-amber-400 px-5 py-3 text-sm font-black text-[#06192e] shadow-md transition hover:bg-amber-300">
+                    Collect Custom / Partial Amount
+                </button>
+                <a href="{{ url("/{$panelPrefix}/fee-vouchers/create?student_id=" . $record->student->id) }}"
+                   class="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/30 bg-white/10 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/20">
+                    Create Additional Fee Voucher
+                </a>
+                @if((float) $record->amount_paid <= 0)
+                    <button type="button"
+                            wire:click="mountAction('syncAdmissionPlan')"
+                            class="inline-flex min-h-11 items-center justify-center rounded-xl border border-amber-300/70 bg-amber-300/10 px-5 py-3 text-sm font-bold text-amber-200 transition hover:bg-amber-300/20">
+                        Sync Admission Plan
+                    </button>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    @if(! $planMatches)
+        <div class="rounded-2xl border border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 p-5 shadow-sm dark:border-amber-800 dark:from-amber-950/40 dark:to-slate-900">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                    <h3 class="text-base font-black text-amber-900 dark:text-amber-200">Legacy fee plan mismatch detected</h3>
+                    <p class="mt-1 text-sm text-amber-800 dark:text-amber-300">
+                        Saved admission rows total PKR {{ number_format($savedScheduleTotal, 2) }}, while active vouchers total PKR {{ number_format($scheduledAmount, 2) }}.
+                        @if($hasPaymentHistory)
+                            Because payment history exists, the system has protected this account from automatic rewriting.
+                        @else
+                            Use <strong>Sync Admission Plan</strong> to repair this unpaid account safely.
+                        @endif
+                    </p>
+                </div>
+                @if($record->admission)
+                    <a href="{{ url("/{$panelPrefix}/admissions/{$record->admission->id}/edit?review=1") }}"
+                       class="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-amber-400 bg-white px-5 py-3 text-sm font-black text-amber-900 shadow-sm transition hover:bg-amber-100 dark:bg-slate-900 dark:text-amber-200">
+                        Review Admission Fee Plan
+                    </a>
+                @endif
+            </div>
+        </div>
+    @endif
+
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-4">
         <!-- Student Profile Card -->
-        <div class="lg:col-span-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm space-y-4">
+        <div class="xl:col-span-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
             <div class="flex flex-col items-center text-center">
                 <img src="{{ \App\Support\DashboardImage::url($record->student->student_photo) ?? \App\Support\DashboardImage::avatar($record->student->full_name) }}"
                      alt="Profile photo" 
@@ -73,51 +136,70 @@
                        class="w-full text-center px-4 py-2 text-xs font-bold text-[#06192E] bg-[#C98D18] hover:bg-[#B97708] rounded-lg shadow-sm transition">
                         Print Student Agreement
                     </a>
-                    @php
-                        $panelPrefix = auth()->user()?->hasRole('Super Admin') ? 'admin' : 'campus';
-                    @endphp
                     <a href="{{ url("/{$panelPrefix}/fee-vouchers/create?student_id=" . $record->student->id) }}" 
                        class="w-full text-center px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-white border border-slate-300 dark:border-slate-800 hover:bg-[#082245] hover:border-[#082245] rounded-lg shadow-sm transition">
-                        Create Custom Voucher
+                        Create Additional Fee Voucher
                     </a>
                 @endif
             </div>
         </div>
 
         <!-- Financial Summary & Voucher Timeline -->
-        <div class="lg:col-span-2 space-y-6">
+        <div class="space-y-6 xl:col-span-3">
             <!-- Stats Grid -->
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm text-center">
-                    <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Net Contractual Package</div>
-                    <div class="mt-1 text-lg font-bold text-slate-800 dark:text-slate-200">PKR {{ number_format($record->net_payable, 2) }}</div>
-                    <div class="text-[10px] text-slate-400 mt-0.5">Original: PKR {{ number_format($record->original_fee, 2) }}</div>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50 p-5 shadow-sm dark:border-slate-800 dark:from-slate-900 dark:to-slate-900">
+                    <div class="text-xs font-bold uppercase tracking-wider text-blue-500">Scheduled Tuition</div>
+                    <div class="mt-2 text-xl font-black text-[#082245] dark:text-blue-200">PKR {{ number_format($scheduledAmount, 2) }}</div>
+                    <div class="mt-1 text-xs text-slate-500">Admission fee included</div>
                 </div>
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm text-center">
-                    <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Paid / Collected</div>
-                    <div class="mt-1 text-lg font-bold text-emerald-600">PKR {{ number_format($record->amount_paid, 2) }}</div>
-                    <div class="text-[10px] text-slate-400 mt-0.5">Concession: PKR {{ number_format($record->concession_amount, 2) }}</div>
+                <div class="rounded-2xl border border-amber-100 bg-gradient-to-br from-white to-amber-50 p-5 shadow-sm dark:border-slate-800 dark:from-slate-900 dark:to-slate-900">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-600">Concession</div>
+                    <div class="mt-2 text-xl font-black text-amber-700 dark:text-amber-300">PKR {{ number_format($voucherConcession, 2) }}</div>
+                    <div class="mt-1 text-xs text-slate-500">Deducted from tuition</div>
                 </div>
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm text-center col-span-2 md:col-span-1">
-                    <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Outstanding Balance</div>
-                    <div class="mt-1 text-lg font-bold text-rose-600">PKR {{ number_format($record->balance, 2) }}</div>
-                    <div class="text-[10px] text-rose-400 mt-0.5 font-bold">Overdue: PKR {{ number_format($overdueAmount, 2) }}</div>
+                <div class="rounded-2xl border border-emerald-100 bg-gradient-to-br from-white to-emerald-50 p-5 shadow-sm dark:border-slate-800 dark:from-slate-900 dark:to-slate-900">
+                    <div class="text-xs font-bold uppercase tracking-wider text-emerald-600">Paid</div>
+                    <div class="mt-2 text-xl font-black text-emerald-700 dark:text-emerald-300">PKR {{ number_format($record->amount_paid, 2) }}</div>
+                    <div class="mt-1 text-xs text-slate-500">Receipts collected</div>
+                </div>
+                <div class="rounded-2xl border border-rose-100 bg-gradient-to-br from-white to-rose-50 p-5 shadow-sm dark:border-slate-800 dark:from-slate-900 dark:to-slate-900">
+                    <div class="text-xs font-bold uppercase tracking-wider text-rose-600">Remaining</div>
+                    <div class="mt-2 text-xl font-black text-rose-700 dark:text-rose-300">PKR {{ number_format($record->balance, 2) }}</div>
+                    <div class="mt-1 text-xs font-semibold text-rose-500">Overdue: PKR {{ number_format($overdueAmount, 2) }}</div>
                 </div>
             </div>
 
             <!-- Voucher Timeline Card -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
                 <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex justify-between items-center">
-                    <h4 class="text-base font-bold text-slate-800 dark:text-slate-200">Installments Timeline & Vouchers</h4>
+                    <div>
+                        <h4 class="text-base font-bold text-slate-800 dark:text-slate-200">Admission Installments & Vouchers</h4>
+                        <p class="mt-1 text-xs text-slate-500">Every row mirrors the installment schedule saved during admission.</p>
+                    </div>
                 </div>
                 <div class="p-6">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm border-collapse text-left">
+                    <div class="fee-account-table-frame w-full rounded-xl border border-slate-200 dark:border-slate-700">
+                        <table class="fee-voucher-schedule-table w-full border-collapse text-left">
+                            <colgroup>
+                                <col style="width: 16%">
+                                <col style="width: 9%">
+                                <col style="width: 10%">
+                                <col style="width: 10%">
+                                <col style="width: 10%">
+                                <col style="width: 9%">
+                                <col style="width: 10%">
+                                <col style="width: 8%">
+                                <col style="width: 10%">
+                                <col style="width: 8%">
+                            </colgroup>
                             <thead>
                                 <tr class="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-medium">
                                     <th class="px-4 py-3 border-b border-slate-100 dark:border-slate-800">Title</th>
                                     <th class="px-4 py-3 border-b border-slate-100 dark:border-slate-800">Due Date</th>
-                                    <th class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 text-right">Amount</th>
+                                    <th class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 text-right">Scheduled</th>
+                                    <th class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 text-right">Concession</th>
+                                    <th class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 text-right">Payable</th>
                                     <th class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 text-right">Paid</th>
                                     <th class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 text-right">Balance</th>
                                     <th class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 text-center">Status</th>
@@ -136,6 +218,12 @@
                                              {{ $voucher->due_date ? $voucher->due_date->format('d-M-Y') : 'N/A' }}
                                          </td>
                                          <td class="px-4 py-3 text-right font-medium text-slate-800 dark:text-slate-200">
+                                             PKR {{ number_format($voucher->subtotal, 2) }}
+                                         </td>
+                                         <td class="px-4 py-3 text-right font-semibold text-amber-600">
+                                             {{ ((float) $voucher->discount_amount + (float) $voucher->scholarship_amount) > 0 ? '-PKR '.number_format((float) $voucher->discount_amount + (float) $voucher->scholarship_amount, 2) : '—' }}
+                                         </td>
+                                         <td class="px-4 py-3 text-right font-bold text-[#082245] dark:text-blue-200">
                                              PKR {{ number_format($voucher->total_amount, 2) }}
                                          </td>
                                          <td class="px-4 py-3 text-right text-emerald-600 font-semibold">
@@ -220,7 +308,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="px-4 py-6 text-center text-slate-400">
+                                        <td colspan="10" class="px-4 py-6 text-center text-slate-400">
                                             No vouchers generated for this account.
                                         </td>
                                     </tr>
@@ -237,8 +325,8 @@
                     <h4 class="text-base font-bold text-slate-800 dark:text-slate-200">Payments Collection & Receipt Log</h4>
                 </div>
                 <div class="p-6">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm border-collapse text-left">
+                    <div class="fee-account-table-frame w-full">
+                        <table class="fee-payment-history-table w-full border-collapse text-left">
                             <thead>
                                 <tr class="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-medium">
                                     <th class="px-4 py-3 border-b border-slate-100 dark:border-slate-800">Receipt No</th>

@@ -128,8 +128,10 @@ class FeeStructureResource extends Resource
                 // No filters needed since it is a simple list
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->visible(fn () => filament()->auth()->user()->hasRole('Super Admin')),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make()
+                        ->visible(fn () => filament()->auth()->user()->hasRole('Super Admin')),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->bulkActions([]);
     }

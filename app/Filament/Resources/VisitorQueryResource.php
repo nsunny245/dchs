@@ -3,6 +3,8 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\VisitorQueryResource\Pages;
+use App\Models\Admission;
+use App\Models\Course;
 use App\Models\VisitorQuery;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -16,7 +18,9 @@ class VisitorQueryResource extends Resource
     protected static ?string $model = VisitorQuery::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
+
     protected static ?string $navigationGroup = 'Student Relations';
+
     protected static ?int $navigationSort = 0; // Top item in Student Relations
 
     public static function form(Form $form): Form
@@ -30,7 +34,7 @@ class VisitorQueryResource extends Resource
                             ->relationship('campus', 'name')
                             ->required()
                             ->default(fn () => filament()->auth()->user()->campus_id)
-                            ->disabled(fn () => !filament()->auth()->user()->hasRole('Super Admin'))
+                            ->disabled(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
                             ->dehydrated(),
                         Forms\Components\TextInput::make('visitor_name')
                             ->label('Visitor / Student Name')
@@ -138,35 +142,37 @@ class VisitorQueryResource extends Resource
                     ->relationship('desiredCourse', 'name'),
             ])
             ->actions([
-                Tables\Actions\Action::make('convertToAdmission')
-                    ->label('Convert to Admission')
-                    ->icon('heroicon-o-user-plus')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->modalHeading('Convert Inquiry to Admission')
-                    ->modalDescription('This will change the query status to Admitted and create a draft Admission record pre-filled with this student\'s details.')
-                    ->action(function (VisitorQuery $record) {
-                        $record->update(['status' => 'admitted']);
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('convertToAdmission')
+                        ->label('Convert to Admission')
+                        ->icon('heroicon-o-user-plus')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Convert Inquiry to Admission')
+                        ->modalDescription('This will change the query status to Admitted and create a draft Admission record pre-filled with this student\'s details.')
+                        ->action(function (VisitorQuery $record) {
+                            $record->update(['status' => 'admitted']);
 
-                        $admission = \App\Models\Admission::create([
-                            'campus_id' => $record->campus_id,
-                            'applicant_name' => $record->visitor_name,
-                            'father_name' => $record->father_name ?? ($record->relation_to_student === 'father' ? $record->visitor_name : 'To Be Filled'),
-                            'cnic' => $record->cnic ?? ('TEMP-' . time() . '-' . rand(100, 999)),
-                            'dob' => $record->dob ? $record->dob->format('Y-m-d') : now()->subYears(18)->format('Y-m-d'),
-                            'gender' => $record->gender ?? 'female',
-                            'phone' => $record->phone,
-                            'address' => $record->address ?? 'Pending address',
-                            'course_id' => $record->desired_course_id ?? \App\Models\Course::first()?->id ?? 1,
-                            'previous_education' => $record->previous_education,
-                            'reference' => 'Inquiry (' . $record->came_by . ')',
-                            'status' => 'pending',
-                        ]);
+                            $admission = Admission::create([
+                                'campus_id' => $record->campus_id,
+                                'applicant_name' => $record->visitor_name,
+                                'father_name' => $record->father_name ?? ($record->relation_to_student === 'father' ? $record->visitor_name : 'To Be Filled'),
+                                'cnic' => $record->cnic ?? ('TEMP-'.time().'-'.rand(100, 999)),
+                                'dob' => $record->dob ? $record->dob->format('Y-m-d') : now()->subYears(18)->format('Y-m-d'),
+                                'gender' => $record->gender ?? 'female',
+                                'phone' => $record->phone,
+                                'address' => $record->address ?? 'Pending address',
+                                'course_id' => $record->desired_course_id ?? Course::first()?->id ?? 1,
+                                'previous_education' => $record->previous_education,
+                                'reference' => 'Inquiry ('.$record->came_by.')',
+                                'status' => 'pending',
+                            ]);
 
-                        return redirect(AdmissionResource::getUrl('edit', ['record' => $admission]));
-                    }),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                            return redirect(AdmissionResource::getUrl('edit', ['record' => $admission]));
+                        }),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -180,7 +186,7 @@ class VisitorQueryResource extends Resource
         $query = parent::getEloquentQuery();
         $user = filament()->auth()->user();
 
-        if ($user && $user->campus_id && !$user->hasRole('Super Admin')) {
+        if ($user && $user->campus_id && ! $user->hasRole('Super Admin')) {
             $query->where('campus_id', $user->campus_id);
         }
 

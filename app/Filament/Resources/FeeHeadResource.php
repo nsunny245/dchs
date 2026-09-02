@@ -9,15 +9,17 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 class FeeHeadResource extends Resource
 {
     protected static ?string $model = FeeHead::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
+
     protected static ?string $navigationGroup = 'Finance';
+
     protected static ?string $navigationLabel = 'Fee Heads';
+
     protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
@@ -115,8 +117,10 @@ class FeeHeadResource extends Resource
                 Tables\Filters\SelectFilter::make('applies_to'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),

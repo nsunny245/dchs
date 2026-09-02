@@ -6,6 +6,7 @@ use App\Models\FranchisorPaymentInstallment;
 use App\Support\DashboardImage;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -97,98 +98,100 @@ class SuperAdminInstallmentsRelationManager extends RelationManager
                 Tables\Actions\CreateAction::make(),
             ])
             ->actions([
-                Tables\Actions\Action::make('sendToFranchisor')
-                    ->label('Send')
-                    ->icon('heroicon-o-paper-airplane')
-                    ->color('info')
-                    ->visible(fn (FranchisorPaymentInstallment $record) => !$record->is_published)
-                    ->action(function (FranchisorPaymentInstallment $record) {
-                        $record->update([
-                            'is_published' => true,
-                         ]);
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('sendToFranchisor')
+                        ->label('Send')
+                        ->icon('heroicon-o-paper-airplane')
+                        ->color('info')
+                        ->visible(fn (FranchisorPaymentInstallment $record) => ! $record->is_published)
+                        ->action(function (FranchisorPaymentInstallment $record) {
+                            $record->update([
+                                'is_published' => true,
+                            ]);
 
-                         \Filament\Notifications\Notification::make()
-                             ->title('Sent to Franchisor')
-                             ->success()
-                             ->body('This payment installment has been published to the franchisor dashboard.')
-                             ->send();
-                    }),
-                Tables\Actions\Action::make('recordPayment')
-                    ->label('Record Payment')
-                    ->icon('heroicon-o-currency-dollar')
-                    ->color('success')
-                    ->visible(fn (FranchisorPaymentInstallment $record) => $record->status !== 'paid')
-                    ->form([
-                        Forms\Components\Select::make('payment_method')
-                            ->options([
-                                'bank_transfer' => 'Bank Transfer',
-                                'cash' => 'Cash',
-                                'cheque' => 'Cheque',
-                                'online_deposit' => 'Online Deposit',
-                            ])
-                            ->required()
-                            ->default('bank_transfer'),
-                        Forms\Components\TextInput::make('transaction_id')
-                            ->label('Transaction Reference / ID')
-                            ->maxLength(255),
-                        Forms\Components\DatePicker::make('paid_date')
-                            ->label('Payment Date')
-                            ->default(now())
-                            ->required(),
-                    ])
-                    ->action(function (FranchisorPaymentInstallment $record, array $data) {
-                        $record->update([
-                            'status' => 'paid',
-                            'payment_method' => $data['payment_method'],
-                            'transaction_id' => $data['transaction_id'] ?? null,
-                            'paid_date' => $data['paid_date'],
-                            'is_published' => true, // Auto publish once paid
-                        ]);
+                            Notification::make()
+                                ->title('Sent to Franchisor')
+                                ->success()
+                                ->body('This payment installment has been published to the franchisor dashboard.')
+                                ->send();
+                        }),
+                    Tables\Actions\Action::make('recordPayment')
+                        ->label('Record Payment')
+                        ->icon('heroicon-o-currency-dollar')
+                        ->color('success')
+                        ->visible(fn (FranchisorPaymentInstallment $record) => $record->status !== 'paid')
+                        ->form([
+                            Forms\Components\Select::make('payment_method')
+                                ->options([
+                                    'bank_transfer' => 'Bank Transfer',
+                                    'cash' => 'Cash',
+                                    'cheque' => 'Cheque',
+                                    'online_deposit' => 'Online Deposit',
+                                ])
+                                ->required()
+                                ->default('bank_transfer'),
+                            Forms\Components\TextInput::make('transaction_id')
+                                ->label('Transaction Reference / ID')
+                                ->maxLength(255),
+                            Forms\Components\DatePicker::make('paid_date')
+                                ->label('Payment Date')
+                                ->default(now())
+                                ->required(),
+                        ])
+                        ->action(function (FranchisorPaymentInstallment $record, array $data) {
+                            $record->update([
+                                'status' => 'paid',
+                                'payment_method' => $data['payment_method'],
+                                'transaction_id' => $data['transaction_id'] ?? null,
+                                'paid_date' => $data['paid_date'],
+                                'is_published' => true, // Auto publish once paid
+                            ]);
 
-                        \Filament\Notifications\Notification::make()
-                            ->title('Payment Recorded')
-                            ->success()
-                            ->body('The payment has been successfully recorded and applied.')
-                            ->send();
-                    }),
-                Tables\Actions\Action::make('approve')
-                    ->label('Verify')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->visible(fn (FranchisorPaymentInstallment $record) => $record->status === 'pending')
-                    ->action(function (FranchisorPaymentInstallment $record) {
-                        $record->update([
-                            'status' => 'paid',
-                            'paid_date' => now(),
-                        ]);
+                            Notification::make()
+                                ->title('Payment Recorded')
+                                ->success()
+                                ->body('The payment has been successfully recorded and applied.')
+                                ->send();
+                        }),
+                    Tables\Actions\Action::make('approve')
+                        ->label('Verify')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->visible(fn (FranchisorPaymentInstallment $record) => $record->status === 'pending')
+                        ->action(function (FranchisorPaymentInstallment $record) {
+                            $record->update([
+                                'status' => 'paid',
+                                'paid_date' => now(),
+                            ]);
 
-                        \Filament\Notifications\Notification::make()
-                            ->title('Payment Verified')
-                            ->success()
-                            ->body('The installment payment has been approved and marked as verified paid.')
-                            ->send();
-                    }),
-                Tables\Actions\Action::make('reject')
-                    ->label('Reject')
-                    ->icon('heroicon-o-x-circle')
-                    ->color('danger')
-                    ->visible(fn (FranchisorPaymentInstallment $record) => $record->status === 'pending')
-                    ->action(function (FranchisorPaymentInstallment $record) {
-                        $record->update([
-                            'status' => 'unpaid',
-                            'payment_method' => null,
-                            'transaction_id' => null,
-                            'receipt_path' => null,
-                        ]);
+                            Notification::make()
+                                ->title('Payment Verified')
+                                ->success()
+                                ->body('The installment payment has been approved and marked as verified paid.')
+                                ->send();
+                        }),
+                    Tables\Actions\Action::make('reject')
+                        ->label('Reject')
+                        ->icon('heroicon-o-x-circle')
+                        ->color('danger')
+                        ->visible(fn (FranchisorPaymentInstallment $record) => $record->status === 'pending')
+                        ->action(function (FranchisorPaymentInstallment $record) {
+                            $record->update([
+                                'status' => 'unpaid',
+                                'payment_method' => null,
+                                'transaction_id' => null,
+                                'receipt_path' => null,
+                            ]);
 
-                        \Filament\Notifications\Notification::make()
-                            ->title('Payment Rejected')
-                            ->danger()
-                            ->body('The installment payment has been rejected.')
-                            ->send();
-                    }),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                            Notification::make()
+                                ->title('Payment Rejected')
+                                ->danger()
+                                ->body('The installment payment has been rejected.')
+                                ->send();
+                        }),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->bulkActions([]);
     }

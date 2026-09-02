@@ -63,7 +63,7 @@ class InstallmentPlanGenerator
             $amount = $base + ($number === $count ? $remainder : 0);
             $schedule[] = [
                 'number' => $number,
-                'title' => $number === 1 ? 'Admission & First Installment' : "Installment #{$number}",
+                'title' => "Tuition Installment #{$number}",
                 'due_date' => $firstDueDate->copy()->addMonthsNoOverflow($number - 1)->toDateString(),
                 'gross_paisa' => $amount,
                 'concession_paisa' => 0,

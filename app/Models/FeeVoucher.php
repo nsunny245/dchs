@@ -74,6 +74,11 @@ class FeeVoucher extends Model
         return $this->belongsTo(FeeStructure::class);
     }
 
+    public function installment(): BelongsTo
+    {
+        return $this->belongsTo(StudentInstallment::class, 'installment_id');
+    }
+
     public function generatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'generated_by');

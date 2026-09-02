@@ -6,21 +6,27 @@ use App\Filament\Resources\ContactSubmissionResource\Pages;
 use App\Models\ContactSubmission;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class ContactSubmissionResource extends Resource
 {
     protected static ?string $model = ContactSubmission::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-bottom-center-text';
+
     protected static ?string $navigationGroup = 'Student Relations';
+
     protected static ?int $navigationSort = 2;
 
     protected static ?string $navigationLabel = 'Contact Submissions';
+
     protected static ?string $modelLabel = 'Contact Submission';
+
     protected static ?string $pluralModelLabel = 'Contact Submissions';
 
     public static function form(Form $form): Form
@@ -100,55 +106,57 @@ class ContactSubmissionResource extends Resource
                 Tables\Filters\SelectFilter::make('status'),
             ])
             ->actions([
-                Tables\Actions\Action::make('respond')
-                    ->label('Answer')
-                    ->icon('heroicon-o-paper-airplane')
-                    ->color('success')
-                    ->form([
-                        Forms\Components\Textarea::make('response_message')
-                            ->label('Email Response')
-                            ->required()
-                            ->rows(6)
-                            ->placeholder('Type your response to the contact inquiry here. This will be sent as an email to the sender.'),
-                    ])
-                    ->action(function (ContactSubmission $record, array $data) {
-                        $record->update([
-                            'status' => 'responded',
-                            'response' => $data['response_message'],
-                        ]);
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('respond')
+                        ->label('Answer')
+                        ->icon('heroicon-o-paper-airplane')
+                        ->color('success')
+                        ->form([
+                            Forms\Components\Textarea::make('response_message')
+                                ->label('Email Response')
+                                ->required()
+                                ->rows(6)
+                                ->placeholder('Type your response to the contact inquiry here. This will be sent as an email to the sender.'),
+                        ])
+                        ->action(function (ContactSubmission $record, array $data) {
+                            $record->update([
+                                'status' => 'responded',
+                                'response' => $data['response_message'],
+                            ]);
 
-                        // Send the email response to the submitter
-                        try {
-                            \Illuminate\Support\Facades\Mail::raw(
-                                "Dear {$record->name},\n\n" .
-                                "Thank you for contacting Daniyal Group of Colleges.\n\n" .
-                                "We have received your query regarding: \"" . ($record->subject ?? 'General Query') . "\".\n\n" .
-                                "Our administration has responded to your message:\n" .
-                                "--------------------------------------------------\n" .
-                                "{$data['response_message']}\n" .
-                                "--------------------------------------------------\n\n" .
-                                "Best regards,\n" .
-                                "Administration Office\n" .
-                                "Daniyal Group of Colleges\n" .
-                                "https://daniyalgroupofcolleges.com",
-                                function ($message) use ($record) {
-                                    $message->to($record->email)
-                                        ->subject("Response to your inquiry - Daniyal Group of Colleges");
-                                }
-                            );
-                        } catch (\Exception $e) {
-                            \Illuminate\Support\Facades\Log::error("Failed sending response email: " . $e->getMessage());
-                        }
+                            // Send the email response to the submitter
+                            try {
+                                Mail::raw(
+                                    "Dear {$record->name},\n\n".
+                                    "Thank you for contacting Daniyal Group of Colleges.\n\n".
+                                    'We have received your query regarding: "'.($record->subject ?? 'General Query')."\".\n\n".
+                                    "Our administration has responded to your message:\n".
+                                    "--------------------------------------------------\n".
+                                    "{$data['response_message']}\n".
+                                    "--------------------------------------------------\n\n".
+                                    "Best regards,\n".
+                                    "Administration Office\n".
+                                    "Daniyal Group of Colleges\n".
+                                    'https://daniyalgroupofcolleges.com',
+                                    function ($message) use ($record) {
+                                        $message->to($record->email)
+                                            ->subject('Response to your inquiry - Daniyal Group of Colleges');
+                                    }
+                                );
+                            } catch (\Exception $e) {
+                                Log::error('Failed sending response email: '.$e->getMessage());
+                            }
 
-                        \Filament\Notifications\Notification::make()
-                            ->title('Response Sent')
-                            ->success()
-                            ->body('Your email response has been successfully sent to the sender.')
-                            ->send();
-                    })
-                    ->visible(fn (ContactSubmission $record) => $record->status !== 'responded'),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                            Notification::make()
+                                ->title('Response Sent')
+                                ->success()
+                                ->body('Your email response has been successfully sent to the sender.')
+                                ->send();
+                        })
+                        ->visible(fn (ContactSubmission $record) => $record->status !== 'responded'),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

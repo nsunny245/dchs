@@ -3,36 +3,56 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\FeeVoucherResource\Pages;
+use App\Models\FeeHead;
 use App\Models\FeeVoucher;
 use App\Models\Student;
-use App\Models\FeeHead;
-use App\Models\Admission;
 use App\Services\Fees\FeeVoucherService;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Filament\Notifications\Notification;
+use Illuminate\Support\HtmlString;
 
 class FeeVoucherResource extends Resource
 {
     protected static ?string $model = FeeVoucher::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-duplicate';
+
     protected static ?string $navigationGroup = 'Finance';
+
     protected static ?string $navigationLabel = 'Fee Vouchers';
+
     protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
+                Forms\Components\Placeholder::make('custom_voucher_intro')
+                    ->label('')
+                    ->content(new HtmlString(
+                        '<div class="rounded-2xl border border-amber-200 bg-gradient-to-r from-[#06192e] to-[#104b79] p-5 text-white shadow-sm">'
+                        .'<div class="text-xs font-bold uppercase tracking-widest text-amber-300">Additional fee voucher</div>'
+                        .'<div class="mt-1 text-lg font-black">Create a clear, student-specific payment request</div>'
+                        .'<p class="mt-2 text-sm text-blue-100">For a partial payment against an existing admission installment, use <strong>Collect Custom / Partial Amount</strong> on the student fee account. Use this form only for a separate additional charge.</p>'
+                        .'</div>'
+                    ))
+                    ->columnSpanFull(),
                 Forms\Components\Grid::make(3)
                     ->schema([
                         Forms\Components\Section::make('Voucher Information')
                             ->schema([
+                                Forms\Components\TextInput::make('title')
+                                    ->label('Voucher Title')
+                                    ->placeholder('e.g. Replacement ID Card Fee')
+                                    ->default('Custom Fee Voucher')
+                                    ->required()
+                                    ->maxLength(150)
+                                    ->columnSpanFull(),
                                 Forms\Components\Select::make('student_id')
                                     ->relationship('student', 'full_name')
                                     ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->full_name} ({$record->enrollment_number})")
@@ -45,6 +65,7 @@ class FeeVoucherResource extends Resource
                                             if ($student) {
                                                 $set('campus_id', $student->campus_id);
                                                 $set('course_id', $student->course_id);
+                                                $set('student_fee_account_id', $student->feeAccount?->id);
                                                 if ($student->admission) {
                                                     $set('admission_id', $student->admission_id);
                                                     $set('academic_session_id', $student->admission->academic_session_id);
@@ -52,10 +73,15 @@ class FeeVoucherResource extends Resource
                                             }
                                         }
                                     }),
+                                Forms\Components\Hidden::make('student_fee_account_id'),
                                 Forms\Components\Select::make('voucher_type')
                                     ->options([
                                         'new_enrollment' => 'New Enrollment',
                                         'monthly_installment' => 'Monthly Installment',
+                                        'examination_fee' => 'Examination Fee',
+                                        'verification_fee' => 'Verification Fee',
+                                        'miscellaneous_fee' => 'Miscellaneous Fee',
+                                        'other_fee' => 'Other Fee Head',
                                     ])
                                     ->default('monthly_installment')
                                     ->required()
@@ -92,13 +118,14 @@ class FeeVoucherResource extends Resource
                                 Forms\Components\Textarea::make('notes')
                                     ->columnSpanFull()
                                     ->placeholder('Add additional instructions or comments...'),
-                            ])->columns(2)->columnSpan(2),
+                            ])->columns(2)->columnSpan(2)
+                            ->extraAttributes(['class' => 'rounded-2xl']),
 
                         Forms\Components\Card::make()
                             ->schema([
                                 Forms\Components\Placeholder::make('summary_heading')
                                     ->label('')
-                                    ->content(new \Illuminate\Support\HtmlString('<strong class="text-lg">Calculated Summary</strong>')),
+                                    ->content(new HtmlString('<strong class="text-lg">Calculated Summary</strong>')),
                                 Forms\Components\TextInput::make('subtotal')
                                     ->numeric()
                                     ->prefix('PKR')
@@ -136,12 +163,13 @@ class FeeVoucherResource extends Resource
                                     ->afterStateUpdated(fn ($state, Forms\Set $set, Forms\Get $get) => self::updateTotal($set, $get)),
                                 Forms\Components\Placeholder::make('total_display')
                                     ->label('Total Payable (PKR)')
-                                    ->content(fn ($get) => 'PKR ' . number_format($get('total_amount'), 2)),
+                                    ->content(fn ($get) => 'PKR '.number_format($get('total_amount'), 2)),
                                 Forms\Components\Hidden::make('total_amount')
                                     ->default(0.00),
                                 Forms\Components\Hidden::make('balance_amount')
                                     ->default(0.00),
-                            ])->columnSpan(1),
+                            ])->columnSpan(1)
+                            ->extraAttributes(['class' => 'rounded-2xl border-t-4 border-t-amber-400']),
                     ]),
 
                 Forms\Components\Section::make('Fee Voucher Items')
@@ -152,7 +180,13 @@ class FeeVoucherResource extends Resource
                             ->schema([
                                 Forms\Components\Select::make('fee_head_id')
                                     ->label('Fee Head')
-                                    ->options(fn () => FeeHead::where('is_active', true)->pluck('name', 'id'))
+                                    ->options(fn (Forms\Get $get) => FeeHead::query()
+                                        ->where('is_active', true)
+                                        ->where(fn (Builder $query) => $query
+                                            ->whereNull('course_id')
+                                            ->orWhere('course_id', $get('../../course_id')))
+                                        ->orderBy('sort_order')
+                                        ->pluck('name', 'id'))
                                     ->required()
                                     ->live()
                                     ->afterStateUpdated(function ($state, Forms\Set $set) {
@@ -167,31 +201,15 @@ class FeeVoucherResource extends Resource
                                     }),
                                 Forms\Components\TextInput::make('description')
                                     ->required(),
-                                Forms\Components\TextInput::make('quantity')
-                                    ->numeric()
-                                    ->default(1)
-                                    ->required()
-                                    ->live(onBlur: true)
-                                    ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get) {
-                                        $qty = (int)$get('quantity');
-                                        $unit = (float)$get('unit_amount');
-                                        $set('amount', $qty * $unit);
-                                    }),
-                                Forms\Components\TextInput::make('unit_amount')
-                                    ->numeric()
-                                    ->prefix('PKR')
-                                    ->required()
-                                    ->live(onBlur: true)
-                                    ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get) {
-                                        $qty = (int)$get('quantity');
-                                        $unit = (float)$get('unit_amount');
-                                        $set('amount', $qty * $unit);
-                                    }),
+                                Forms\Components\Hidden::make('quantity')->default(1),
+                                Forms\Components\Hidden::make('unit_amount')->default(0),
                                 Forms\Components\TextInput::make('amount')
+                                    ->label('Amount')
                                     ->numeric()
                                     ->prefix('PKR')
                                     ->required()
-                                    ->readOnly(),
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(fn ($state, Forms\Set $set) => $set('unit_amount', $state ?: 0)),
                                 Forms\Components\Select::make('adjustment_type')
                                     ->options([
                                         'debit' => 'Debit (Addition)',
@@ -201,7 +219,7 @@ class FeeVoucherResource extends Resource
                                     ->default('debit')
                                     ->required(),
                             ])
-                            ->columns(6)
+                            ->columns(4)
                             ->defaultItems(1)
                             ->minItems(1)
                             ->live()
@@ -210,23 +228,24 @@ class FeeVoucherResource extends Resource
                                 $items = $get('items') ?? [];
                                 $sub = 0.00;
                                 foreach ($items as $item) {
-                                    $sub += (float)($item['amount'] ?? 0.00);
+                                    $sub += (float) ($item['amount'] ?? 0.00);
                                 }
                                 $set('subtotal', $sub);
                                 self::updateTotal($set, $get);
                             }),
-                    ])->columnSpanFull(),
+                    ])->columnSpanFull()
+                    ->extraAttributes(['class' => 'rounded-2xl']),
             ]);
     }
 
     public static function updateTotal(Forms\Set $set, Forms\Get $get): void
     {
-        $sub = (float)$get('subtotal');
-        $prev = (float)$get('previous_balance');
-        $late = (float)$get('late_fee_amount');
-        $fine = (float)$get('fine_amount');
-        $disc = (float)$get('discount_amount');
-        $schol = (float)$get('scholarship_amount');
+        $sub = (float) $get('subtotal');
+        $prev = (float) $get('previous_balance');
+        $late = (float) $get('late_fee_amount');
+        $fine = (float) $get('fine_amount');
+        $disc = (float) $get('discount_amount');
+        $schol = (float) $get('scholarship_amount');
 
         $total = ($sub + $prev + $late + $fine) - ($disc + $schol);
         if ($total < 0) {
@@ -295,6 +314,10 @@ class FeeVoucherResource extends Resource
                     ->options([
                         'new_enrollment' => 'New Enrollment',
                         'monthly_installment' => 'Monthly Installment',
+                        'examination_fee' => 'Examination Fee',
+                        'verification_fee' => 'Verification Fee',
+                        'miscellaneous_fee' => 'Miscellaneous Fee',
+                        'other_fee' => 'Other Fee Head',
                     ]),
                 Tables\Filters\SelectFilter::make('status')
                     ->options([

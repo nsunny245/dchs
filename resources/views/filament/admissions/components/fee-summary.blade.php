@@ -1,8 +1,9 @@
 <div
     x-data="{
         tuition: $wire.entangle('data.custom_tuition_fee'),
-        admissionFee: $wire.entangle('data.custom_admission_fee'),
         examinationFee: $wire.entangle('data.custom_examination_fee'),
+        verificationFee: $wire.entangle('data.custom_verification_fee'),
+        otherFees: $wire.entangle('data.custom_other_misc'),
         concession: $wire.entangle('data.concession_amount'),
         installments: $wire.entangle('data.custom_installment_count'),
         amount(value) {
@@ -14,16 +15,16 @@
                 maximumFractionDigits: 2,
             })
         },
+        netTuition() {
+            return Math.max(0, this.amount(this.tuition) - this.amount(this.concession))
+        },
         netPayable() {
-            return Math.max(
-                0,
-                this.amount(this.tuition) + this.amount(this.admissionFee) + this.amount(this.examinationFee) - this.amount(this.concession),
-            )
+            return this.netTuition() + this.amount(this.examinationFee) + this.amount(this.verificationFee) + this.amount(this.otherFees)
         },
         perInstallment() {
             const count = Math.max(1, Number.parseInt(this.installments || 5, 10))
 
-            return Math.max(0, (this.amount(this.tuition) - this.amount(this.concession)) / count)
+            return this.netTuition() / count
         },
     }"
     class="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-5"
@@ -31,10 +32,11 @@
     <div class="border-b pb-2 text-sm font-bold text-slate-800">Fee Package Summary</div>
     <div class="grid grid-cols-1 gap-4 text-xs sm:grid-cols-2">
         <div class="space-y-1">
-            <div><strong>Tuition Fee Total:</strong> PKR <span x-text="money(tuition)"></span></div>
-            <div><strong>Admission/Exam Fee:</strong> PKR <span x-text="money(amount(admissionFee) + amount(examinationFee))"></span></div>
-            <div><strong>Discount Waived:</strong> -PKR <span x-text="money(concession)"></span></div>
-            <div class="pt-1 text-sm font-bold text-emerald-700">Net Total Payable: PKR <span x-text="money(netPayable())"></span></div>
+            <div><strong>Program Tuition Package:</strong> PKR <span x-text="money(tuition)"></span></div>
+            <div><strong>Discount / Concession:</strong> -PKR <span x-text="money(concession)"></span></div>
+            <div class="pt-1 text-sm font-bold text-emerald-700">Net Tuition: PKR <span x-text="money(netTuition())"></span></div>
+            <div class="pt-2 text-slate-600"><strong>Additional fee breakdown:</strong> Exam PKR <span x-text="money(examinationFee)"></span>, Verification PKR <span x-text="money(verificationFee)"></span>, Other PKR <span x-text="money(otherFees)"></span></div>
+            <div class="pt-1 text-sm font-bold text-slate-900">Total Payable: PKR <span x-text="money(netPayable())"></span></div>
         </div>
         <div class="space-y-1">
             <div><strong>Installment Plan:</strong> <span x-text="Number.parseInt(installments || 5, 10)"></span> Custom Installments</div>

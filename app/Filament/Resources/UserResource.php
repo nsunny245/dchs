@@ -4,22 +4,29 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
+use App\Support\DashboardImage;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables\Table;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Toggle;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\ImageColumn;
-use App\Support\DashboardImage;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
+
     protected static ?string $navigationIcon = 'heroicon-o-users';
+
     protected static ?string $navigationGroup = 'Administration';
+
     protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
@@ -36,7 +43,7 @@ class UserResource extends Resource
                 ->required(fn (string $context): bool => $context === 'create')
                 ->dehydrated(fn ($state) => filled($state))
                 ->revealable(),
-            
+
             Select::make('roles')
                 ->relationship('roles', 'name')
                 ->multiple()
@@ -89,15 +96,17 @@ class UserResource extends Resource
                 ])
                 ->label('Status'),
         ])
-        ->filters([])
-        ->actions([
-            \Filament\Tables\Actions\EditAction::make(),
-        ])
-        ->bulkActions([
-            \Filament\Tables\Actions\BulkActionGroup::make([
-                \Filament\Tables\Actions\DeleteBulkAction::make(),
-            ]),
-        ]);
+            ->filters([])
+            ->actions([
+                ActionGroup::make([
+                    EditAction::make(),
+                ])->label('Actions')->button()->color('primary'),
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
+            ]);
     }
 
     public static function getPages(): array
@@ -110,8 +119,23 @@ class UserResource extends Resource
     }
 
     // 🔒 Authorization
-    public static function canViewAny(): bool { return true; }
-    public static function canCreate(): bool { return true; }
-    public static function canUpdate(\Illuminate\Database\Eloquent\Model $record): bool { return true; }
-    public static function canDelete(\Illuminate\Database\Eloquent\Model $record): bool { return true; }
+    public static function canViewAny(): bool
+    {
+        return true;
+    }
+
+    public static function canCreate(): bool
+    {
+        return true;
+    }
+
+    public static function canUpdate(Model $record): bool
+    {
+        return true;
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return true;
+    }
 }

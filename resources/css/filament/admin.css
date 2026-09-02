@@ -27,6 +27,79 @@
     --color-brand-info: #12365D;
 }
 
+/* Student financial report: every field and the row actions remain visible on
+   desktop without a horizontal table scrollbar. */
+@media (min-width: 1280px) {
+    .fi-resource-student-resource .fi-ta-content {
+        overflow-x: visible !important;
+    }
+
+    .fi-resource-student-resource .fi-ta-table {
+        font-size: .68rem !important;
+        table-layout: fixed !important;
+        width: 100% !important;
+    }
+
+    .fi-resource-student-resource .fi-ta-header-cell {
+        font-size: .64rem !important;
+        line-height: 1.15 !important;
+        padding: .55rem .3rem !important;
+        white-space: normal !important;
+    }
+
+    .fi-resource-student-resource .fi-ta-header-cell-label,
+    .fi-resource-student-resource .fi-ta-text-item-label {
+        font-size: inherit !important;
+        line-height: 1.25 !important;
+        overflow-wrap: anywhere !important;
+        white-space: normal !important;
+    }
+
+    .fi-resource-student-resource .fi-ta-cell {
+        min-width: 0 !important;
+        padding-inline: .12rem !important;
+    }
+
+    .fi-resource-student-resource .fi-ta-cell > div {
+        min-width: 0 !important;
+        padding: .45rem .28rem !important;
+    }
+
+    .fi-resource-student-resource .fi-ta-table th:nth-child(1),
+    .fi-resource-student-resource .fi-ta-table td:nth-child(1) { width: 2rem; }
+    .fi-resource-student-resource .fi-ta-table th:nth-child(2),
+    .fi-resource-student-resource .fi-ta-table td:nth-child(2) { width: 2.4rem; }
+    .fi-resource-student-resource .fi-ta-table th:nth-child(3),
+    .fi-resource-student-resource .fi-ta-table td:nth-child(3) { width: 3.4rem; }
+    .fi-resource-student-resource .fi-ta-table th:nth-child(4),
+    .fi-resource-student-resource .fi-ta-table td:nth-child(4) { width: 10.5rem; }
+    .fi-resource-student-resource .fi-ta-table th:nth-child(5),
+    .fi-resource-student-resource .fi-ta-table td:nth-child(5) { width: 11rem; }
+    .fi-resource-student-resource .fi-ta-table th:nth-child(6),
+    .fi-resource-student-resource .fi-ta-table td:nth-child(6) { width: 7.2rem; }
+    .fi-resource-student-resource .fi-ta-table th:nth-child(7),
+    .fi-resource-student-resource .fi-ta-table td:nth-child(7) { width: 9rem; }
+    .fi-resource-student-resource .fi-ta-table th:nth-child(8),
+    .fi-resource-student-resource .fi-ta-table td:nth-child(8) { width: 4rem; }
+    .fi-resource-student-resource .fi-ta-table th:nth-child(9),
+    .fi-resource-student-resource .fi-ta-table td:nth-child(9) { width: 6.5rem; }
+    .fi-resource-student-resource .fi-ta-table th:nth-child(n+10):nth-child(-n+14),
+    .fi-resource-student-resource .fi-ta-table td:nth-child(n+10):nth-child(-n+14) { width: 6.8rem; }
+    .fi-resource-student-resource .fi-ta-table th:last-child,
+    .fi-resource-student-resource .fi-ta-table td:last-child { width: 7.2rem; }
+
+    .fi-resource-student-resource .fi-ta-actions {
+        justify-content: center !important;
+        white-space: nowrap !important;
+    }
+
+    .fi-resource-student-resource .fi-ta-actions .fi-btn {
+        font-size: .67rem !important;
+        min-height: 2rem !important;
+        padding: .35rem .55rem !important;
+    }
+}
+
 :root {
     --dgc-navy-950: #06192E;
     --dgc-navy-900: #082245;
@@ -586,10 +659,65 @@ ol.fi-fo-wizard-header,
     }
 }
 
+/* Desktop reports use the full panel width; keep wide tables readable without
+   an extra bottom scrollbar. Compact actions wrap into their cells instead. */
+@media (min-width: 1025px) {
+    .fi-main-ctn,
+    .fi-page,
+    .fi-ta-ctn,
+    .fi-ta-content {
+        max-width: none !important;
+        width: 100% !important;
+    }
+
+    .fi-ta-content {
+        overflow-x: visible !important;
+    }
+
+    .fi-ta-table {
+        width: 100% !important;
+        table-layout: auto !important;
+    }
+}
+
 .admission-page {
     margin-inline: auto;
     max-width: 1440px;
     width: 100%;
+}
+
+/* Fee account tables must expose every amount and action without requiring a
+   second horizontal navigation area inside the page. */
+.fee-account-table-frame {
+    min-width: 0;
+    overflow-x: visible;
+}
+
+.fee-voucher-schedule-table,
+.fee-payment-history-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.fee-voucher-schedule-table th,
+.fee-voucher-schedule-table td {
+    font-size: 0.7rem;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    padding: 0.7rem 0.35rem !important;
+    vertical-align: middle;
+}
+
+.fee-voucher-schedule-table a,
+.fee-voucher-schedule-table button {
+    white-space: normal;
+}
+
+.fee-payment-history-table th,
+.fee-payment-history-table td {
+    font-size: 0.75rem;
+    overflow-wrap: anywhere;
+    padding-inline: 0.65rem !important;
 }
 
 .admission-page .fi-form,
@@ -1506,6 +1634,250 @@ div[role="tabpanel"].fi-fo-wizard-step {
     border-bottom: 1px solid #eee4d0 !important;
 }
 
+.admission-page .admission-installment-builder {
+    background:
+        radial-gradient(circle at 100% 0, rgba(224, 161, 38, .13), transparent 30%),
+        linear-gradient(180deg, #fff 0%, #fbfdff 100%) !important;
+    border: 1px solid #e6c77f !important;
+    box-shadow: 0 10px 28px rgba(8, 34, 69, .08) !important;
+    overflow: hidden !important;
+}
+
+.admission-page .admission-installment-builder > .fi-section-header {
+    background: linear-gradient(100deg, #fff9ed 0%, #fff 74%) !important;
+    padding: 1.25rem 1.35rem !important;
+}
+
+.admission-page .admission-installment-builder > .fi-section-content-ctn > .fi-section-content {
+    padding: 1.25rem 1.35rem 1.4rem !important;
+}
+
+.admission-page .admission-installment-builder .fi-section-header-title {
+    font-size: 1rem !important;
+}
+
+.admission-page .admission-installment-builder .fi-section-header-description {
+    font-size: .72rem !important;
+    line-height: 1.55 !important;
+    max-width: 52rem;
+}
+
+.admission-installment-guide {
+    background: linear-gradient(115deg, var(--dgc-navy-950), var(--dgc-navy-800));
+    border: 1px solid rgba(231, 182, 90, .42);
+    border-radius: .8rem;
+    box-shadow: 0 9px 20px rgba(6, 25, 46, .14);
+    color: #fff;
+    overflow: hidden;
+    padding: 1.1rem 1.2rem;
+    position: relative;
+}
+
+.admission-installment-guide::after {
+    background: rgba(224, 161, 38, .13);
+    border-radius: 50%;
+    content: "";
+    height: 9rem;
+    position: absolute;
+    right: -3rem;
+    top: -5rem;
+    width: 9rem;
+}
+
+.admission-installment-guide__title {
+    align-items: center;
+    display: flex;
+    gap: .75rem;
+    position: relative;
+    z-index: 1;
+}
+
+.admission-installment-guide__icon {
+    align-items: center;
+    background: var(--dgc-gold-500);
+    border-radius: .6rem;
+    color: var(--dgc-navy-950);
+    display: inline-flex;
+    flex: 0 0 auto;
+    height: 2.45rem;
+    justify-content: center;
+    width: 2.45rem;
+}
+
+.admission-installment-guide__icon svg {
+    height: 1.3rem;
+    width: 1.3rem;
+}
+
+.admission-installment-guide__title strong,
+.admission-installment-guide__title small {
+    display: block;
+}
+
+.admission-installment-guide__title strong {
+    font-size: .88rem;
+}
+
+.admission-installment-guide__title small {
+    color: #d9e2ec;
+    font-size: .68rem;
+    line-height: 1.45;
+    margin-top: .12rem;
+}
+
+.admission-installment-guide__steps {
+    display: grid;
+    gap: .65rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.admission-installment-guide__steps li {
+    background: rgba(255, 255, 255, .085);
+    border: 1px solid rgba(255, 255, 255, .12);
+    border-radius: .65rem;
+    display: grid;
+    gap: .08rem .55rem;
+    grid-template-columns: 1.75rem minmax(0, 1fr);
+    padding: .65rem;
+}
+
+.admission-installment-guide__steps li > span {
+    align-items: center;
+    background: rgba(224, 161, 38, .18);
+    border: 1px solid rgba(231, 182, 90, .5);
+    border-radius: 50%;
+    color: var(--dgc-gold-400);
+    display: inline-flex;
+    font-size: .68rem;
+    font-weight: 800;
+    grid-row: 1 / 3;
+    height: 1.75rem;
+    justify-content: center;
+    width: 1.75rem;
+}
+
+.admission-installment-guide__steps strong {
+    font-size: .68rem;
+}
+
+.admission-installment-guide__steps small {
+    color: #c8d3df;
+    font-size: .59rem;
+    line-height: 1.4;
+}
+
+.admission-page .admission-installment-builder .fi-input-wrp {
+    height: 3.05rem !important;
+    min-height: 3.05rem !important;
+}
+
+.admission-page .admission-installment-builder .fi-fo-field-wrp-label label {
+    font-size: .75rem !important;
+    font-weight: 750 !important;
+}
+
+.admission-page .admission-installment-builder .fi-input {
+    font-size: .8rem !important;
+}
+
+.admission-page .admission-installment-repeater > ul > .grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.admission-page .admission-installment-repeater .fi-fo-repeater-item {
+    border: 1px solid #dbe4ee !important;
+    border-left: 5px solid var(--dgc-gold-500) !important;
+    border-radius: .8rem !important;
+    box-shadow: 0 6px 16px rgba(8, 34, 69, .065) !important;
+    overflow: hidden;
+    padding: 0 !important;
+}
+
+.admission-page .admission-installment-repeater .fi-fo-repeater-item:nth-child(4n + 2) {
+    border-left-color: var(--dgc-info) !important;
+}
+
+.admission-page .admission-installment-repeater .fi-fo-repeater-item:nth-child(4n + 3) {
+    border-left-color: var(--dgc-success) !important;
+}
+
+.admission-page .admission-installment-repeater .fi-fo-repeater-item:nth-child(4n + 4) {
+    border-left-color: var(--dgc-navy-700) !important;
+}
+
+.admission-page .admission-installment-repeater .fi-fo-repeater-item-header {
+    background: linear-gradient(90deg, #f8fafc, #fff);
+    min-height: 3.1rem;
+    padding: .65rem 1rem !important;
+}
+
+.admission-page .admission-installment-repeater .fi-fo-repeater-item-header h4 {
+    color: var(--dgc-navy-900) !important;
+    font-size: .78rem !important;
+    font-weight: 800 !important;
+}
+
+.admission-page .admission-installment-repeater .fi-fo-repeater-item-content {
+    background: #fff;
+    padding: 1.1rem !important;
+}
+
+.admission-page .admission-installment-repeater .fi-fo-repeater-item-content > .fi-fo-component-ctn {
+    align-items: end;
+    display: grid !important;
+    gap: 1rem !important;
+    grid-template-columns: minmax(0, 1.35fr) minmax(10rem, .8fr) minmax(11rem, .85fr) !important;
+}
+
+.admission-return-notice {
+    align-items: center;
+    background: linear-gradient(105deg, #fff8e8, #fff);
+    border: 1px solid #e9c878;
+    border-radius: .8rem;
+    box-shadow: 0 6px 18px rgba(8, 34, 69, .06);
+    color: var(--dgc-navy-900);
+    display: flex;
+    gap: .85rem;
+    margin-bottom: 1rem;
+    padding: .9rem 1rem;
+}
+
+.admission-return-notice__icon {
+    align-items: center;
+    background: var(--dgc-gold-500);
+    border-radius: .6rem;
+    color: var(--dgc-navy-950);
+    display: inline-flex;
+    flex: 0 0 auto;
+    height: 2.55rem;
+    justify-content: center;
+    width: 2.55rem;
+}
+
+.admission-return-notice__icon svg {
+    height: 1.3rem;
+    width: 1.3rem;
+}
+
+.admission-return-notice strong,
+.admission-return-notice small {
+    display: block;
+}
+
+.admission-return-notice strong {
+    font-size: .82rem;
+}
+
+.admission-return-notice small {
+    color: var(--dgc-text-secondary);
+    font-size: .68rem;
+    line-height: 1.5;
+    margin-top: .12rem;
+}
+
 .admission-page .fi-fo-wizard > div:last-child {
     align-items: center !important;
     background: rgba(255, 255, 255, .97);
@@ -1752,23 +2124,24 @@ div[role="tabpanel"].fi-fo-wizard-step {
 @media (min-width: 1440px) {
     .admission-page .admission-fee-step > .fi-fo-component-ctn {
         display: grid !important;
-        gap: .75rem !important;
-        grid-template-columns: minmax(0, 1.7fr) minmax(20rem, 1fr) !important;
+        gap: 1rem !important;
+        grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
     }
 
     .admission-page .admission-fee-step > .fi-fo-component-ctn > * {
         grid-column: 1 / -1 !important;
     }
 
-    .admission-page .admission-fee-step > .fi-fo-component-ctn > :nth-child(3) {
-        grid-column: 1 !important;
-        grid-row: 3 !important;
+    .admission-page .admission-fee-step .admission-fee-panel--tuition {
+        grid-column: span 7 !important;
     }
 
-    .admission-page .admission-fee-step > .fi-fo-component-ctn > :nth-child(5) {
-        align-self: stretch;
-        grid-column: 2 !important;
-        grid-row: 3 !important;
+    .admission-page .admission-fee-step .admission-fee-panel--breakdown {
+        grid-column: span 5 !important;
+    }
+
+    .admission-page .admission-fee-step .admission-installment-builder {
+        grid-column: 1 / -1 !important;
     }
 
     .admission-page .admission-documents-step .fi-section-content > .fi-fo-component-ctn {
@@ -1821,6 +2194,14 @@ div[role="tabpanel"].fi-fo-wizard-step {
 
     .admission-context {
         grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+    }
+
+    .admission-installment-guide__steps {
+        grid-template-columns: 1fr;
+    }
+
+    .admission-page .admission-installment-repeater .fi-fo-repeater-item-content > .fi-fo-component-ctn {
+        grid-template-columns: 1fr !important;
     }
 
     .admission-page .fi-fo-wizard > div:last-child {

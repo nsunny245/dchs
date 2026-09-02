@@ -16,17 +16,19 @@ class ExamResource extends Resource
     protected static ?string $model = Exam::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
+
     protected static ?string $navigationGroup = 'Academic Management';
+
     protected static ?int $navigationSort = 4;
 
     public static function shouldRegisterNavigation(): bool
     {
-        return !(filament()->auth()->user()?->hasRole('Admission Officer') ?? false);
+        return ! (filament()->auth()->user()?->hasRole('Admission Officer') ?? false);
     }
 
     public static function canViewAny(): bool
     {
-        return !(filament()->auth()->user()?->hasRole('Admission Officer') ?? false);
+        return ! (filament()->auth()->user()?->hasRole('Admission Officer') ?? false);
     }
 
     public static function form(Form $form): Form
@@ -39,7 +41,7 @@ class ExamResource extends Resource
                             ->relationship('campus', 'name')
                             ->required()
                             ->default(fn () => filament()->auth()->user()->campus_id)
-                            ->disabled(fn () => !filament()->auth()->user()->hasRole('Super Admin'))
+                            ->disabled(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
                             ->dehydrated(),
                         Forms\Components\TextInput::make('exam_name')
                             ->required()
@@ -78,11 +80,13 @@ class ExamResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('campus')
                     ->relationship('campus', 'name')
-                    ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin')),
+                    ->hidden(fn () => ! filament()->auth()->user()->hasRole('Super Admin')),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -94,8 +98,8 @@ class ExamResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-        
-        if (!filament()->auth()->user()->hasRole('Super Admin')) {
+
+        if (! filament()->auth()->user()->hasRole('Super Admin')) {
             $query->where('campus_id', filament()->auth()->user()->campus_id);
         }
 

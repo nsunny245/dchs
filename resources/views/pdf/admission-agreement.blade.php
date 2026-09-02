@@ -549,51 +549,6 @@
             </table>
         </div>
 
-        @php
-            // Pull custom or official fee settings
-            $isCustom = ($admission->custom_installment_count !== null);
-            
-            if ($isCustom) {
-                $tuitionTotal = (float) $admission->custom_tuition_fee;
-                $admissionFee = (float) $admission->custom_admission_fee;
-                $enrollmentFee = (float) $admission->custom_enrollment_fee;
-                $verificationFee = (float) $admission->custom_verification_fee;
-                $examinationFee = (float) $admission->custom_examination_fee;
-                $otherMisc = (float) $admission->custom_other_misc;
-                $installmentCount = (int) $admission->custom_installment_count;
-            } else {
-                $structure = \App\Models\FeeStructure::where('course_id', $admission->course_id)->first() 
-                    ?? \App\Models\FeeStructure::first();
-
-                $tuitionTotal = (float) ($structure?->total_fee ?? 0);
-
-                $admissionHead = \App\Models\FeeHead::where('course_id', $admission->course_id)->where('category', 'admission')->first();
-                $admissionFee = (float) ($admissionHead?->default_amount ?: 0.00);
-
-                $endowmentHead = \App\Models\FeeHead::where('course_id', $admission->course_id)->where('category', 'affiliation')->first();
-                $enrollmentFee = (float) ($endowmentHead?->default_amount ?: 0.00);
-
-                $verificationHead = \App\Models\FeeHead::where('course_id', $admission->course_id)->where('code', 'like', 'VERIFICATION_%')->first();
-                $verificationFee = (float) ($verificationHead?->default_amount ?: 0.00);
-
-                $examHead = \App\Models\FeeHead::where('course_id', $admission->course_id)->where('code', 'like', 'EXAM_%')->first();
-                $examinationFee = (float) ($examHead?->default_amount ?: 0.00);
-
-                $miscHead = \App\Models\FeeHead::where('course_id', $admission->course_id)->where('category', 'miscellaneous')->first();
-                $hostelHead = \App\Models\FeeHead::where('course_id', $admission->course_id)->where('category', 'hostel')->first();
-                $otherMisc = (float) ($miscHead?->default_amount ?: 0.00) + (float) ($hostelHead?->default_amount ?: 0.00);
-
-                $installmentCount = (int) ($structure?->installment_count ?? 12);
-            }
-
-            $totalPackage = $tuitionTotal + $admissionFee + $enrollmentFee + $verificationFee + $examinationFee + $otherMisc;
-            $concession = (float) $admission->concession_amount;
-            $netPayable = max(0, $totalPackage - $concession);
-            
-            $perInstallment = $installmentCount > 0 ? round(($tuitionTotal - $concession) / $installmentCount, 2) : 0.00;
-            if ($perInstallment < 0) $perInstallment = 0.00;
-        @endphp
-
         <!-- Fee Structure and month-by-month installments -->
         <div class="fee-flex-container">
             <!-- Customized fee details breakdown -->
@@ -603,22 +558,16 @@
                 </div>
                 <table class="data-table">
                     <tr>
-                        <td class="data-label">Admission Fee</td>
-                        <td class="data-value">PKR {{ number_format($admissionFee, 2) }}</td>
-                        <td class="data-label">Tuition Fee Total</td>
-                        <td class="data-value">PKR {{ number_format($tuitionTotal, 2) }}</td>
-                    </tr>
-                    <tr>
                         <td class="data-label">Verification Fee</td>
-                        <td class="data-value">PKR {{ number_format($verificationFee, 2) }}</td>
-                        <td class="data-label">Enrollment / Affiliation</td>
-                        <td class="data-value">PKR {{ number_format($enrollmentFee, 2) }}</td>
+                        <td class="data-value">PKR {{ number_format($feePlan['verification'], 2) }}</td>
+                        <td class="data-label">Examination Fee</td>
+                        <td class="data-value">PKR {{ number_format($feePlan['examination'], 2) }}</td>
                     </tr>
                     <tr>
-                        <td class="data-label">Examination Fee</td>
-                        <td class="data-value">PKR {{ number_format($examinationFee, 2) }}</td>
-                        <td class="data-label">Other / Misc Dues</td>
-                        <td class="data-value">PKR {{ number_format($otherMisc, 2) }}</td>
+                        <td class="data-label">Other Fees</td>
+                        <td class="data-value">PKR {{ number_format($feePlan['other'], 2) }}</td>
+                        <td class="data-label"></td>
+                        <td class="data-value"></td>
                     </tr>
                 </table>
             </div>
@@ -626,16 +575,16 @@
             <!-- Summary total box -->
             <div class="fee-summary-card">
                 <div class="fee-summary-row">
-                    <span>Total Package Dues:</span>
-                    <span>PKR {{ number_format($totalPackage, 2) }}</span>
+                    <span>Program Tuition (Admission Included):</span>
+                    <span>PKR {{ number_format($feePlan['tuition'], 2) }}</span>
                 </div>
                 <div class="fee-summary-row discount">
                     <span>Scholarship/Concession:</span>
-                    <span>-PKR {{ number_format($concession, 2) }}</span>
+                    <span>-PKR {{ number_format($feePlan['concession'], 2) }}</span>
                 </div>
                 <div class="fee-summary-total">
                     <span>Final Net Payable:</span>
-                    <span>PKR {{ number_format($netPayable, 2) }}</span>
+                    <span>PKR {{ number_format($feePlan['net_payable'], 2) }}</span>
                 </div>
             </div>
         </div>
@@ -643,16 +592,16 @@
         <!-- Installment Plan -->
         <div class="card-full">
             <div class="card-header">
-                📅 Customized Installment Plan ({{ $installmentCount }} Installments)
+                📅 Customized Installment Plan ({{ $feePlan['schedule']->count() }} Installments)
             </div>
             <div class="schedule-grid">
-                @for($i = 1; $i <= $installmentCount; $i++)
+                @foreach($feePlan['schedule'] as $installment)
                     <div class="schedule-item">
-                        <div class="schedule-title">Installment {{ $i }}</div>
-                        <div class="schedule-date">{{ now()->addMonths($i - 1)->format('10 M Y') }}</div>
-                        <div class="schedule-amount">PKR {{ number_format($perInstallment, 2) }}</div>
+                        <div class="schedule-title">{{ $installment['title'] }}</div>
+                        <div class="schedule-date">{{ $installment['due_date']->format('d M Y') }}</div>
+                        <div class="schedule-amount">PKR {{ number_format($installment['amount'], 2) }}</div>
                     </div>
-                @endfor
+                @endforeach
             </div>
         </div>
 
@@ -666,7 +615,7 @@
                 <div class="policy-item"><strong>2. Discipline:</strong> Professional conduct is mandatory. Zero tolerance for misconduct.</div>
                 <div class="policy-item"><strong>3. Payment Schedule:</strong> Installments must be paid by the 10th of every month.</div>
                 <div class="policy-item"><strong>4. Late Surcharge:</strong> Overdue payments incur late fees as per policy guidelines.</div>
-                <div class="policy-item"><strong>5. Non-Refundable:</strong> Admission, enrollment, and verification charges are non-refundable.</div>
+                <div class="policy-item"><strong>5. Non-Refundable:</strong> Verification, examination, and other itemized charges are non-refundable.</div>
                 <div class="policy-item"><strong>6. Integrity Check:</strong> Plagiarism or cheating results in academic suspension.</div>
                 <div class="policy-item"><strong>7. Uniform Policy:</strong> Students must adhere to the prescribed college dress code.</div>
                 <div class="policy-item"><strong>8. Facility Security:</strong> Students are liable for damage caused to library or labs.</div>

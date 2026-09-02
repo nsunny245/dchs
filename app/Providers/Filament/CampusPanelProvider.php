@@ -15,6 +15,7 @@ use App\Filament\Resources\LeaveRequestResource;
 use App\Filament\Resources\MarkResource;
 use App\Filament\Resources\StaffResource;
 use App\Filament\Resources\StudentResource;
+use App\Filament\Resources\TeacherAttendanceResource;
 use App\Filament\Resources\TimetableResource;
 use App\Filament\Resources\VisitorQueryResource;
 use App\Filament\Widgets\CampusFinancialOverviewWidget;
@@ -110,6 +111,7 @@ class CampusPanelProvider extends PanelProvider
                 ExamResource::class,
                 MarkResource::class,
                 StaffResource::class,
+                TeacherAttendanceResource::class,
                 LeaveRequestResource::class,
             ])
             ->pages([
@@ -143,6 +145,6 @@ class CampusPanelProvider extends PanelProvider
                 NavigationGroup::make('Academic Management')->collapsed(false),
                 NavigationGroup::make('Administration')->collapsed(false),
             ])
-            ->maxContentWidth('7xl');
+            ->maxContentWidth('full');
     }
 }

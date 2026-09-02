@@ -7,9 +7,6 @@ use App\Filament\Resources\AdmissionResource;
 use App\Models\AdmissionDraft;
 use App\Models\FranchisorStudentPayment;
 use App\Services\Admissions\AdmissionDraftService;
-use App\Services\Fees\ConcessionCalculator;
-use App\Services\Fees\InstallmentPlanGenerator;
-use App\Services\Fees\OfficialFeePlanData;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
@@ -44,7 +41,21 @@ class CreateAdmission extends CreateRecord
             $draft = AdmissionDraft::where('uuid', $this->draftUuid)
                 ->where('created_by', filament()->auth()->id())
                 ->firstOrFail();
-            $this->form->fill($draft->payload);
+            $payload = $draft->payload;
+
+            if (
+                empty($payload['custom_installments'])
+                && (int) ($payload['custom_installment_count'] ?? 0) > 0
+                && (float) ($payload['custom_tuition_fee'] ?? 0) > 0
+            ) {
+                $payload['custom_installments'] = AdmissionResource::buildInstallmentRows(
+                    (int) $payload['custom_installment_count'],
+                    $payload['custom_tuition_fee'],
+                    $payload['admission_date'] ?? now(),
+                );
+            }
+
+            $this->form->fill($payload);
         }
     }
 
@@ -147,14 +158,8 @@ class CreateAdmission extends CreateRecord
                 ->action('saveDraft')
                 ->color('gray')
                 ->extraAttributes(['class' => 'admission-action admission-action--draft']),
-            Actions\Action::make('submitAdmission')
-                ->label('Submit Admission')
-                ->icon('heroicon-o-check')
-                ->submit('create')
-                ->color('gray')
-                ->extraAttributes(['class' => 'admission-action admission-action--final admission-action--submit']),
             Actions\Action::make('submitAndGenerate')
-                ->label('Submit & Generate Documents')
+                ->label('Submit Admission & Generate Documents')
                 ->icon('heroicon-o-check-circle')
                 ->submit('create')
                 ->extraAttributes(['class' => 'admission-action admission-action--final admission-action--generate']),

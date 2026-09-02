@@ -3,6 +3,8 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\AdmissionInquiryResource\Pages;
+use App\Models\Admission;
+use App\Models\Course;
 use App\Models\VisitorQuery;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -16,11 +18,15 @@ class AdmissionInquiryResource extends Resource
     protected static ?string $model = VisitorQuery::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-envelope-open';
+
     protected static ?string $navigationGroup = 'Student Relations';
+
     protected static ?int $navigationSort = 1;
 
     protected static ?string $navigationLabel = 'Admission Inquiries';
+
     protected static ?string $modelLabel = 'Admission Inquiry';
+
     protected static ?string $pluralModelLabel = 'Admission Inquiries';
 
     public static function form(Form $form): Form
@@ -130,36 +136,38 @@ class AdmissionInquiryResource extends Resource
                     ->relationship('desiredCourse', 'name'),
             ])
             ->actions([
-                Tables\Actions\Action::make('convertToAdmission')
-                    ->label('Convert to Admission')
-                    ->icon('heroicon-o-user-plus')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->modalHeading('Convert Inquiry to Admission')
-                    ->modalDescription('This will change the query status to Admitted and create a draft Admission record pre-filled with this student\'s details.')
-                    ->action(function (VisitorQuery $record) {
-                        $record->update(['status' => 'admitted']);
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('convertToAdmission')
+                        ->label('Convert to Admission')
+                        ->icon('heroicon-o-user-plus')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Convert Inquiry to Admission')
+                        ->modalDescription('This will change the query status to Admitted and create a draft Admission record pre-filled with this student\'s details.')
+                        ->action(function (VisitorQuery $record) {
+                            $record->update(['status' => 'admitted']);
 
-                        $admission = \App\Models\Admission::create([
-                            'campus_id' => $record->campus_id,
-                            'applicant_name' => $record->visitor_name,
-                            'father_name' => $record->father_name ?? ($record->relation_to_student === 'father' ? $record->visitor_name : 'To Be Filled'),
-                            'cnic' => $record->cnic ?? ('TEMP-' . time() . '-' . rand(100, 999)),
-                            'dob' => $record->dob ? $record->dob->format('Y-m-d') : now()->subYears(18)->format('Y-m-d'),
-                            'gender' => $record->gender ?? 'female',
-                            'phone' => $record->phone,
-                            'address' => $record->address ?? 'Pending address',
-                            'course_id' => $record->desired_course_id ?? \App\Models\Course::first()?->id ?? 1,
-                            'previous_education' => $record->previous_education,
-                            'reference' => 'Inquiry (Online)',
-                            'status' => 'pending',
-                        ]);
+                            $admission = Admission::create([
+                                'campus_id' => $record->campus_id,
+                                'applicant_name' => $record->visitor_name,
+                                'father_name' => $record->father_name ?? ($record->relation_to_student === 'father' ? $record->visitor_name : 'To Be Filled'),
+                                'cnic' => $record->cnic ?? ('TEMP-'.time().'-'.rand(100, 999)),
+                                'dob' => $record->dob ? $record->dob->format('Y-m-d') : now()->subYears(18)->format('Y-m-d'),
+                                'gender' => $record->gender ?? 'female',
+                                'phone' => $record->phone,
+                                'address' => $record->address ?? 'Pending address',
+                                'course_id' => $record->desired_course_id ?? Course::first()?->id ?? 1,
+                                'previous_education' => $record->previous_education,
+                                'reference' => 'Inquiry (Online)',
+                                'status' => 'pending',
+                            ]);
 
-                        return redirect(AdmissionResource::getUrl('edit', ['record' => $admission]));
-                    })
-                    ->visible(fn (VisitorQuery $record) => $record->status !== 'admitted'),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                            return redirect(AdmissionResource::getUrl('edit', ['record' => $admission]));
+                        })
+                        ->visible(fn (VisitorQuery $record) => $record->status !== 'admitted'),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -173,7 +181,7 @@ class AdmissionInquiryResource extends Resource
         $query = parent::getEloquentQuery()->where('came_by', 'website');
         $user = filament()->auth()->user();
 
-        if ($user && $user->campus_id && !$user->hasRole('Super Admin')) {
+        if ($user && $user->campus_id && ! $user->hasRole('Super Admin')) {
             $query->where('campus_id', $user->campus_id);
         }
 

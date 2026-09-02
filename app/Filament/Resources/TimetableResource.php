@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\TimetableResource\Pages;
 use App\Models\Timetable;
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -16,18 +15,21 @@ class TimetableResource extends Resource
     protected static ?string $model = Timetable::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
+
     protected static ?string $navigationGroup = 'Academic Management';
+
     protected static ?string $navigationLabel = 'Program Timetables';
+
     protected static ?int $navigationSort = 3;
 
     public static function shouldRegisterNavigation(): bool
     {
-        return !filament()->auth()->user()->hasRole('Admission Officer');
+        return ! filament()->auth()->user()->hasRole('Admission Officer');
     }
 
     public static function canViewAny(): bool
     {
-        return !filament()->auth()->user()->hasRole('Admission Officer');
+        return ! filament()->auth()->user()->hasRole('Admission Officer');
     }
 
     public static function form(Form $form): Form
@@ -83,7 +85,7 @@ class TimetableResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('campus')
                     ->relationship('campus', 'name')
-                    ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin')),
+                    ->hidden(fn () => ! filament()->auth()->user()->hasRole('Super Admin')),
                 Tables\Filters\SelectFilter::make('course')
                     ->relationship('course', 'name')
                     ->label('Program'),
@@ -95,18 +97,20 @@ class TimetableResource extends Resource
                     ]),
             ])
             ->actions([
-                Tables\Actions\Action::make('edit_wizard')
-                    ->label('Edit Timetable')
-                    ->icon('heroicon-o-pencil-square')
-                    ->color('primary')
-                    ->url(fn (Timetable $record) => static::getUrl('edit', ['record' => $record->id])),
-                Tables\Actions\Action::make('export_pdf')
-                    ->label('PDF')
-                    ->icon('heroicon-o-document-arrow-down')
-                    ->color('gray')
-                    ->url(fn (Timetable $record) => route('pdf.timetable', $record->id))
-                    ->openUrlInNewTab(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('edit_wizard')
+                        ->label('Edit Timetable')
+                        ->icon('heroicon-o-pencil-square')
+                        ->color('primary')
+                        ->url(fn (Timetable $record) => static::getUrl('edit', ['record' => $record->id])),
+                    Tables\Actions\Action::make('export_pdf')
+                        ->label('PDF')
+                        ->icon('heroicon-o-document-arrow-down')
+                        ->color('gray')
+                        ->url(fn (Timetable $record) => route('pdf.timetable', $record->id))
+                        ->openUrlInNewTab(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -118,9 +122,9 @@ class TimetableResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery()->with(['campus', 'course', 'academicSession', 'slots']);
-        
+
         $user = filament()->auth()->user();
-        if ($user && !$user->hasRole('Super Admin') && $user->campus_id !== null) {
+        if ($user && ! $user->hasRole('Super Admin') && $user->campus_id !== null) {
             $query->where('campus_id', $user->campus_id);
         }
 

@@ -91,8 +91,8 @@ class AdmissionWorkflowFoundationTest extends TestCase
             'admission_date' => '2026-01-31',
         ]);
 
-        $this->assertSame(4, count($schedule));
-        $this->assertSame(12000, array_sum(array_column($schedule, 'net_paisa')));
+        $this->assertSame(3, count($schedule));
+        $this->assertSame(8500, array_sum(array_column($schedule, 'net_paisa')));
         $this->assertDatabaseCount('fee_vouchers', 0);
     }
 

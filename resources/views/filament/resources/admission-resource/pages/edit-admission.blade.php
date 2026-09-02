@@ -28,6 +28,19 @@
             width: 100% !important;
         }
     </style>
+
+    @if(request()->boolean('review'))
+        <div class="admission-return-notice" role="status">
+            <span class="admission-return-notice__icon" aria-hidden="true">
+                <x-filament::icon icon="heroicon-o-pencil-square" />
+            </span>
+            <span>
+                <strong>Admission reopened for review</strong>
+                <small>Use any Edit button to jump directly to that section. After making changes, return to Review &amp; Confirm and select Submit and Generate Documents.</small>
+            </span>
+        </div>
+    @endif
+
     <x-filament-panels::form
         id="form"
         :wire:key="$this->getId() . '.forms.' . $this->getFormStatePath()"

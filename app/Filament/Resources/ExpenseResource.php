@@ -17,7 +17,9 @@ class ExpenseResource extends Resource
     protected static ?string $model = Expense::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
+
     protected static ?string $navigationGroup = 'Finance';
+
     protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
@@ -69,10 +71,10 @@ class ExpenseResource extends Resource
                             $source = $get('expense_source');
                             $amount = (float) $get('amount');
                             $chairmanAmount = (float) $get('chairman_naveed_amount');
-                            if ($source === 'split' && (round((float)$value + $chairmanAmount, 2) !== round($amount, 2))) {
-                                $fail("The sum of College Revenue (" . $value . ") and Chairman (" . $chairmanAmount . ") portions must equal the total expense amount (" . $amount . ").");
+                            if ($source === 'split' && (round((float) $value + $chairmanAmount, 2) !== round($amount, 2))) {
+                                $fail('The sum of College Revenue ('.$value.') and Chairman ('.$chairmanAmount.') portions must equal the total expense amount ('.$amount.').');
                             }
-                        }
+                        },
                     ]),
                 Forms\Components\TextInput::make('chairman_naveed_amount')
                     ->label('Chairman Portion')
@@ -149,8 +151,10 @@ class ExpenseResource extends Resource
                     ->label('Campus'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

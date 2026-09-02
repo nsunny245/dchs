@@ -83,8 +83,7 @@ class AdmissionFormPerformanceTest extends TestCase
 
         $component
             ->assertSee('Save Draft')
-            ->assertSee('Submit Admission')
-            ->assertSee('Submit & Generate Documents');
+            ->assertSee('Submit Admission & Generate Documents');
 
         $lookupQueries = collect($queries)->filter(
             fn (string $sql): bool => str_contains($sql, 'from "courses"')
@@ -95,6 +94,27 @@ class AdmissionFormPerformanceTest extends TestCase
         $this->assertLessThanOrEqual(3, $lookupQueries->count());
         $this->assertLessThanOrEqual(8, count($queries));
 
+        $component
+            ->set('data.campus_id', $campus->id)
+            ->set('data.academic_session_id', $session->id)
+            ->set('data.admission_date', '2026-08-12')
+            ->set('data.course_id', $course->id)
+            ->assertSet('data.custom_tuition_fee', 120000)
+            ->assertSet('data.custom_admission_fee', '0.00')
+            ->assertSet('data.custom_installment_count', 12);
+
+        $installments = $component->get('data.custom_installments');
+        $this->assertCount(12, $installments);
+        $this->assertSame('10000.00', $installments[0]['amount']);
+        $this->assertSame('2026-08-12', $installments[0]['due_date']);
+        $this->assertSame('2027-07-12', $installments[11]['due_date']);
+
+        $component->set('data.custom_installment_count', 4);
+        $installments = $component->get('data.custom_installments');
+        $this->assertCount(4, $installments);
+        $this->assertSame('30000.00', $installments[0]['amount']);
+        $this->assertSame('2026-11-12', $installments[3]['due_date']);
+
         $this->getJson(route('admin.admissions.fee-plan-preview', [
             'course_id' => $course->id,
             'campus_id' => $campus->id,
@@ -103,7 +123,8 @@ class AdmissionFormPerformanceTest extends TestCase
         ]))
             ->assertOk()
             ->assertJsonPath('custom_tuition_fee', 120000)
-            ->assertJsonPath('custom_admission_fee', '10000')
+            ->assertJsonPath('custom_admission_fee', '0.00')
+            ->assertJsonPath('custom_other_misc', '0.00')
             ->assertJsonPath('custom_installment_count', 12);
 
         $component
@@ -111,8 +132,6 @@ class AdmissionFormPerformanceTest extends TestCase
             ->assertNotified('Admission could not be submitted')
             ->assertHasErrors([
                 'data.father_name',
-                'data.academic_session_id',
-                'data.course_id',
             ]);
 
         $this->assertDatabaseCount('admissions', 0);

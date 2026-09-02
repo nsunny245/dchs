@@ -7,7 +7,10 @@ use App\Models\AcademicSession;
 use App\Models\Admission;
 use App\Models\Campus;
 use App\Models\Course;
+use App\Services\Fees\InstallmentPlanGenerator;
+use App\Services\Fees\OfficialFeePlanData;
 use App\Support\DashboardImage;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -15,8 +18,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\HtmlString;
-use Illuminate\Support\Js;
+use Illuminate\Validation\ValidationException;
 
 class AdmissionResource extends Resource
 {
@@ -223,6 +225,60 @@ class AdmissionResource extends Resource
             ->columnSpan(1);
     }
 
+    protected static function loadFeePlan(Forms\Get $get, Forms\Set $set): void
+    {
+        $courseId = (int) ($get('course_id') ?? 0);
+
+        if ($courseId < 1) {
+            return;
+        }
+
+        try {
+            $plan = app(OfficialFeePlanData::class)->forAdmission([
+                'course_id' => $courseId,
+                'campus_id' => $get('campus_id'),
+                'academic_session_id' => $get('academic_session_id'),
+                'admission_date' => $get('admission_date'),
+            ]);
+        } catch (ValidationException $exception) {
+            Notification::make()
+                ->title('Fee plan is unavailable')
+                ->body($exception->validator->errors()->first())
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        foreach ($plan as $field => $value) {
+            $set($field, $value);
+        }
+
+        $set('custom_installments', self::buildInstallmentRows(
+            (int) $plan['custom_installment_count'],
+            $plan['custom_tuition_fee'],
+            $get('admission_date'),
+        ));
+    }
+
+    public static function buildInstallmentRows(
+        int $count,
+        string|int|float $tuitionTotal,
+        mixed $admissionDate,
+    ): array {
+        $firstDueDate = filled($admissionDate) ? Carbon::parse($admissionDate) : now();
+
+        return collect(app(InstallmentPlanGenerator::class)->generate(
+            $tuitionTotal,
+            max(1, min(36, $count)),
+            $firstDueDate,
+        ))->map(fn (array $row): array => [
+            'title' => $row['title'],
+            'amount' => number_format($row['gross_paisa'] / 100, 2, '.', ''),
+            'due_date' => $row['due_date'],
+        ])->all();
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -231,7 +287,7 @@ class AdmissionResource extends Resource
                 Forms\Components\Placeholder::make('missing_docs_notice')
                     ->label('⚠️ Document Status')
                     ->content('Notice: Some required documents (CNIC copy, Matric certificate copy, or Domicile copy) are missing for this applicant. Please upload them to complete the record.')
-                    ->visible(fn ($record) => $record && ($record->status === 'documents_pending' || empty($record->cnic_copy) || empty($record->matric_copy) || empty($record->domicile_copy)))
+                    ->visible(fn ($record) => $record && (empty($record->cnic_copy) || empty($record->matric_copy) || empty($record->domicile_copy)))
                     ->columnSpanFull(),
 
                 Forms\Components\Wizard::make([
@@ -245,76 +301,76 @@ class AdmissionResource extends Resource
                                     Forms\Components\Group::make([
                                         self::getStepIntroPlaceholder(1),
                                         Forms\Components\Section::make('Personal Identity & Student Photo')
-                                             ->schema([
-                                                 Forms\Components\FileUpload::make('student_photo')
-                                                     ->label('Student Photo')
-                                                     ->disk('public')
-                                                     ->directory('student-photos')
-                                                     ->image()
-                                                     ->imagePreviewHeight('100')
-                                                     ->acceptedFileTypes(['image/jpeg', 'image/png'])
-                                                     ->maxSize(4096)
-                                                     ->helperText('Passport-size photo (Max 4MB)')
-                                                     ->columnSpan(1),
+                                            ->schema([
+                                                Forms\Components\FileUpload::make('student_photo')
+                                                    ->label('Student Photo')
+                                                    ->disk('public')
+                                                    ->directory('student-photos')
+                                                    ->image()
+                                                    ->imagePreviewHeight('100')
+                                                    ->acceptedFileTypes(['image/jpeg', 'image/png'])
+                                                    ->maxSize(4096)
+                                                    ->helperText('Passport-size photo (Max 4MB)')
+                                                    ->columnSpan(1),
 
-                                                 Forms\Components\Grid::make(3)
-                                                     ->columnSpan(3)
-                                                     ->schema([
-                                                         Forms\Components\TextInput::make('applicant_name')
-                                                             ->label('Student Full Name')
-                                                             ->default('Draft Student')
-                                                             ->required()
-                                                             ->maxLength(255),
-                                                         Forms\Components\TextInput::make('cnic')
-                                                             ->label('Student CNIC or B-Form #')
-                                                             ->maxLength(255)
-                                                             ->helperText('Format: 35202-1234567-1')
-                                                             ->live(onBlur: true)
-                                                             ->afterStateUpdated(function ($state) {
-                                                                 if (empty($state)) {
-                                                                     return;
-                                                                 }
-                                                                 if (Admission::where('cnic', $state)->exists()) {
-                                                                     Notification::make()
-                                                                         ->title('Warning: Possible Duplicate')
-                                                                         ->body("An admission application with CNIC/B-Form {$state} already exists.")
-                                                                         ->warning()
-                                                                         ->send();
-                                                                 }
-                                                             }),
-                                                         Forms\Components\DatePicker::make('dob')
-                                                             ->label('Date of Birth')
-                                                             ->maxDate(now()),
-                                                         Forms\Components\Select::make('gender')
-                                                             ->label('Gender')
-                                                             ->options([
-                                                                 'male' => 'Male',
-                                                                 'female' => 'Female',
-                                                                 'other' => 'Other',
-                                                             ])
-                                                             ->default('male'),
-                                                         Forms\Components\Select::make('blood_group')
-                                                             ->label('Blood Group')
-                                                             ->options([
-                                                                 'A+' => 'A+', 'A-' => 'A-', 'B+' => 'B+', 'B-' => 'B-',
-                                                                 'O+' => 'O+', 'O-' => 'O-', 'AB+' => 'AB+', 'AB-' => 'AB-',
-                                                             ]),
-                                                         Forms\Components\Select::make('workflow_metadata.nationality')
-                                                             ->label('Nationality')
-                                                             ->options(['Pakistani' => 'Pakistani'])
-                                                             ->default('Pakistani'),
-                                                         Forms\Components\Select::make('workflow_metadata.religion')
-                                                             ->label('Religion')
-                                                             ->options([
-                                                                 'Islam' => 'Islam', 'Christianity' => 'Christianity',
-                                                                 'Hinduism' => 'Hinduism', 'Sikhism' => 'Sikhism', 'Other' => 'Other',
-                                                             ])
-                                                             ->default('Islam'),
-                                                         Forms\Components\TextInput::make('caste')
-                                                             ->label('Caste (Optional)')
-                                                             ->maxLength(255),
-                                                     ]),
-                                             ])->columns(4),
+                                                Forms\Components\Grid::make(3)
+                                                    ->columnSpan(3)
+                                                    ->schema([
+                                                        Forms\Components\TextInput::make('applicant_name')
+                                                            ->label('Student Full Name')
+                                                            ->default('Draft Student')
+                                                            ->required()
+                                                            ->maxLength(255),
+                                                        Forms\Components\TextInput::make('cnic')
+                                                            ->label('Student CNIC or B-Form #')
+                                                            ->maxLength(255)
+                                                            ->helperText('Format: 35202-1234567-1')
+                                                            ->live(onBlur: true)
+                                                            ->afterStateUpdated(function ($state) {
+                                                                if (empty($state)) {
+                                                                    return;
+                                                                }
+                                                                if (Admission::where('cnic', $state)->exists()) {
+                                                                    Notification::make()
+                                                                        ->title('Warning: Possible Duplicate')
+                                                                        ->body("An admission application with CNIC/B-Form {$state} already exists.")
+                                                                        ->warning()
+                                                                        ->send();
+                                                                }
+                                                            }),
+                                                        Forms\Components\DatePicker::make('dob')
+                                                            ->label('Date of Birth')
+                                                            ->maxDate(now()),
+                                                        Forms\Components\Select::make('gender')
+                                                            ->label('Gender')
+                                                            ->options([
+                                                                'male' => 'Male',
+                                                                'female' => 'Female',
+                                                                'other' => 'Other',
+                                                            ])
+                                                            ->default('male'),
+                                                        Forms\Components\Select::make('blood_group')
+                                                            ->label('Blood Group')
+                                                            ->options([
+                                                                'A+' => 'A+', 'A-' => 'A-', 'B+' => 'B+', 'B-' => 'B-',
+                                                                'O+' => 'O+', 'O-' => 'O-', 'AB+' => 'AB+', 'AB-' => 'AB-',
+                                                            ]),
+                                                        Forms\Components\Select::make('workflow_metadata.nationality')
+                                                            ->label('Nationality')
+                                                            ->options(['Pakistani' => 'Pakistani'])
+                                                            ->default('Pakistani'),
+                                                        Forms\Components\Select::make('workflow_metadata.religion')
+                                                            ->label('Religion')
+                                                            ->options([
+                                                                'Islam' => 'Islam', 'Christianity' => 'Christianity',
+                                                                'Hinduism' => 'Hinduism', 'Sikhism' => 'Sikhism', 'Other' => 'Other',
+                                                            ])
+                                                            ->default('Islam'),
+                                                        Forms\Components\TextInput::make('caste')
+                                                            ->label('Caste (Optional)')
+                                                            ->maxLength(255),
+                                                    ]),
+                                            ])->columns(4),
 
                                         Forms\Components\Section::make('Contact Details')
                                             ->schema([
@@ -640,43 +696,8 @@ class AdmissionResource extends Resource
                                                             ->options(fn () => self::getAdmissionLookups()['courses'])
                                                             ->label('Assigned Course / Program')
                                                             ->required()
-                                                            ->extraInputAttributes(function (): array {
-                                                                $previewUrl = Js::from(route('admin.admissions.fee-plan-preview'));
-
-                                                                return [
-                                                                    'x-on:change' => str_replace('__PREVIEW_URL__', (string) $previewUrl, <<<'JS'
-                                                                    const courseId = $event.target.value
-
-                                                                    if (! courseId) {
-                                                                        return
-                                                                    }
-
-                                                                    const params = new URLSearchParams({
-                                                                        course_id: courseId,
-                                                                        campus_id: $wire.data.campus_id ?? '',
-                                                                        academic_session_id: $wire.data.academic_session_id ?? '',
-                                                                        admission_date: $wire.data.admission_date ?? '',
-                                                                    })
-
-                                                                    fetch(__PREVIEW_URL__ + '?' + params.toString(), {
-                                                                        headers: { Accept: 'application/json' },
-                                                                    })
-                                                                        .then((response) => {
-                                                                            if (! response.ok) {
-                                                                                throw new Error('Fee plan preview failed')
-                                                                            }
-
-                                                                            return response.json()
-                                                                        })
-                                                                        .then((plan) => {
-                                                                            Object.entries(plan).forEach(([field, value]) => {
-                                                                                $wire.$set(`data.${field}`, value, false)
-                                                                            })
-                                                                        })
-                                                                        .catch(() => {})
-                                                                JS),
-                                                                ];
-                                                            }),
+                                                            ->live()
+                                                            ->afterStateUpdated(fn (Forms\Get $get, Forms\Set $set) => self::loadFeePlan($get, $set)),
                                                         Forms\Components\DatePicker::make('admission_date')
                                                             ->label('Admission Date')
                                                             ->default(now())
@@ -684,37 +705,20 @@ class AdmissionResource extends Resource
                                                     ]),
                                             ]),
 
-                                        Forms\Components\Section::make('Fee Structure Breakdown')
+                                        Forms\Components\Section::make('Program Tuition and Concession')
+                                            ->description('The selected program supplies one tuition package amount. Admission charges are already included in tuition.')
+                                            ->icon('heroicon-o-banknotes')
+                                            ->iconColor('warning')
+                                            ->extraAttributes(['class' => 'admission-fee-panel admission-fee-panel--tuition'])
                                             ->schema([
-                                                Forms\Components\Grid::make(3)
+                                                Forms\Components\Grid::make(2)
                                                     ->schema([
                                                         Forms\Components\TextInput::make('custom_tuition_fee')
                                                             ->label('Total Course Tuition Fee')
                                                             ->numeric()
                                                             ->prefix('PKR')
-                                                            ->required(),
-
-                                                        Forms\Components\Select::make('workflow_metadata.applicable_charge_type')
-                                                            ->label('Applicable Extra Charges')
-                                                            ->options([
-                                                                'admission' => 'Admission Fee Only',
-                                                                'examination' => 'Examination Fee Only',
-                                                                'both' => 'Admission + Examination Fee',
-                                                                'none' => 'Tuition Fee Only',
-                                                            ])
-                                                            ->default('admission'),
-
-                                                        Forms\Components\TextInput::make('custom_admission_fee')
-                                                            ->label('Admission Fee Amount')
-                                                            ->numeric()
-                                                            ->prefix('PKR')
-                                                            ->default(0.00),
-
-                                                        Forms\Components\TextInput::make('custom_examination_fee')
-                                                            ->label('Examination Fee Amount')
-                                                            ->numeric()
-                                                            ->prefix('PKR')
-                                                            ->default(0.00),
+                                                            ->required()
+                                                            ->readOnly(),
 
                                                         Forms\Components\TextInput::make('concession_amount')
                                                             ->label('Special Discount / Concession Amount')
@@ -728,31 +732,90 @@ class AdmissionResource extends Resource
                                                     ]),
                                             ]),
 
-                                        Forms\Components\Section::make('Custom Fee Installments Schedule Builder')
-                                            ->description('Define custom installment titles, dates, and amounts for this student. (A late fee of PKR 50/day will apply 10 days after the due date).')
+                                        Forms\Components\Section::make('Additional Fee Breakdown')
+                                            ->description('These charges are itemized separately on the agreement. There is no separate admission fee.')
+                                            ->icon('heroicon-o-receipt-percent')
+                                            ->iconColor('info')
+                                            ->extraAttributes(['class' => 'admission-fee-panel admission-fee-panel--breakdown'])
                                             ->schema([
+                                                Forms\Components\Grid::make(3)
+                                                    ->schema([
+                                                        Forms\Components\TextInput::make('custom_examination_fee')
+                                                            ->label('Examination Fee')
+                                                            ->numeric()
+                                                            ->prefix('PKR')
+                                                            ->readOnly()
+                                                            ->default(0.00),
+                                                        Forms\Components\TextInput::make('custom_verification_fee')
+                                                            ->label('Verification Fee')
+                                                            ->numeric()
+                                                            ->prefix('PKR')
+                                                            ->readOnly()
+                                                            ->default(0.00),
+                                                        Forms\Components\TextInput::make('custom_other_misc')
+                                                            ->label('Other Fees')
+                                                            ->numeric()
+                                                            ->prefix('PKR')
+                                                            ->readOnly()
+                                                            ->default(0.00),
+                                                    ]),
+                                                Forms\Components\Hidden::make('custom_admission_fee')->default(0.00),
+                                                Forms\Components\Hidden::make('custom_enrollment_fee')->default(0.00),
+                                            ]),
+
+                                        Forms\Components\Section::make('Custom Fee Installments Schedule Builder')
+                                            ->description('Build a clear payment schedule for the student. Every installment below can be renamed and adjusted before submission.')
+                                            ->icon('heroicon-o-calendar-days')
+                                            ->iconColor('warning')
+                                            ->extraAttributes(['class' => 'admission-fee-panel admission-installment-builder'])
+                                            ->schema([
+                                                Forms\Components\Placeholder::make('installment_editor_guide')
+                                                    ->label('')
+                                                    ->content(view('filament.admissions.components.installment-editor-guide'))
+                                                    ->columnSpanFull(),
+
                                                 Forms\Components\TextInput::make('custom_installment_count')
                                                     ->label('Number of Installments')
                                                     ->numeric()
-                                                    ->default(5),
+                                                    ->minValue(1)
+                                                    ->maxValue(36)
+                                                    ->default(5)
+                                                    ->helperText('Enter the required number, then click outside this field. The editable schedule will update automatically.')
+                                                    ->live(onBlur: true)
+                                                    ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set): void {
+                                                        $set('custom_installments', self::buildInstallmentRows(
+                                                            (int) ($state ?: 1),
+                                                            $get('custom_tuition_fee') ?: 0,
+                                                            $get('admission_date'),
+                                                        ));
+                                                    }),
 
                                                 Forms\Components\Repeater::make('custom_installments')
-                                                    ->label('Custom Installment Rows (Optional)')
+                                                    ->label('Editable Installment Schedule')
+                                                    ->helperText('The total of all installment amounts must equal the Total Course Tuition Fee shown above.')
                                                     ->schema([
                                                         Forms\Components\TextInput::make('title')
-                                                            ->label('Installment Title'),
+                                                            ->label('Installment Title')
+                                                            ->placeholder('e.g. First Tuition Installment')
+                                                            ->required(),
                                                         Forms\Components\TextInput::make('amount')
                                                             ->label('Amount (PKR)')
                                                             ->numeric()
-                                                            ->prefix('PKR'),
+                                                            ->prefix('PKR')
+                                                            ->required(),
                                                         Forms\Components\DatePicker::make('due_date')
-                                                            ->label('Due Date'),
+                                                            ->label('Due Date')
+                                                            ->required(),
                                                     ])
+                                                    ->itemLabel(fn (array $state): ?string => filled($state['title'] ?? null) ? $state['title'] : 'New Installment')
                                                     ->columns(3)
                                                     ->collapsible()
                                                     ->cloneable()
                                                     ->reorderable()
+                                                    ->addActionLabel('Add Another Installment')
                                                     ->defaultItems(0)
+                                                    ->minItems(1)
+                                                    ->extraAttributes(['class' => 'admission-installment-repeater'])
                                                     ->columnSpanFull(),
                                             ]),
 
@@ -812,11 +875,13 @@ class AdmissionResource extends Resource
                 ])
                 // Step changes are local and immediate. The final submit still
                 // validates the complete form on the server before saving.
-                ->skippable()
-                ->nextAction(fn (Forms\Components\Actions\Action $action) => $action
-                    ->alpineClickHandler('$event.stopPropagation(); nextStep()'))
-                ->extraAlpineAttributes([
-                    'x-on:admission-validation-failed.window' => <<<'JS'
+                    ->startOnStep(fn (): int => request()->boolean('review') ? 5 : 1)
+                    ->persistStepInQueryString('admission-step')
+                    ->skippable()
+                    ->nextAction(fn (Forms\Components\Actions\Action $action) => $action
+                        ->alpineClickHandler('$event.stopPropagation(); nextStep()'))
+                    ->extraAlpineAttributes([
+                        'x-on:admission-validation-failed.window' => <<<'JS'
                         $nextTick(() => {
                             const invalidField = $el.querySelector('.fi-fo-field-wrp-error-message')
                             const invalidStep = invalidField?.closest('[role="tabpanel"]')
@@ -830,10 +895,10 @@ class AdmissionResource extends Resource
                             scroll()
                         })
                     JS,
-                ])
+                    ])
                 // Use the standard Filament form actions in the shared footer.
-                ->submitAction('')
-                ->columnSpanFull(),
+                    ->submitAction('')
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -877,11 +942,19 @@ class AdmissionResource extends Resource
                         'offline' => 'gray',
                         default => 'primary',
                     }),
-                Tables\Columns\TextColumn::make('status')
-                    ->badge(),
+                Tables\Columns\TextColumn::make('documents_status')
+                    ->label('Docs Missing')
+                    ->getStateUsing(function (Admission $record): string {
+                        $missing = self::missingDocumentLabels($record);
+
+                        return $missing === [] ? 'Documents Complete' : count($missing).' Missing';
+                    })
+                    ->badge()
+                    ->color(fn (string $state): string => $state === 'Documents Complete' ? 'success' : 'danger'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('campus')
@@ -897,22 +970,24 @@ class AdmissionResource extends Resource
                     ]),
             ])
             ->actions([
-                Tables\Actions\Action::make('downloadAgreement')
-                    ->label('Agreement')
-                    ->icon('heroicon-o-document-text')
-                    ->color('primary')
-                    ->url(fn ($record) => route('pdf.admission-agreement', $record))
-                    ->openUrlInNewTab(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('downloadAgreement')
+                        ->label('Agreement')
+                        ->icon('heroicon-o-document-text')
+                        ->color('primary')
+                        ->url(fn ($record) => route('pdf.admission-agreement', $record))
+                        ->openUrlInNewTab(),
 
-                Tables\Actions\Action::make('downloadZip')
-                    ->label('Docs ZIP')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->color('warning')
-                    ->url(fn ($record) => route('pdf.download-documents-zip', $record))
-                    ->openUrlInNewTab(),
+                    Tables\Actions\Action::make('downloadZip')
+                        ->label('Docs ZIP')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->color('warning')
+                        ->url(fn ($record) => route('pdf.download-documents-zip', $record))
+                        ->openUrlInNewTab(),
 
-                Tables\Actions\EditAction::make(),
-            ])
+                    Tables\Actions\EditAction::make(),
+                ])->label('Actions')->button()->color('primary'),
+            ], position: Tables\Enums\ActionsPosition::AfterColumns)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
@@ -930,6 +1005,28 @@ class AdmissionResource extends Resource
         }
 
         return $query;
+    }
+
+    /** @return array<int, string> */
+    private static function missingDocumentLabels(Admission $record): array
+    {
+        $documents = [
+            'Student Photo' => $record->student_photo,
+            'Student CNIC Front' => $record->student_cnic_front ?: $record->cnic_copy,
+            'Student CNIC Back' => $record->student_cnic_back,
+            'Father CNIC Front' => $record->father_cnic_front ?: $record->father_cnic_copy,
+            'Father CNIC Back' => $record->father_cnic_back,
+            'Matric Certificate' => $record->matric_copy,
+            'Intermediate Certificate' => $record->inter_copy,
+            'Domicile' => $record->domicile_copy,
+            'Character Certificate' => $record->character_certificate_copy,
+        ];
+
+        return collect($documents)
+            ->filter(fn (mixed $path): bool => blank($path))
+            ->keys()
+            ->values()
+            ->all();
     }
 
     public static function getRelations(): array

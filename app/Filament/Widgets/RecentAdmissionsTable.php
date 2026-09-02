@@ -2,17 +2,19 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Resources\AdmissionResource;
+use App\Models\Admission;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
-use App\Models\Admission;
-use App\Filament\Resources\AdmissionResource;
 
 class RecentAdmissionsTable extends BaseWidget
 {
     protected static ?int $sort = 4;
+
     protected static ?string $heading = 'Recent Applications';
-    protected int | string | array $columnSpan = 'full';
+
+    protected int|string|array $columnSpan = 'full';
 
     public function table(Table $table): Table
     {
@@ -37,8 +39,10 @@ class RecentAdmissionsTable extends BaseWidget
                 Tables\Columns\TextColumn::make('created_at')->dateTime()->label('Applied')->sortable(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->url(fn ($record) => AdmissionResource::getUrl('edit', ['record' => $record])),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make()
+                        ->url(fn ($record) => AdmissionResource::getUrl('edit', ['record' => $record])),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->paginated([10])
             ->defaultSort('created_at', 'desc');

@@ -16,7 +16,9 @@ class FeePaymentResource extends Resource
     protected static ?string $model = FeePayment::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-credit-card';
+
     protected static ?string $navigationGroup = 'Financial Management';
+
     protected static ?int $navigationSort = 2;
 
     public static function shouldRegisterNavigation(): bool
@@ -34,7 +36,7 @@ class FeePaymentResource extends Resource
                             ->relationship('campus', 'name')
                             ->required()
                             ->default(fn () => filament()->auth()->user()->campus_id)
-                            ->disabled(fn () => !filament()->auth()->user()->hasRole('Super Admin'))
+                            ->disabled(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
                             ->dehydrated(),
                         Forms\Components\Select::make('student_id')
                             ->relationship('student', 'id')
@@ -43,7 +45,7 @@ class FeePaymentResource extends Resource
                             ->required(),
                         Forms\Components\Select::make('fee_structure_id')
                             ->relationship('feeStructure', 'id')
-                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->course->name} (Total Package: " . number_format($record->total_fee, 2) . " PKR)")
+                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->course->name} (Total Package: ".number_format($record->total_fee, 2).' PKR)')
                             ->required(),
                         Forms\Components\TextInput::make('installment_no')
                             ->numeric()
@@ -114,18 +116,20 @@ class FeePaymentResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('campus')
                     ->relationship('campus', 'name')
-                    ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin')),
+                    ->hidden(fn () => ! filament()->auth()->user()->hasRole('Super Admin')),
                 Tables\Filters\SelectFilter::make('payment_method'),
             ])
             ->actions([
-                Tables\Actions\Action::make('downloadReceipt')
-                    ->label('Receipt')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->color('success')
-                    ->url(fn ($record) => route('pdf.fee-receipt', $record))
-                    ->openUrlInNewTab(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('downloadReceipt')
+                        ->label('Receipt')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->color('success')
+                        ->url(fn ($record) => route('pdf.fee-receipt', $record))
+                        ->openUrlInNewTab(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -137,8 +141,8 @@ class FeePaymentResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-        
-        if (!filament()->auth()->user()->hasRole('Super Admin')) {
+
+        if (! filament()->auth()->user()->hasRole('Super Admin')) {
             $query->where('campus_id', filament()->auth()->user()->campus_id);
         }
 

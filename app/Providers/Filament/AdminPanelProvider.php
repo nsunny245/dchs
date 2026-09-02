@@ -22,6 +22,7 @@ use App\Filament\Resources\SettingResource;
 use App\Filament\Resources\StaffResource;
 use App\Filament\Resources\StudentResource;
 use App\Filament\Resources\SuperAdminFranchisorPaymentResource;
+use App\Filament\Resources\TeacherAttendanceResource;
 use App\Filament\Resources\UserResource;
 use App\Filament\Resources\VisitorQueryResource;
 use App\Filament\Widgets\CampusFinancialOverviewWidget;
@@ -101,6 +102,7 @@ class AdminPanelProvider extends PanelProvider
                 StudentResource::class,
                 AttendanceResource::class,
                 StaffResource::class,
+                TeacherAttendanceResource::class,
                 LeaveRequestResource::class,
                 VisitorQueryResource::class,
                 AdmissionInquiryResource::class,
@@ -151,6 +153,6 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make('Academic Management')->collapsed(false),
                 NavigationGroup::make('Administration')->collapsed(false),
             ])
-            ->maxContentWidth('7xl');
+            ->maxContentWidth('full');
     }
 }

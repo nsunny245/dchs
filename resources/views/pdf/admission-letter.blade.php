@@ -116,7 +116,8 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .status-approved { background: #d4edda; color: #155724; }
+        .status-approved,
+        .status-enrolled { background: #d4edda; color: #155724; }
         .status-pending  { background: #fff3cd; color: #856404; }
         .status-rejected { background: #f8d7da; color: #721c24; }
         .status-waitlisted { background: #e2e3e5; color: #383d41; }
@@ -222,20 +223,8 @@
     </div>
 
     <div class="body-text">
-        @if($admission->status === 'approved')
-            We are pleased to inform you that your application for admission to <strong>Daniyal Group of Colleges</strong>
-            has been <strong>approved</strong>. Congratulations on your acceptance! We look forward to welcoming you to our institution
-            and supporting you throughout your academic journey.
-        @elseif($admission->status === 'pending')
-            We acknowledge receipt of your application for admission to <strong>Daniyal Group of Colleges</strong>.
-            Your application is currently under review. We will notify you of the decision at the earliest.
-        @elseif($admission->status === 'waitlisted')
-            We acknowledge receipt of your application for admission to <strong>Daniyal Group of Colleges</strong>.
-            Your application has been placed on the <strong>waiting list</strong>. You will be notified if a seat becomes available.
-        @else
-            We regret to inform you that your application for admission to <strong>Daniyal Group of Colleges</strong>
-            could not be accepted at this time. We encourage you to re-apply in the next admission cycle.
-        @endif
+        We are pleased to confirm that you have been <strong>enrolled</strong> at <strong>Daniyal Group of Colleges</strong>.
+        Congratulations on your admission. We look forward to welcoming you and supporting you throughout your academic journey.
     </div>
 
     <!-- Applicant Details -->
@@ -277,10 +266,10 @@
             <td>{{ $admission->campus->name ?? '—' }}</td>
         </tr>
         <tr>
-            <th>Application Status</th>
+            <th>Admission</th>
             <td>
-                <span class="status-badge status-{{ $admission->status }}">
-                    {{ ucfirst($admission->status) }}
+                <span class="status-badge status-enrolled">
+                    Enrolled
                 </span>
             </td>
         </tr>
@@ -292,7 +281,6 @@
         @endif
     </table>
 
-    @if($admission->status === 'approved')
     <!-- Instructions -->
     <div class="instructions">
         <h4>Important Instructions:</h4>
@@ -303,7 +291,6 @@
             <li>Failure to report within the given timeframe may result in cancellation of your admission.</li>
         </ul>
     </div>
-    @endif
 
     <!-- Signature Area -->
     <div class="signature-area">

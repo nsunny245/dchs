@@ -39,14 +39,25 @@
         </div>
 
         <div class="flex flex-wrap gap-3 border-t border-[#D9E2EC] p-6 sm:px-10">
+            @php
+                $panelPrefix = auth()->user()?->hasRole('Super Admin') ? 'admin' : 'campus';
+                $reviewEditUrl = \App\Filament\Resources\AdmissionResource::getUrl(
+                    'edit',
+                    ['record' => $admission, 'review' => 1],
+                    panel: $panelPrefix,
+                );
+            @endphp
+            <a href="{{ $reviewEditUrl }}" class="inline-flex items-center gap-2 rounded-lg bg-[#082245] px-5 py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#10345D] focus:outline-none focus:ring-4 focus:ring-[#E7B65A]/40">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zM19.5 7.125L16.875 4.5M18 14.25v4.125A2.625 2.625 0 0115.375 21H5.625A2.625 2.625 0 013 18.375V8.625A2.625 2.625 0 015.625 6H9.75" />
+                </svg>
+                Review &amp; Edit Admission
+            </a>
             <a href="{{ route('pdf.admission-agreement', $admission) }}" target="_blank" class="rounded-lg bg-[#C98D18] px-4 py-3 text-sm font-bold text-[#06192E]">Print Student Agreement</a>
             @if($vouchers->first())
                 <a href="{{ route('fee-vouchers.print.book', $admission) }}" target="_blank" class="rounded-lg border border-[#082245] px-4 py-3 text-sm font-bold text-[#082245]">Print Voucher Book</a>
             @endif
             <a href="{{ route('pdf.installment-schedule', $admission) }}" target="_blank" class="rounded-lg border border-[#082245] px-4 py-3 text-sm font-bold text-[#082245]">View Installment Schedule</a>
-            @php
-                $panelPrefix = auth()->user()?->hasRole('Super Admin') ? 'admin' : 'campus';
-            @endphp
             @if($admission->student)
                 <a href="{{ url("/{$panelPrefix}/students/{$admission->student->id}/edit") }}" class="rounded-lg border border-[#D9E2EC] px-4 py-3 text-sm font-bold">View Student Profile</a>
             @endif

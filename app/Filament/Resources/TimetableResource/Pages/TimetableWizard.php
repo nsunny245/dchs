@@ -3,66 +3,94 @@
 namespace App\Filament\Resources\TimetableResource\Pages;
 
 use App\Filament\Resources\TimetableResource;
-use App\Models\Timetable;
-use App\Models\TimetableSubject;
-use App\Models\TimetableSlot;
-use App\Models\Subject;
-use App\Models\Course;
-use App\Models\Campus;
 use App\Models\AcademicSession;
-use App\Models\Staff;
-use App\Models\Room;
-use App\Models\TimetablePeriod;
+use App\Models\Campus;
+use App\Models\Course;
+use App\Models\Subject;
+use App\Models\Timetable;
+use App\Models\TimetableSlot;
+use App\Models\TimetableSubject;
 use App\Services\Timetable\TimetableBuilderService;
 use App\Services\Timetable\TimetableConflictService;
-use Filament\Resources\Pages\Page;
 use Filament\Notifications\Notification;
+use Filament\Resources\Pages\Page;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
 
 class TimetableWizard extends Page
 {
     protected static string $resource = TimetableResource::class;
+
     protected static string $view = 'filament.resources.timetable-resource.pages.timetable-wizard';
+
     protected static ?string $title = 'Program Timetable Workspace';
 
     public ?int $recordId = null;
+
     public int $currentStep = 1;
 
     // Step 1: Setup Header
     public ?int $campus_id = null;
+
     public ?int $course_id = null;
+
     public ?int $academic_session_id = null;
+
     public string $batch_name = 'Batch 2025-2027';
+
     public string $semester_name = 'Year 1';
+
     public string $section_name = 'Section A';
+
     public string $shift = 'morning';
+
     public string $timetable_title = '';
+
+    public bool $titleCustomized = false;
+
     public string $effective_from = '';
+
     public ?string $effective_to = null;
+
     public array $working_days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
     public int $default_period_duration = 45;
+
     public ?string $notes = null;
+
     public string $status = 'draft';
 
     // Step 2: Subjects Selection
     public array $availableSubjects = [];
+
     public array $selectedSubjectIds = [];
+
     public array $subjectTeachers = [];
+
     public array $subjectPeriods = [];
 
     // Step 3: Slot Drawer / Modal State
     public bool $isSlotModalOpen = false;
+
     public ?int $editingSlotId = null;
+
     public string $modalDay = 'monday';
+
     public string $modalStartTime = '08:30';
+
     public string $modalEndTime = '09:15';
+
     public ?int $modalSubjectId = null;
+
     public ?int $modalTeacherId = null;
+
     public ?int $modalRoomId = null;
+
     public string $modalClassType = 'Theory';
+
     public ?string $modalNotes = null;
+
     public array $modalConflictErrors = [];
+
     public array $modalConflictWarnings = [];
 
     public function getMaxContentWidth(): ?string
@@ -88,6 +116,7 @@ class TimetableWizard extends Page
             $this->section_name = $timetable->section_name ?? 'Section A';
             $this->shift = $timetable->shift ?? 'morning';
             $this->timetable_title = $timetable->title;
+            $this->titleCustomized = true;
             $this->effective_from = $timetable->effective_from ? $timetable->effective_from->format('Y-m-d') : now()->format('Y-m-d');
             $this->effective_to = $timetable->effective_to ? $timetable->effective_to->format('Y-m-d') : null;
             $this->working_days = $timetable->working_days ?? ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -131,8 +160,16 @@ class TimetableWizard extends Page
         $this->autoGenerateTitle();
     }
 
+    public function updatedTimetableTitle(): void
+    {
+        $this->titleCustomized = true;
+    }
+
     public function autoGenerateTitle(): void
     {
+        if ($this->titleCustomized) {
+            return;
+        }
         $course = Course::find($this->course_id);
         $courseName = $course ? $course->name : 'Program';
         $this->timetable_title = "{$courseName} {$this->semester_name} - {$this->section_name} Timetable";
@@ -140,8 +177,9 @@ class TimetableWizard extends Page
 
     public function loadSubjectsForProgram(): void
     {
-        if (!$this->course_id) {
+        if (! $this->course_id) {
             $this->availableSubjects = [];
+
             return;
         }
 
@@ -173,10 +211,10 @@ class TimetableWizard extends Page
 
     public function goToStep(int $step): void
     {
-        if ($step === 2 && !$this->validateStep1()) {
+        if ($step === 2 && ! $this->validateStep1()) {
             return;
         }
-        if ($step === 3 && !$this->validateStep2()) {
+        if ($step === 3 && ! $this->validateStep2()) {
             return;
         }
         $this->currentStep = $step;
@@ -184,13 +222,14 @@ class TimetableWizard extends Page
 
     public function validateStep1(): bool
     {
-        if (!$this->campus_id || !$this->course_id || !$this->timetable_title || !$this->effective_from) {
+        if (! $this->campus_id || ! $this->course_id || ! $this->timetable_title || ! $this->effective_from) {
             Notification::make()->title('Please fill all required setup fields.')->warning()->send();
+
             return false;
         }
 
         // Save or update timetable header
-        if (!$this->recordId) {
+        if (! $this->recordId) {
             $timetable = Timetable::create([
                 'uuid' => (string) Str::uuid(),
                 'title' => $this->timetable_title,
@@ -244,6 +283,7 @@ class TimetableWizard extends Page
     {
         if (empty($this->selectedSubjectIds)) {
             Notification::make()->title('Please select at least one subject to include in the timetable.')->warning()->send();
+
             return false;
         }
 
@@ -276,7 +316,7 @@ class TimetableWizard extends Page
         $this->modalEndTime = $endTime;
 
         // Auto preselect first available subject if present
-        if (!empty($this->selectedSubjectIds)) {
+        if (! empty($this->selectedSubjectIds)) {
             $firstSubId = $this->selectedSubjectIds[0];
             $this->modalSubjectId = $firstSubId;
             $this->modalTeacherId = $this->subjectTeachers[$firstSubId] ?? null;
@@ -327,7 +367,7 @@ class TimetableWizard extends Page
     public function editSlot(int $slotId): void
     {
         $slot = TimetableSlot::find($slotId);
-        if (!$slot) {
+        if (! $slot) {
             return;
         }
 
@@ -347,14 +387,16 @@ class TimetableWizard extends Page
 
     public function saveSlot(): void
     {
-        if (!$this->modalSubjectId) {
+        if (! $this->modalSubjectId) {
             Notification::make()->title('Please select a subject for this slot.')->warning()->send();
+
             return;
         }
 
         $this->checkModalConflicts();
-        if (!empty($this->modalConflictErrors)) {
+        if (! empty($this->modalConflictErrors)) {
             Notification::make()->title('Cannot Save Slot due to Conflicts')->danger()->body(implode('<br>', $this->modalConflictErrors))->send();
+
             return;
         }
 
@@ -448,7 +490,7 @@ class TimetableWizard extends Page
     public function publishTimetable(): void
     {
         $timetable = Timetable::find($this->recordId);
-        if (!$timetable) {
+        if (! $timetable) {
             return;
         }
 
@@ -456,6 +498,7 @@ class TimetableWizard extends Page
         $slotsCount = $timetable->slots()->count();
         if ($slotsCount === 0) {
             Notification::make()->title('Cannot Publish Empty Timetable. Please schedule at least one class slot.')->danger()->send();
+
             return;
         }
 
@@ -473,7 +516,7 @@ class TimetableWizard extends Page
     public function duplicateTimetable(): void
     {
         $original = Timetable::with(['timetableSubjects', 'slots'])->find($this->recordId);
-        if (!$original) {
+        if (! $original) {
             return;
         }
 

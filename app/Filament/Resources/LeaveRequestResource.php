@@ -7,17 +7,20 @@ use App\Models\LeaveRequest;
 use App\Models\Staff;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 
 class LeaveRequestResource extends Resource
 {
     protected static ?string $model = LeaveRequest::class;
+
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
+
     protected static ?string $navigationGroup = 'Administration';
+
     protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
@@ -33,7 +36,7 @@ class LeaveRequestResource extends Resource
                             ->relationship('campus', 'name')
                             ->required()
                             ->default(fn () => $user?->campus_id)
-                            ->disabled(!$isSuperAdmin)
+                            ->disabled(! $isSuperAdmin)
                             ->dehydrated(),
                         Forms\Components\Select::make('staff_id')
                             ->label('Teacher / Staff Member')
@@ -43,6 +46,7 @@ class LeaveRequestResource extends Resource
                                 if ($campusId) {
                                     $q->where('campus_id', $campusId);
                                 }
+
                                 return $q->pluck('full_name', 'id');
                             })
                             ->required()
@@ -131,37 +135,39 @@ class LeaveRequestResource extends Resource
                     }),
             ])
             ->actions([
-                Tables\Actions\Action::make('approve')
-                    ->label('Approve')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->visible($isSuperAdmin)
-                    ->action(function (LeaveRequest $record) {
-                        $record->update([
-                            'status' => 'approved',
-                            'approved_days' => $record->requested_days,
-                            'reviewed_by' => auth()->id(),
-                            'reviewed_at' => now(),
-                        ]);
-                        Notification::make()->title('Leave Approved')->success()->send();
-                    }),
-                Tables\Actions\Action::make('reject')
-                    ->label('Reject')
-                    ->icon('heroicon-o-x-circle')
-                    ->color('danger')
-                    ->visible($isSuperAdmin)
-                    ->form([
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('approve')
+                        ->label('Approve')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->visible($isSuperAdmin)
+                        ->action(function (LeaveRequest $record) {
+                            $record->update([
+                                'status' => 'approved',
+                                'approved_days' => $record->requested_days,
+                                'reviewed_by' => auth()->id(),
+                                'reviewed_at' => now(),
+                            ]);
+                            Notification::make()->title('Leave Approved')->success()->send();
+                        }),
+                    Tables\Actions\Action::make('reject')
+                        ->label('Reject')
+                        ->icon('heroicon-o-x-circle')
+                        ->color('danger')
+                        ->visible($isSuperAdmin)
+                        ->form([
                         Forms\Components\Textarea::make('decision_note')->label('Reason for Rejection')->required(),
-                    ])
-                    ->action(function (LeaveRequest $record, array $data) {
-                        $record->update([
-                            'status' => 'rejected',
-                            'decision_note' => $data['decision_note'],
-                            'reviewed_by' => auth()->id(),
-                            'reviewed_at' => now(),
-                        ]);
-                        Notification::make()->title('Leave Rejected')->danger()->send();
-                    }),
+                        ])
+                        ->action(function (LeaveRequest $record, array $data) {
+                            $record->update([
+                                'status' => 'rejected',
+                                'decision_note' => $data['decision_note'],
+                                'reviewed_by' => auth()->id(),
+                                'reviewed_at' => now(),
+                            ]);
+                            Notification::make()->title('Leave Rejected')->danger()->send();
+                        }),
+                ])->label('Actions')->button()->color('primary'),
             ]);
     }
 

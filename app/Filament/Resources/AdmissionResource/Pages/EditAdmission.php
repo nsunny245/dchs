@@ -23,33 +23,26 @@ class EditAdmission extends EditRecord
         return 'Review the seven-step record, save a draft, or finalize the student and financial documents.';
     }
 
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        if (
+            empty($data['custom_installments'])
+            && (int) ($data['custom_installment_count'] ?? 0) > 0
+            && (float) ($data['custom_tuition_fee'] ?? 0) > 0
+        ) {
+            $data['custom_installments'] = AdmissionResource::buildInstallmentRows(
+                (int) $data['custom_installment_count'],
+                $data['custom_tuition_fee'],
+                $data['admission_date'] ?? now(),
+            );
+        }
+
+        return $data;
+    }
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('approveAndEnroll')
-                ->label('Approve & Enroll')
-                ->icon('heroicon-o-check-circle')
-                ->color('success')
-                ->requiresConfirmation()
-                ->visible(fn () => $this->record->status !== 'enrolled')
-                ->action(function () {
-                    try {
-                        app(FinalizeAdmissionAction::class)
-                            ->execute($this->record, filament()->auth()->id());
-                        Notification::make()
-                            ->title('Enrolled Successfully')
-                            ->body('Student registered and fee vouchers generated.')
-                            ->success()
-                            ->send();
-                        $this->redirect(route('admissions.complete', $this->record));
-                    } catch (\Exception $e) {
-                        Notification::make()
-                            ->title('Enrollment Failed')
-                            ->body($e->getMessage())
-                            ->danger()
-                            ->send();
-                    }
-                }),
             Actions\DeleteAction::make(),
         ];
     }
@@ -69,14 +62,10 @@ class EditAdmission extends EditRecord
                 })
                 ->color('gray'),
             Actions\Action::make('save')
-                ->label('Save Admission')
+                ->label('Save Changes')
                 ->submit('save'),
-            Actions\Action::make('submitAdmission')
-                ->label('Submit Admission')
-                ->submit('save')
-                ->color('gray'),
             Actions\Action::make('finalize')
-                ->label('Submit and Generate Documents')
+                ->label('Submit Admission & Generate Documents')
                 ->icon('heroicon-o-check-circle')
                 ->requiresConfirmation()
                 ->action(function () {
@@ -99,7 +88,6 @@ class EditAdmission extends EditRecord
             $money = app(InstallmentPlanGenerator::class);
             $packagePaisa = collect([
                 'custom_tuition_fee',
-                'custom_admission_fee',
                 'custom_enrollment_fee',
                 'custom_verification_fee',
                 'custom_examination_fee',

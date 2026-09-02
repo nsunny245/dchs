@@ -15,18 +15,22 @@ class ExpenseCategoryResource extends Resource
     protected static ?string $model = ExpenseCategory::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
+
     protected static ?string $navigationGroup = 'Finance';
+
     protected static ?int $navigationSort = 3;
 
     public static function shouldRegisterNavigation(): bool
     {
         $user = filament()->auth()->user();
+
         return $user && ($user->email === 'admin@admin.com' || $user->hasRole('Super Admin'));
     }
 
     public static function canViewAny(): bool
     {
         $user = filament()->auth()->user();
+
         return $user && ($user->email === 'admin@admin.com' || $user->hasRole('Super Admin'));
     }
 
@@ -62,8 +66,10 @@ class ExpenseCategoryResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

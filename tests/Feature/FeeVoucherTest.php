@@ -2,10 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\FeeVoucherResource\Pages\CreateFeeVoucher;
+use App\Models\AcademicSession;
 use App\Models\Admission;
 use App\Models\Campus;
 use App\Models\Course;
-use App\Models\AcademicSession;
 use App\Models\FeeHead;
 use App\Models\FeeStructure;
 use App\Models\FeeVoucher;
@@ -13,9 +14,13 @@ use App\Models\FeeVoucherItem;
 use App\Models\Student;
 use App\Models\StudentFeeAccount;
 use App\Models\User;
+use App\Policies\FeeVoucherPolicy;
 use App\Services\Fees\FeeVoucherCalculator;
 use App\Services\Fees\FeeVoucherService;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class FeeVoucherTest extends TestCase
@@ -33,7 +38,7 @@ class FeeVoucherTest extends TestCase
             'address' => '123 Test St',
             'phone' => '03001234567',
             'email' => 'campus@dchs.edu.pk',
-            'is_active' => true
+            'is_active' => true,
         ]);
 
         $this->course = Course::create([
@@ -42,12 +47,12 @@ class FeeVoucherTest extends TestCase
             'duration_months' => 24,
             'eligibility' => 'Matric',
             'description' => 'Test Course',
-            'is_active' => true
+            'is_active' => true,
         ]);
 
         $this->session = AcademicSession::create([
             'name' => '2026-2028',
-            'is_active' => true
+            'is_active' => true,
         ]);
 
         $this->user = User::create([
@@ -55,7 +60,7 @@ class FeeVoucherTest extends TestCase
             'email' => 'finance@dchs.edu.pk',
             'password' => bcrypt('password'),
             'campus_id' => $this->campus->id,
-            'status' => true
+            'status' => true,
         ]);
 
         // Seed FSC-PE fee heads
@@ -108,9 +113,9 @@ class FeeVoucherTest extends TestCase
             'father_name' => 'Test Father',
             'dob' => '2005-01-01',
             'gender' => 'male',
-            'cnic' => '35202-' . rand(1000000, 9999999) . '-1',
-            'phone' => '0300' . rand(1000000, 9999999),
-            'email' => strtolower(str_replace(' ', '', $name)) . rand(100, 999) . '@gmail.com',
+            'cnic' => '35202-'.rand(1000000, 9999999).'-1',
+            'phone' => '0300'.rand(1000000, 9999999),
+            'email' => strtolower(str_replace(' ', '', $name)).rand(100, 999).'@gmail.com',
             'address' => 'Test Address',
             'campus_id' => $this->campus->id,
             'course_id' => $this->course->id,
@@ -125,7 +130,7 @@ class FeeVoucherTest extends TestCase
         $admission = $this->createAdmission($name);
 
         $student = Student::create([
-            'enrollment_number' => 'DGC-TCP-FSC-PE-2026-' . rand(100000, 999999),
+            'enrollment_number' => 'DGC-TCP-FSC-PE-2026-'.rand(100000, 999999),
             'full_name' => $name,
             'campus_id' => $this->campus->id,
             'course_id' => $this->course->id,
@@ -151,7 +156,7 @@ class FeeVoucherTest extends TestCase
 
     public function test_voucher_calculations()
     {
-        list($student, $account) = $this->createStudentAndAccount('Daniyal Saleem');
+        [$student, $account] = $this->createStudentAndAccount('Daniyal Saleem');
 
         // 1. Create a draft voucher
         $voucher = FeeVoucher::create([
@@ -178,7 +183,7 @@ class FeeVoucherTest extends TestCase
             'name' => 'Tuition Fee',
             'category' => 'tuition',
             'applies_to' => 'both',
-            'is_active' => true
+            'is_active' => true,
         ]);
 
         FeeVoucherItem::create([
@@ -187,7 +192,7 @@ class FeeVoucherTest extends TestCase
             'description' => 'Tuition Dues',
             'quantity' => 1,
             'unit_amount' => 10000.00,
-            'amount' => 10000.00
+            'amount' => 10000.00,
         ]);
 
         // Recalculate
@@ -203,11 +208,11 @@ class FeeVoucherTest extends TestCase
 
     public function test_collision_safe_voucher_number_generation()
     {
-        list($student, $account) = $this->createStudentAndAccount('Daniyal Saleem');
+        [$student, $account] = $this->createStudentAndAccount('Daniyal Saleem');
 
         // Generate voucher numbers concurrently/sequentially
         $v1 = FeeVoucherService::generateVoucherNumber($this->campus, 'new_enrollment', 2026);
-        
+
         $this->assertEquals('DGC-TES-2026-ENR-000001', $v1['number']);
         $this->assertEquals(1, $v1['sequence']);
 
@@ -233,7 +238,7 @@ class FeeVoucherTest extends TestCase
 
     public function test_enrollment_voucher_creation_workflow()
     {
-        list($student, $account, $admission) = $this->createStudentAndAccount('Daniyal Saleem');
+        [$student, $account, $admission] = $this->createStudentAndAccount('Daniyal Saleem');
 
         $structure = FeeStructure::create([
             'course_id' => $this->course->id,
@@ -244,17 +249,17 @@ class FeeVoucherTest extends TestCase
         $voucher = FeeVoucherService::generateEnrollmentVoucher($student, $admission, $structure);
 
         $this->assertNotNull($voucher);
-        $this->assertEquals('new_enrollment', $voucher->voucher_type);
+        $this->assertEquals('monthly_installment', $voucher->voucher_type);
         $this->assertGreaterThan(0, $voucher->items->count());
-        
+
         // Verify items were created correctly
-        $this->assertTrue($voucher->items->contains('description', 'Admission Fee'));
-        $this->assertTrue($voucher->items->contains('description', 'Tuition Fee / First Installment'));
+        $this->assertCount(1, $voucher->items);
+        $this->assertTrue($voucher->items->contains('description', 'Tuition Installment #1'));
     }
 
     public function test_duplicate_installment_voucher_prevention()
     {
-        list($student, $account) = $this->createStudentAndAccount('Ali Raza');
+        [$student, $account] = $this->createStudentAndAccount('Ali Raza');
 
         // Generate Installment #1
         $v1 = FeeVoucherService::generateInstallmentVoucher($student, 1, 10000.00);
@@ -267,9 +272,9 @@ class FeeVoucherTest extends TestCase
 
     public function test_campus_admin_can_edit_fee_voucher_without_prior_approval()
     {
-        list($student, $account) = $this->createStudentAndAccount('Hassan Ali');
+        [$student, $account] = $this->createStudentAndAccount('Hassan Ali');
 
-        $role = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Campus Principal']);
+        $role = Role::firstOrCreate(['name' => 'Campus Principal']);
 
         $principal = User::create([
             'name' => 'Campus Principal',
@@ -294,8 +299,69 @@ class FeeVoucherTest extends TestCase
             'balance_amount' => 5000.00,
         ]);
 
-        $policy = new \App\Policies\FeeVoucherPolicy();
+        $policy = new FeeVoucherPolicy;
 
         $this->assertTrue($policy->update($principal, $voucher));
+    }
+
+    public function test_custom_voucher_form_creates_and_synchronizes_fee_account(): void
+    {
+        [$student, $account] = $this->createStudentAndAccount('Custom Voucher Student');
+        $tuitionHead = FeeHead::create([
+            'course_id' => $this->course->id,
+            'code' => 'TUITION_CUSTOM_FORM',
+            'name' => 'Tuition Fee',
+            'category' => 'tuition',
+            'default_amount' => 10000,
+            'applies_to' => 'monthly_installment',
+            'is_active' => true,
+        ]);
+        $this->user->assignRole(Role::findOrCreate('Super Admin', 'web'));
+        $this->actingAs($this->user, 'admin');
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+        Livewire::test(CreateFeeVoucher::class)
+            ->assertDontSee('Unit Amount')
+            ->fillForm([
+                'student_id' => $student->id,
+                'student_fee_account_id' => $account->id,
+                'voucher_type' => 'monthly_installment',
+                'campus_id' => $this->campus->id,
+                'course_id' => $this->course->id,
+                'academic_session_id' => $this->session->id,
+                'admission_id' => $student->admission_id,
+                'issue_date' => '2026-08-31',
+                'due_date' => '2026-09-10',
+                'orientation' => 'portrait_three_part',
+                'discount_amount' => 500,
+                'items' => [[
+                    'fee_head_id' => $tuitionHead->id,
+                    'description' => 'September Tuition',
+                    'quantity' => 1,
+                    'unit_amount' => 10000,
+                    'amount' => 10000,
+                    'adjustment_type' => 'debit',
+                ]],
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $voucher = FeeVoucher::query()->where('student_id', $student->id)->firstOrFail();
+        $this->assertSame('Custom Fee Voucher', $voucher->title);
+        $this->assertSame($account->id, $voucher->student_fee_account_id);
+        $this->assertSame('10000.00', $voucher->subtotal);
+        $this->assertSame('9500.00', $voucher->total_amount);
+        $this->assertSame('9500.00', $voucher->balance_amount);
+        $this->assertDatabaseHas('fee_voucher_items', [
+            'fee_voucher_id' => $voucher->id,
+            'unit_amount' => 10000,
+            'amount' => 10000,
+        ]);
+        $this->assertDatabaseHas('student_fee_accounts', [
+            'id' => $account->id,
+            'original_fee' => 10000,
+            'net_payable' => 9500,
+            'balance' => 9500,
+        ]);
     }
 }

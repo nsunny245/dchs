@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\AttendanceResource\Pages;
 use App\Models\Attendance;
-use App\Models\Student;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -17,8 +16,11 @@ class AttendanceResource extends Resource
     protected static ?string $model = Attendance::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
+
     protected static ?string $navigationGroup = 'Academic Management';
+
     protected static ?string $navigationLabel = 'Student Attendance';
+
     protected static ?int $navigationSort = 3;
 
     public static function shouldRegisterNavigation(): bool
@@ -59,7 +61,7 @@ class AttendanceResource extends Resource
                     Forms\Components\Textarea::make('remarks')
                         ->label('Remarks / Notes')
                         ->placeholder('Optional reason or arrival time'),
-                ])->columns(2)
+                ])->columns(2),
             ]);
     }
 
@@ -117,8 +119,10 @@ class AttendanceResource extends Resource
                     ]),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

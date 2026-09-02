@@ -298,18 +298,20 @@ class StaffResource extends Resource
                     ->label('Active Status'),
             ])
             ->actions([
-                Tables\Actions\Action::make('view_profile')
-                    ->label('Profile Hub')
-                    ->icon('heroicon-o-user')
-                    ->color('primary')
-                    ->url(fn (Staff $record) => Pages\ViewStaffProfile::getUrl(['record' => $record->id])),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('print_summary')
-                    ->label('Summary PDF')
-                    ->icon('heroicon-o-document-arrow-down')
-                    ->color('gray')
-                    ->url(fn (Staff $record) => route('pdf.teacher-profile-summary', $record->id))
-                    ->openUrlInNewTab(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('view_profile')
+                        ->label('Profile Hub')
+                        ->icon('heroicon-o-user')
+                        ->color('primary')
+                        ->url(fn (Staff $record) => Pages\ViewStaffProfile::getUrl(['record' => $record->id])),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\Action::make('print_summary')
+                        ->label('Summary PDF')
+                        ->icon('heroicon-o-document-arrow-down')
+                        ->color('gray')
+                        ->url(fn (Staff $record) => route('pdf.teacher-profile-summary', $record->id))
+                        ->openUrlInNewTab(),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

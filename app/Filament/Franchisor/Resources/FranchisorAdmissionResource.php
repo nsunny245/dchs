@@ -4,7 +4,10 @@ namespace App\Filament\Franchisor\Resources;
 
 use App\Filament\Franchisor\Resources\FranchisorAdmissionResource\Pages;
 use App\Models\Admission;
+use App\Models\Course;
 use App\Models\Franchisor;
+use App\Models\FranchisorCourseDeal;
+use App\Models\Setting;
 use App\Support\DashboardImage;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -18,17 +21,22 @@ class FranchisorAdmissionResource extends Resource
     protected static ?string $model = Admission::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-academic-cap';
+
     protected static ?string $navigationLabel = 'Student Admissions';
+
     protected static ?string $modelLabel = 'Student Admission';
+
     protected static ?string $pluralModelLabel = 'Student Admissions';
 
     public static function getFranchisorType(): ?string
     {
         $user = filament()->auth()->user();
-        if (!$user) return null;
+        if (! $user) {
+            return null;
+        }
 
-        $inboundUserId = \App\Models\Setting::where('key', 'franchisor_inbound_user_id')->value('value');
-        $outboundUserId = \App\Models\Setting::where('key', 'franchisor_outbound_user_id')->value('value');
+        $inboundUserId = Setting::where('key', 'franchisor_inbound_user_id')->value('value');
+        $outboundUserId = Setting::where('key', 'franchisor_outbound_user_id')->value('value');
 
         if ($user->id == $inboundUserId || $user->hasRole('Franchisor Inbound')) {
             return 'inbound';
@@ -36,6 +44,7 @@ class FranchisorAdmissionResource extends Resource
         if ($user->id == $outboundUserId || $user->hasRole('Franchisor Outbound')) {
             return 'outbound';
         }
+
         return null;
     }
 
@@ -51,9 +60,10 @@ class FranchisorAdmissionResource extends Resource
                             ->label('Franchisor Institution')
                             ->options(function () {
                                 $type = self::getFranchisorType();
-                                if (!$type) {
+                                if (! $type) {
                                     return Franchisor::where('is_active', true)->pluck('name', 'id');
                                 }
+
                                 return Franchisor::where('type', $type)->where('is_active', true)->pluck('name', 'id');
                             })
                             ->default(fn () => filament()->auth()->user()?->franchisor?->id)
@@ -65,19 +75,19 @@ class FranchisorAdmissionResource extends Resource
                             ->label('Program / Course')
                             ->options(function (Forms\Get $get) {
                                 $franchisorId = $get('franchisor_id') ?: (filament()->auth()->user()?->franchisor?->id ?? filament()->auth()->user()?->id);
-                                
+
                                 // Fallback: If user is connected as franchisor inbound/outbound user directly
-                                if (!$franchisorId) {
+                                if (! $franchisorId) {
                                     $user = filament()->auth()->user();
-                                    $franchisor = \App\Models\Franchisor::where('user_id', $user?->id)->first();
+                                    $franchisor = Franchisor::where('user_id', $user?->id)->first();
                                     $franchisorId = $franchisor?->id;
                                 }
 
-                                if (!$franchisorId) {
-                                    return \App\Models\Course::pluck('name', 'id');
+                                if (! $franchisorId) {
+                                    return Course::pluck('name', 'id');
                                 }
 
-                                return \App\Models\Course::whereIn('id', function ($query) use ($franchisorId) {
+                                return Course::whereIn('id', function ($query) use ($franchisorId) {
                                     $query->select('course_id')
                                         ->from('franchisor_course_deals')
                                         ->where('franchisor_id', $franchisorId);
@@ -88,17 +98,21 @@ class FranchisorAdmissionResource extends Resource
                             ->preload()
                             ->live()
                             ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, $state) {
-                                if (!$state) return;
+                                if (! $state) {
+                                    return;
+                                }
                                 $franchisorId = $get('franchisor_id') ?: filament()->auth()->user()?->franchisor?->id;
-                                if (!$franchisorId) return;
+                                if (! $franchisorId) {
+                                    return;
+                                }
 
-                                $deal = \App\Models\FranchisorCourseDeal::where('franchisor_id', $franchisorId)
+                                $deal = FranchisorCourseDeal::where('franchisor_id', $franchisorId)
                                     ->where('course_id', $state)
                                     ->first();
 
                                 $cost = $deal ? (float) $deal->per_seat_cost : 250000.00;
                                 $set('seat_cost', $cost);
-                                
+
                                 $half = round($cost / 2, 2);
                                 $set('installments', [
                                     [
@@ -108,7 +122,7 @@ class FranchisorAdmissionResource extends Resource
                                     [
                                         'title' => '50% Roll Number Slip Issue',
                                         'amount' => $half,
-                                    ]
+                                    ],
                                 ]);
                             }),
                         Forms\Components\Select::make('campus_id')
@@ -189,7 +203,7 @@ class FranchisorAdmissionResource extends Resource
                                     [
                                         'title' => '50% Roll Number Slip Issue',
                                         'amount' => $half,
-                                    ]
+                                    ],
                                 ]);
                             }),
                         Forms\Components\Repeater::make('installments')
@@ -237,8 +251,10 @@ class FranchisorAdmissionResource extends Resource
                     ->label('Program'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

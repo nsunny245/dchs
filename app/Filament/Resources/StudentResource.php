@@ -17,7 +17,9 @@ class StudentResource extends Resource
     protected static ?string $model = Student::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
+
     protected static ?string $navigationGroup = 'Student Relations';
+
     protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
@@ -29,7 +31,7 @@ class StudentResource extends Resource
                         Forms\Components\Select::make('campus_id')
                             ->relationship('campus', 'name')
                             ->required()
-                            ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin'))
+                            ->hidden(fn () => ! filament()->auth()->user()->hasRole('Super Admin'))
                             ->default(filament()->auth()->user()->campus_id),
                         Forms\Components\TextInput::make('enrollment_number')
                             ->required()
@@ -70,6 +72,10 @@ class StudentResource extends Resource
                 Tables\Columns\TextColumn::make('full_name')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('admission.phone')
+                    ->label('Phone')
+                    ->searchable()
+                    ->placeholder('N/A'),
                 Tables\Columns\TextColumn::make('course.name')
                     ->sortable(),
                 Tables\Columns\IconColumn::make('is_active')
@@ -77,29 +83,74 @@ class StudentResource extends Resource
                 Tables\Columns\TextColumn::make('enrollment_date')
                     ->date()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('total_package')
+                    ->label('Total Package')
+                    ->getStateUsing(fn (Student $record): float => (float) ($record->feeAccount?->net_payable ?? 0) + (float) ($record->feeAccount?->concession_amount ?? 0))
+                    ->money('PKR')
+                    ->weight('bold'),
+                Tables\Columns\TextColumn::make('feeAccount.concession_amount')
+                    ->label('Discount')
+                    ->money('PKR')
+                    ->color('warning'),
+                Tables\Columns\TextColumn::make('feeAccount.amount_paid')
+                    ->label('Paid')
+                    ->money('PKR')
+                    ->color('success'),
+                Tables\Columns\TextColumn::make('feeAccount.net_payable')
+                    ->label('Net Fee')
+                    ->money('PKR')
+                    ->weight('bold'),
+                Tables\Columns\TextColumn::make('feeAccount.balance')
+                    ->label('Outstanding')
+                    ->money('PKR')
+                    ->color('danger'),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('campus')
                     ->relationship('campus', 'name')
-                    ->hidden(fn () => !filament()->auth()->user()->hasRole('Super Admin')),
+                    ->hidden(fn () => ! filament()->auth()->user()->hasRole('Super Admin')),
                 Tables\Filters\TernaryFilter::make('is_active'),
             ])
             ->actions([
-                Tables\Actions\Action::make('downloadReportCard')
-                    ->label('Report Card')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->color('success')
-                    ->url(fn ($record) => route('pdf.report-card', $record))
-                    ->openUrlInNewTab(),
-                Tables\Actions\Action::make('downloadDocsZip')
-                    ->label('Docs ZIP')
-                    ->icon('heroicon-o-folder-arrow-down')
-                    ->color('warning')
-                    ->visible(fn ($record) => $record->admission_id !== null)
-                    ->url(fn ($record) => route('pdf.download-documents-zip', $record->admission_id))
-                    ->openUrlInNewTab(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('downloadStudentIdCard')
+                        ->label('Student ID Card')
+                        ->icon('heroicon-o-identification')
+                        ->color('warning')
+                        ->url(fn ($record) => route('pdf.student-id-card', ['student' => $record, 'revision' => $record->activeIdCard?->updated_at?->timestamp ?? now()->timestamp]))
+                        ->openUrlInNewTab(),
+                    Tables\Actions\Action::make('downloadStudentIdCardBack')
+                        ->label('ID Card Back')
+                        ->icon('heroicon-o-identification')
+                        ->url(fn ($record) => route('pdf.student-id-card.back', ['student' => $record, 'revision' => now()->timestamp]))
+                        ->openUrlInNewTab(),
+                    Tables\Actions\Action::make('viewPaymentSchedule')
+                        ->label('View Payment Schedule')
+                        ->icon('heroicon-o-calendar-days')
+                        ->color('info')
+                        ->modalHeading(fn (Student $record) => 'Payment Schedule · '.$record->full_name)
+                        ->modalContent(fn (Student $record) => view('filament.students.payment-schedule-modal', [
+                            'student' => $record,
+                            'vouchers' => $record->feeAccount?->vouchers?->sortBy('due_date') ?? collect(),
+                        ]))
+                        ->modalSubmitAction(false)
+                        ->modalCancelActionLabel('Close'),
+                    Tables\Actions\Action::make('downloadReportCard')
+                        ->label('Report Card')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->color('success')
+                        ->url(fn ($record) => route('pdf.report-card', $record))
+                        ->openUrlInNewTab(),
+                    Tables\Actions\Action::make('downloadDocsZip')
+                        ->label('Docs ZIP')
+                        ->icon('heroicon-o-folder-arrow-down')
+                        ->color('warning')
+                        ->visible(fn ($record) => $record->admission_id !== null)
+                        ->url(fn ($record) => route('pdf.download-documents-zip', $record->admission_id))
+                        ->openUrlInNewTab(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions')->button()->color('primary'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -110,7 +161,7 @@ class StudentResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery()->with('admission');
+        $query = parent::getEloquentQuery()->with(['admission', 'course', 'campus', 'feeAccount.vouchers', 'activeIdCard']);
         $user = filament()->auth()->user();
 
         if ($user && $user->campus_id !== null) {

@@ -12,8 +12,11 @@ use App\Models\FeeVoucher;
 use App\Models\StudentFeeAccount;
 use App\Models\User;
 use App\Services\EnrollmentService;
+use App\Services\Fees\AdmissionFeeAgreementData;
+use App\Services\Fees\AdmissionVoucherReconciliationService;
 use App\Services\Fees\FeeVoucherPdfService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class AdmissionWizardTest extends TestCase
@@ -122,19 +125,17 @@ class AdmissionWizardTest extends TestCase
         $account = StudentFeeAccount::where('student_id', $student->id)->first();
         $this->assertNotNull($account);
 
-        // Expected original fee: 120000 (tuition) + 10000 (admission) + 3000 (enrollment) + 2000 (verification) + 5000 (exam) + 1000 (misc) = 141000.00
-        $this->assertEquals(141000.00, $account->original_fee);
+        // The fee account follows tuition only; the admission fee is included.
+        $this->assertEquals(120000.00, $account->original_fee);
 
         // Verify count of installment vouchers
         $installments = FeeVoucher::where('student_id', $student->id)
             ->where('voucher_type', 'monthly_installment')
             ->get();
 
-        // 11 tuition installments (vouchers 2 to 12) + 1 exam voucher = 12 monthly installment vouchers total
         $this->assertEquals(12, $installments->count());
 
-        // Total vouchers count = 13 (1 new_enrollment + 12 monthly_installment)
-        $this->assertEquals(13, FeeVoucher::where('student_id', $student->id)->count());
+        $this->assertEquals(12, FeeVoucher::where('student_id', $student->id)->count());
     }
 
     public function test_custom_admission_enrollment_uses_custom_fee_overrides()
@@ -182,16 +183,15 @@ class AdmissionWizardTest extends TestCase
         $account = StudentFeeAccount::where('student_id', $student->id)->first();
         $this->assertNotNull($account);
 
-        // Expected custom original fee: 108000 (tuition) + 8000 (admission) + 2500 (enrollment) + 1500 (verification) + 4000 (exam) + 500 (misc) = 124500.00
-        $this->assertEquals(124500.00, $account->original_fee);
+        // Additional breakdown values are informational; tuition drives the account.
+        $this->assertEquals(108000.00, $account->original_fee);
 
         $installments = FeeVoucher::where('student_id', $student->id)
             ->where('voucher_type', 'monthly_installment')
             ->get();
 
-        // Two remaining tuition vouchers plus the separately scheduled exam voucher.
         $this->assertEquals(3, $installments->count());
-        $this->assertEquals(4, FeeVoucher::where('student_id', $student->id)->count());
+        $this->assertEquals(3, FeeVoucher::where('student_id', $student->id)->count());
 
         $tuitionVouchers = FeeVoucher::where('student_id', $student->id)
             ->where('title', '!=', 'Examination Registration Dues')
@@ -209,19 +209,59 @@ class AdmissionWizardTest extends TestCase
             '2026-11-25',
         ], $tuitionVouchers->pluck('due_date')->map->toDateString()->all());
         $this->assertSame([
-            '37500.00',
+            '25000.00',
             '33000.00',
             '50000.00',
         ], $tuitionVouchers->pluck('total_amount')->all());
 
         $this->assertSame([
-            'Admission Fee',
             'Registration Installment',
-            'Enrollment Fee',
-            'Verification Fee',
-            'Miscellaneous / Other Charges',
         ], $tuitionVouchers->first()->items()->orderBy('id')->pluck('description')->all());
-        $this->assertEquals(124500.00, FeeVoucher::where('student_id', $student->id)->sum('total_amount'));
+        $this->assertEquals(108000.00, FeeVoucher::where('student_id', $student->id)->sum('total_amount'));
+
+        // The guarded repair path can restore a legacy combined first voucher.
+        $tuitionVouchers->first()->update([
+            'title' => 'Admission & First Installment',
+            'subtotal' => 33500,
+            'total_amount' => 33500,
+            'balance_amount' => 33500,
+        ]);
+        $account->update(['original_fee' => 116500, 'net_payable' => 116500, 'balance' => 116500]);
+        app(AdmissionVoucherReconciliationService::class)->reconcile($account->fresh());
+
+        $this->assertDatabaseHas('fee_vouchers', [
+            'id' => $tuitionVouchers->first()->id,
+            'title' => 'Registration Installment',
+            'subtotal' => 25000,
+            'total_amount' => 25000,
+        ]);
+        $this->assertEquals(108000.00, $account->fresh()->original_fee);
         $this->assertSame(200, FeeVoucherPdfService::streamBook($admission)->getStatusCode());
+
+        $feePlan = app(AdmissionFeeAgreementData::class)->build($admission);
+        $agreement = view('pdf.admission-agreement', [
+            'admission' => $admission->load(['campus', 'course', 'academicSession']),
+            'studentPhotoDataUri' => null,
+            'feePlan' => $feePlan,
+        ])->render();
+        $this->assertStringContainsString('Registration Installment', $agreement);
+        $this->assertStringContainsString('25,000.00', $agreement);
+        $this->assertStringNotContainsString('<td class="data-label">Admission Fee</td>', $agreement);
+
+        $admin = User::factory()->create();
+        $admin->assignRole(Role::findOrCreate('Super Admin', 'web'));
+        $this->actingAs($admin);
+
+        $completionScreen = view('admissions.complete', [
+            'admission' => $admission->load(['student', 'campus', 'course', 'academicSession']),
+            'vouchers' => $tuitionVouchers,
+            'feeSnapshot' => null,
+        ])->render();
+
+        $this->assertStringContainsString('Review &amp; Edit Admission', $completionScreen);
+        $this->assertStringContainsString(
+            "/admin/admissions/{$admission->id}/edit?review=1",
+            html_entity_decode($completionScreen),
+        );
     }
 }
