@@ -11,6 +11,7 @@ use App\Models\FeeVoucherAudit;
 use App\Models\FeeVoucherItem;
 use App\Models\Student;
 use App\Models\StudentFeeAccount;
+use App\Support\CampusCode;
 use Illuminate\Support\Facades\DB;
 
 class FeeVoucherService
@@ -20,7 +21,7 @@ class FeeVoucherService
      */
     public static function generateVoucherNumber($campus, $type, $year)
     {
-        $campusCode = strtoupper(substr($campus->code ?? $campus->name, 0, 3));
+        $campusCode = CampusCode::for($campus);
         $typeCode = match ($type) {
             'new_enrollment' => 'ENR',
             'monthly_installment' => 'INS',
@@ -30,18 +31,22 @@ class FeeVoucherService
             default => 'OTH',
         };
 
-        return DB::transaction(function () use ($campus, $campusCode, $typeCode, $year, $type) {
-            $maxSeq = FeeVoucher::where('campus_id', $campus->id)
-                ->where('voucher_type', $type)
+        return DB::transaction(function () use ($campusCode, $typeCode, $year) {
+            $numberPrefix = "DGC-{$campusCode}-{$year}-{$typeCode}-";
+            $maxSeq = FeeVoucher::where('voucher_number', 'like', $numberPrefix.'%')
                 ->lockForUpdate()
                 ->max('sequence_no') ?? 0;
 
             $nextSeq = $maxSeq + 1;
-            $seqFormatted = str_pad($nextSeq, 6, '0', STR_PAD_LEFT);
+            do {
+                $seqFormatted = str_pad($nextSeq, 6, '0', STR_PAD_LEFT);
+                $number = $numberPrefix.$seqFormatted;
+                $nextSeq++;
+            } while (FeeVoucher::where('voucher_number', $number)->exists());
 
             return [
-                'number' => "DGC-{$campusCode}-{$year}-{$typeCode}-{$seqFormatted}",
-                'sequence' => $nextSeq,
+                'number' => $number,
+                'sequence' => $nextSeq - 1,
             ];
         });
     }

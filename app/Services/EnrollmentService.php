@@ -13,6 +13,7 @@ use App\Models\StudentFeeSnapshot;
 use App\Models\User;
 use App\Services\Fees\FeeVoucherService;
 use App\Services\Fees\OfficialFeeStructureResolver;
+use App\Support\CampusCode;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -45,7 +46,7 @@ class EnrollmentService
 
             $campus = $admission->campus;
             $course = $admission->course;
-            $campusCode = strtoupper(substr($campus ? $campus->name : 'GEN', 0, 3));
+            $campusCode = CampusCode::for($campus);
             $courseCode = $course ? $course->code : 'GEN';
             $year = now()->year;
 

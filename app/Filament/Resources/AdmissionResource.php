@@ -34,6 +34,7 @@ class AdmissionResource extends Resource
     public static array $pakistanCities = [
         'Okara' => 'Okara',
         'Okara Cantonment' => 'Okara Cantonment',
+        'Chichawatni' => 'Chichawatni',
         'Sahiwal' => 'Sahiwal',
         'Pakpattan' => 'Pakpattan',
         'Lahore' => 'Lahore',

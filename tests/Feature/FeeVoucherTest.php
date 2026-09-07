@@ -236,6 +236,44 @@ class FeeVoucherTest extends TestCase
         $this->assertEquals(2, $v2['sequence']);
     }
 
+    public function test_voucher_numbers_use_distinct_codes_for_daniyal_campuses(): void
+    {
+        $okara = Campus::create(['name' => 'Daniyal College Okara', 'city' => 'Okara']);
+        $chichawatni = Campus::create(['name' => 'Daniyal College Chichawatni', 'city' => 'Chichawatni']);
+
+        $okaraNumber = FeeVoucherService::generateVoucherNumber($okara, 'monthly_installment', 2026);
+        $chichawatniNumber = FeeVoucherService::generateVoucherNumber($chichawatni, 'monthly_installment', 2026);
+
+        $this->assertSame('DGC-OKA-2026-INS-000001', $okaraNumber['number']);
+        $this->assertSame('DGC-CHI-2026-INS-000001', $chichawatniNumber['number']);
+    }
+
+    public function test_future_campuses_with_the_same_abbreviation_continue_the_global_sequence(): void
+    {
+        [$student, $account] = $this->createStudentAndAccount('Existing Student');
+        $firstCampus = Campus::create(['name' => 'Daniyal College Shahkot', 'city' => 'Shahkot']);
+        $secondCampus = Campus::create(['name' => 'Daniyal College Sharaqpur', 'city' => 'Sharaqpur']);
+
+        FeeVoucher::create([
+            'student_id' => $student->id,
+            'student_fee_account_id' => $account->id,
+            'voucher_number' => 'DGC-SHA-2026-INS-000001',
+            'title' => 'Existing tuition installment',
+            'due_date' => '2026-09-10',
+            'total_amount' => 10000,
+            'balance_amount' => 10000,
+            'sequence_no' => 1,
+            'voucher_type' => 'monthly_installment',
+            'campus_id' => $firstCampus->id,
+            'issue_date' => '2026-09-01',
+        ]);
+
+        $next = FeeVoucherService::generateVoucherNumber($secondCampus, 'monthly_installment', 2026);
+
+        $this->assertSame('DGC-SHA-2026-INS-000002', $next['number']);
+        $this->assertSame(2, $next['sequence']);
+    }
+
     public function test_enrollment_voucher_creation_workflow()
     {
         [$student, $account, $admission] = $this->createStudentAndAccount('Daniyal Saleem');
