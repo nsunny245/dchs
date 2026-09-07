@@ -389,6 +389,14 @@ class AdmissionResource extends Resource
                                                         Forms\Components\TextInput::make('cnic')
                                                             ->label('Student CNIC or B-Form #')
                                                             ->maxLength(255)
+                                                            ->unique(
+                                                                table: Admission::class,
+                                                                column: 'cnic',
+                                                                ignoreRecord: true,
+                                                            )
+                                                            ->validationMessages([
+                                                                'unique' => 'This CNIC/B-Form already belongs to an existing admission. Open that admission instead of submitting a duplicate.',
+                                                            ])
                                                             ->helperText('Format: 35202-1234567-1')
                                                             ->live(onBlur: true)
                                                             ->afterStateUpdated(function ($state) {

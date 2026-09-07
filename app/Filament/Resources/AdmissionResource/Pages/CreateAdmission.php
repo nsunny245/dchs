@@ -11,6 +11,8 @@ use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Support\Exceptions\Halt;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -111,6 +113,21 @@ class CreateAdmission extends CreateRecord
         }
 
         return $data;
+    }
+
+    protected function handleRecordCreation(array $data): Model
+    {
+        try {
+            return parent::handleRecordCreation($data);
+        } catch (UniqueConstraintViolationException $exception) {
+            if (str_contains(strtolower($exception->getMessage()), 'cnic')) {
+                throw ValidationException::withMessages([
+                    'data.cnic' => 'This CNIC/B-Form already belongs to an existing admission. Open that admission instead of submitting a duplicate.',
+                ]);
+            }
+
+            throw $exception;
+        }
     }
 
     protected function afterCreate(): void
