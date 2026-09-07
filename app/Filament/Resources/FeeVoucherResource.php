@@ -196,6 +196,15 @@ class FeeVoucherResource extends Resource
                                                 $set('description', $head->name);
                                                 $set('unit_amount', $head->default_amount ?? 0.00);
                                                 $set('amount', $head->default_amount ?? 0.00);
+                                                $set('adjustment_type', 'debit');
+                                                $set('../../voucher_type', match ($head->category) {
+                                                    'tuition' => 'monthly_installment',
+                                                    'admission' => 'new_enrollment',
+                                                    'examination' => 'examination_fee',
+                                                    'verification' => 'verification_fee',
+                                                    'miscellaneous' => 'miscellaneous_fee',
+                                                    default => 'other_fee',
+                                                });
                                             }
                                         }
                                     }),
@@ -217,6 +226,11 @@ class FeeVoucherResource extends Resource
                                         'discount' => 'Discount',
                                     ])
                                     ->default('debit')
+                                    ->afterStateHydrated(function ($state, Forms\Set $set): void {
+                                        if (blank($state)) {
+                                            $set('adjustment_type', 'debit');
+                                        }
+                                    })
                                     ->required(),
                             ])
                             ->columns(4)

@@ -10,6 +10,7 @@ use App\Models\Course;
 use App\Services\Fees\InstallmentPlanGenerator;
 use App\Services\Fees\OfficialFeePlanData;
 use App\Support\DashboardImage;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -256,8 +257,9 @@ class AdmissionResource extends Resource
 
         $set('custom_installments', self::buildInstallmentRows(
             (int) $plan['custom_installment_count'],
-            $plan['custom_tuition_fee'],
-            $get('admission_date'),
+            max(0, (float) $plan['custom_tuition_fee'] - (float) ($get('concession_amount') ?? 0) - (float) ($get('custom_admission_fee') ?? 0)),
+            $get('custom_installment_start_date') ?: $get('admission_date'),
+            (int) ($get('custom_installment_interval_months') ?: 1),
         ));
     }
 
@@ -265,6 +267,7 @@ class AdmissionResource extends Resource
         int $count,
         string|int|float $tuitionTotal,
         mixed $admissionDate,
+        int $intervalMonths = 1,
     ): array {
         $firstDueDate = filled($admissionDate) ? Carbon::parse($admissionDate) : now();
 
@@ -272,11 +275,72 @@ class AdmissionResource extends Resource
             $tuitionTotal,
             max(1, min(36, $count)),
             $firstDueDate,
+            max(1, min(12, $intervalMonths)),
         ))->map(fn (array $row): array => [
             'title' => $row['title'],
             'amount' => number_format($row['gross_paisa'] / 100, 2, '.', ''),
             'due_date' => $row['due_date'],
         ])->all();
+    }
+
+    protected static function refreshInstallmentSchedule(Forms\Get $get, Forms\Set $set): void
+    {
+        $remainingTuition = max(
+            0,
+            (float) ($get('custom_tuition_fee') ?? 0)
+                - (float) ($get('concession_amount') ?? 0)
+                - (float) ($get('custom_admission_fee') ?? 0),
+        );
+
+        $set('custom_installments', self::buildInstallmentRows(
+            (int) ($get('custom_installment_count') ?: 1),
+            $remainingTuition,
+            $get('custom_installment_start_date') ?: $get('admission_date'),
+            (int) ($get('custom_installment_interval_months') ?: 1),
+        ));
+    }
+
+    public static function redistributeInstallmentAmounts(array $rows, string|int $editedKey, float $tuitionTotal): array
+    {
+        if (count($rows) < 2 || ! array_key_exists($editedKey, $rows)) {
+            return $rows;
+        }
+
+        $money = app(InstallmentPlanGenerator::class);
+        $totalPaisa = max(0, $money->toPaisa($tuitionTotal));
+        $editedPaisa = min($totalPaisa, max(0, $money->toPaisa($rows[$editedKey]['amount'] ?? 0)));
+        $otherKeys = array_values(array_filter(array_keys($rows), fn ($key): bool => (string) $key !== (string) $editedKey));
+        $remainingPaisa = $totalPaisa - $editedPaisa;
+        $basePaisa = intdiv($remainingPaisa, count($otherKeys));
+        $remainder = $remainingPaisa - ($basePaisa * count($otherKeys));
+
+        $rows[$editedKey]['amount'] = number_format($editedPaisa / 100, 2, '.', '');
+        foreach ($otherKeys as $index => $key) {
+            $amountPaisa = $basePaisa + ($index === array_key_last($otherKeys) ? $remainder : 0);
+            $rows[$key]['amount'] = number_format($amountPaisa / 100, 2, '.', '');
+        }
+
+        return $rows;
+    }
+
+    public static function rebalanceEditedInstallmentAmounts(array $rows, float $tuitionTotal): array
+    {
+        if (count($rows) < 2) {
+            return $rows;
+        }
+
+        $scheduledTotal = (float) collect($rows)->sum(fn (array $row): float => (float) ($row['amount'] ?? 0));
+        if (abs($scheduledTotal - $tuitionTotal) < 0.01) {
+            return $rows;
+        }
+
+        $equalShare = $tuitionTotal / count($rows);
+        $editedKey = collect($rows)
+            ->sortByDesc(fn (array $row): float => abs((float) ($row['amount'] ?? 0) - $equalShare))
+            ->keys()
+            ->first();
+
+        return self::redistributeInstallmentAmounts($rows, $editedKey, $tuitionTotal);
     }
 
     public static function form(Form $form): Form
@@ -701,39 +765,95 @@ class AdmissionResource extends Resource
                                                         Forms\Components\DatePicker::make('admission_date')
                                                             ->label('Admission Date')
                                                             ->default(now())
-                                                            ->required(),
+                                                            ->required()
+                                                            ->live()
+                                                            ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set): void {
+                                                                if (! filled($get('custom_installment_start_date'))) {
+                                                                    $set('custom_installment_start_date', $state);
+                                                                }
+                                                                self::refreshInstallmentSchedule($get, $set);
+                                                            }),
                                                     ]),
                                             ]),
 
                                         Forms\Components\Section::make('Program Tuition and Concession')
-                                            ->description('The selected program supplies one tuition package amount. Admission charges are already included in tuition.')
+                                            ->description('Set the tuition package, discount, and admission payment. Tuition installments are calculated from the remaining balance.')
                                             ->icon('heroicon-o-banknotes')
                                             ->iconColor('warning')
                                             ->extraAttributes(['class' => 'admission-fee-panel admission-fee-panel--tuition'])
                                             ->schema([
-                                                Forms\Components\Grid::make(2)
-                                                    ->schema([
-                                                        Forms\Components\TextInput::make('custom_tuition_fee')
-                                                            ->label('Total Course Tuition Fee')
-                                                            ->numeric()
-                                                            ->prefix('PKR')
-                                                            ->required()
-                                                            ->readOnly(),
+                                                Forms\Components\Grid::make(2)->schema([
+                                                    Forms\Components\TextInput::make('custom_tuition_fee')
+                                                        ->label('Total Course Tuition Fee')
+                                                        ->numeric()
+                                                        ->prefix('PKR')
+                                                        ->required()
+                                                        ->readOnly(),
 
-                                                        Forms\Components\TextInput::make('concession_amount')
-                                                            ->label('Special Discount / Concession Amount')
-                                                            ->numeric()
-                                                            ->prefix('PKR')
-                                                            ->default(0.00),
+                                                    Forms\Components\TextInput::make('concession_amount')
+                                                        ->label('Special Discount / Concession Amount')
+                                                        ->numeric()
+                                                        ->prefix('PKR')
+                                                        ->default(0.00)
+                                                        ->live(onBlur: true)
+                                                        ->afterStateUpdated(fn (Forms\Get $get, Forms\Set $set) => self::refreshInstallmentSchedule($get, $set)),
 
-                                                        Forms\Components\TextInput::make('concession_reason')
-                                                            ->label('Discount Reason / Notes')
-                                                            ->placeholder('e.g. Kinship discount, Merit waiver'),
-                                                    ]),
+                                                ]),
+
+                                                Forms\Components\Grid::make(3)->schema([
+                                                    Forms\Components\TextInput::make('custom_admission_fee')
+                                                        ->label('Admission Fee Being Collected')
+                                                        ->helperText('This becomes the first, separate admission-fee voucher and is deducted from discounted tuition before installments are divided.')
+                                                        ->numeric()
+                                                        ->prefix('PKR')
+                                                        ->default(0.00)
+                                                        ->minValue(0)
+                                                        ->maxValue(fn (Forms\Get $get): float => max(0, (float) ($get('custom_tuition_fee') ?? 0) - (float) ($get('concession_amount') ?? 0)))
+                                                        ->live(onBlur: true)
+                                                        ->afterStateUpdated(fn (Forms\Get $get, Forms\Set $set) => self::refreshInstallmentSchedule($get, $set))
+                                                        ->columnSpan(2),
+
+                                                    Forms\Components\Actions::make([
+                                                        Forms\Components\Actions\Action::make('printAdmissionFeeVoucherPreview')
+                                                            ->label('Print Admission Fee Voucher')
+                                                            ->icon('heroicon-o-printer')
+                                                            ->color('warning')
+                                                            ->action(function (Forms\Get $get) {
+                                                                $amount = max(0, (float) ($get('custom_admission_fee') ?? 0));
+                                                                if ($amount <= 0) {
+                                                                    Notification::make()->warning()->title('Enter an admission fee first')->send();
+
+                                                                    return null;
+                                                                }
+
+                                                                $pdf = Pdf::loadView('pdf.admission-fee-voucher-preview', [
+                                                                    'studentName' => $get('applicant_name') ?: 'Prospective Student',
+                                                                    'campusName' => self::getAdmissionLookups()['campuses'][$get('campus_id')] ?? 'Daniyal Group of Colleges',
+                                                                    'courseName' => self::getAdmissionLookups()['courses'][$get('course_id')] ?? 'Course pending',
+                                                                    'sessionName' => self::getAdmissionLookups()['sessions'][$get('academic_session_id')] ?? 'Session pending',
+                                                                    'amount' => $amount,
+                                                                    'dueDate' => $get('admission_date') ?: now()->toDateString(),
+                                                                ])->setPaper('A4', 'landscape');
+
+                                                                return response()->streamDownload(
+                                                                    fn () => print $pdf->output(),
+                                                                    'admission-fee-voucher-preview.pdf',
+                                                                );
+                                                            }),
+                                                    ])
+                                                        ->alignEnd()
+                                                        ->extraAttributes(['class' => 'admission-fee-print-action'])
+                                                        ->columnSpan(1),
+                                                ]),
+
+                                                Forms\Components\TextInput::make('concession_reason')
+                                                    ->label('Discount Reason / Notes')
+                                                    ->placeholder('e.g. Kinship discount, Merit waiver')
+                                                    ->columnSpanFull(),
                                             ]),
 
                                         Forms\Components\Section::make('Additional Fee Breakdown')
-                                            ->description('These charges are itemized separately on the agreement. There is no separate admission fee.')
+                                            ->description('These charges are informational fee-head details on the agreement and are not added again to tuition installments.')
                                             ->icon('heroicon-o-receipt-percent')
                                             ->iconColor('info')
                                             ->extraAttributes(['class' => 'admission-fee-panel admission-fee-panel--breakdown'])
@@ -759,7 +879,6 @@ class AdmissionResource extends Resource
                                                             ->readOnly()
                                                             ->default(0.00),
                                                     ]),
-                                                Forms\Components\Hidden::make('custom_admission_fee')->default(0.00),
                                                 Forms\Components\Hidden::make('custom_enrollment_fee')->default(0.00),
                                             ]),
 
@@ -774,25 +893,45 @@ class AdmissionResource extends Resource
                                                     ->content(view('filament.admissions.components.installment-editor-guide'))
                                                     ->columnSpanFull(),
 
-                                                Forms\Components\TextInput::make('custom_installment_count')
-                                                    ->label('Number of Installments')
-                                                    ->numeric()
-                                                    ->minValue(1)
-                                                    ->maxValue(36)
-                                                    ->default(5)
-                                                    ->helperText('Enter the required number, then click outside this field. The editable schedule will update automatically.')
-                                                    ->live(onBlur: true)
-                                                    ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set): void {
-                                                        $set('custom_installments', self::buildInstallmentRows(
-                                                            (int) ($state ?: 1),
-                                                            $get('custom_tuition_fee') ?: 0,
-                                                            $get('admission_date'),
-                                                        ));
-                                                    }),
+                                                Forms\Components\Grid::make(3)->schema([
+                                                    Forms\Components\Select::make('custom_installment_count')
+                                                        ->label('Number of Installments')
+                                                        ->options(array_combine(range(1, 12), range(1, 12)))
+                                                        ->native(false)
+                                                        ->default(5)
+                                                        ->helperText('Tuition installments after the admission fee.')
+                                                        ->live()
+                                                        ->afterStateUpdated(fn (Forms\Get $get, Forms\Set $set) => self::refreshInstallmentSchedule($get, $set)),
+
+                                                    Forms\Components\Select::make('custom_installment_interval_months')
+                                                        ->label('Month Interval')
+                                                        ->options([
+                                                            1 => 'Every 1 month',
+                                                            2 => 'Every 2 months',
+                                                            3 => 'Every 3 months',
+                                                            4 => 'Every 4 months',
+                                                            5 => 'Every 5 months',
+                                                        ])
+                                                        ->native(false)
+                                                        ->default(1)
+                                                        ->required()
+                                                        ->live()
+                                                        ->afterStateUpdated(fn (Forms\Get $get, Forms\Set $set) => self::refreshInstallmentSchedule($get, $set)),
+
+                                                    Forms\Components\DatePicker::make('custom_installment_start_date')
+                                                        ->label('First Installment Due Date')
+                                                        ->helperText('Click anywhere in the field to open the calendar.')
+                                                        ->native(false)
+                                                        ->closeOnDateSelection()
+                                                        ->default(now())
+                                                        ->required()
+                                                        ->live()
+                                                        ->afterStateUpdated(fn (Forms\Get $get, Forms\Set $set) => self::refreshInstallmentSchedule($get, $set)),
+                                                ]),
 
                                                 Forms\Components\Repeater::make('custom_installments')
                                                     ->label('Editable Installment Schedule')
-                                                    ->helperText('The total of all installment amounts must equal the Total Course Tuition Fee shown above.')
+                                                    ->helperText('Amounts and dates are generated automatically from remaining tuition. You may still make a final manual adjustment before submission.')
                                                     ->schema([
                                                         Forms\Components\TextInput::make('title')
                                                             ->label('Installment Title')
@@ -802,7 +941,25 @@ class AdmissionResource extends Resource
                                                             ->label('Amount (PKR)')
                                                             ->numeric()
                                                             ->prefix('PKR')
-                                                            ->required(),
+                                                            ->required()
+                                                            ->live(onBlur: true)
+                                                            ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set, Forms\Components\TextInput $component): void {
+                                                                $path = explode('.', $component->getStatePath());
+                                                                $editedKey = $path[count($path) - 2] ?? '';
+                                                                $remainingTuition = max(
+                                                                    0,
+                                                                    (float) ($get('../../custom_tuition_fee') ?? 0)
+                                                                        - (float) ($get('../../concession_amount') ?? 0)
+                                                                        - (float) ($get('../../custom_admission_fee') ?? 0),
+                                                                );
+                                                                $rows = $get('../../custom_installments') ?? [];
+
+                                                                $set('../../custom_installments', self::redistributeInstallmentAmounts(
+                                                                    $rows,
+                                                                    $editedKey,
+                                                                    $remainingTuition,
+                                                                ));
+                                                            }),
                                                         Forms\Components\DatePicker::make('due_date')
                                                             ->label('Due Date')
                                                             ->required(),
@@ -810,9 +967,9 @@ class AdmissionResource extends Resource
                                                     ->itemLabel(fn (array $state): ?string => filled($state['title'] ?? null) ? $state['title'] : 'New Installment')
                                                     ->columns(3)
                                                     ->collapsible()
-                                                    ->cloneable()
-                                                    ->reorderable()
-                                                    ->addActionLabel('Add Another Installment')
+                                                    ->addable(false)
+                                                    ->deletable(false)
+                                                    ->reorderable(false)
                                                     ->defaultItems(0)
                                                     ->minItems(1)
                                                     ->extraAttributes(['class' => 'admission-installment-repeater'])
@@ -844,9 +1001,8 @@ class AdmissionResource extends Resource
                                             ->content(function (Forms\Get $get) {
                                                 $academic = $get('academic_details') ?: [];
                                                 $tuition = (float) $get('custom_tuition_fee');
-                                                $admissionFee = (float) $get('custom_admission_fee');
                                                 $concession = (float) $get('concession_amount');
-                                                $total = max(0, $tuition + $admissionFee - $concession);
+                                                $total = max(0, $tuition - $concession);
 
                                                 return view('filament.admissions.components.review-summary', [
                                                     'studentName' => $get('applicant_name') ?: 'Not entered',

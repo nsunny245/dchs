@@ -245,8 +245,8 @@ class ViewStudentFeeAccount extends ViewRecord
                 ->color('warning')
                 ->requiresConfirmation()
                 ->modalHeading('Synchronize admission installments?')
-                ->modalDescription('This repairs an unpaid account so its vouchers exactly match the titles, dates and amounts saved in the admission form. Paid accounts are protected and cannot be synchronized automatically.')
-                ->visible(fn (): bool => $this->record->admission !== null && (float) $this->record->amount_paid <= 0)
+                ->modalDescription('This updates unpaid tuition vouchers to exactly match the titles, dates and amounts saved in the admission form. Any collected admission-fee payment is preserved. Paid tuition vouchers remain protected.')
+                ->visible(fn (): bool => $this->record->admission !== null)
                 ->action(function (): void {
                     try {
                         app(AdmissionVoucherReconciliationService::class)->reconcile(
@@ -280,13 +280,21 @@ class ViewStudentFeeAccount extends ViewRecord
             ->orderBy('id', 'asc')
             ->get();
         $activeVouchers = $vouchers->whereNotIn('status', ['cancelled', 'void'])->values();
+        $tuitionVouchers = $activeVouchers->where('voucher_type', 'monthly_installment')->values();
+        $admissionVoucher = $activeVouchers->firstWhere('voucher_type', 'new_enrollment');
+        $savedAdmissionFee = (float) ($this->record->admission?->custom_admission_fee ?? 0);
         $savedSchedule = collect($this->record->admission?->custom_installments ?? [])
             ->filter(fn (array $row): bool => (float) ($row['amount'] ?? 0) > 0)
             ->values();
+        $admissionFeeMatches = $savedAdmissionFee <= 0
+            ? $admissionVoucher === null
+            : $admissionVoucher !== null
+                && abs($savedAdmissionFee - (float) $admissionVoucher->subtotal) < 0.01;
         $planMatches = $savedSchedule->isEmpty()
-            || ($savedSchedule->count() === $activeVouchers->count()
-            && $savedSchedule->every(function (array $row, int $index) use ($activeVouchers): bool {
-                $voucher = $activeVouchers->get($index);
+            || ($admissionFeeMatches
+            && $savedSchedule->count() === $tuitionVouchers->count()
+            && $savedSchedule->every(function (array $row, int $index) use ($tuitionVouchers): bool {
+                $voucher = $tuitionVouchers->get($index);
 
                 return $voucher
                     && trim((string) ($row['title'] ?? '')) === trim((string) $voucher->title)
@@ -321,7 +329,7 @@ class ViewStudentFeeAccount extends ViewRecord
             'installmentCount' => $activeVouchers->count(),
             'planMatches' => $planMatches,
             'hasPaymentHistory' => $this->record->payments()->where('status', 'paid')->where('amount', '>', 0)->exists(),
-            'savedScheduleTotal' => (float) $savedSchedule->sum(fn (array $row): float => (float) $row['amount']),
+            'savedScheduleTotal' => $savedAdmissionFee + (float) $savedSchedule->sum(fn (array $row): float => (float) $row['amount']),
         ];
     }
 }

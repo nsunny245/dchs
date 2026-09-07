@@ -84,7 +84,10 @@ class FinalizeAdmissionAction
                 ->orderBy('id')
                 ->get()
                 ->values();
-            $schedule = $generatedVouchers->map(fn (FeeVoucher $voucher, int $index) => [
+            $tuitionVouchers = $generatedVouchers
+                ->where('voucher_type', 'monthly_installment')
+                ->values();
+            $schedule = $tuitionVouchers->map(fn (FeeVoucher $voucher, int $index) => [
                 'number' => $index + 1,
                 'title' => $voucher->title,
                 'due_date' => $voucher->due_date->toDateString(),
@@ -111,7 +114,7 @@ class FinalizeAdmissionAction
                     ],
                 );
 
-                $this->vouchers->linkToInstallment($generatedVouchers, $installment, $row);
+                $this->vouchers->linkToInstallment($tuitionVouchers, $installment, $row);
             }
 
             StudentFeeSnapshot::where('student_id', $student->id)->update([

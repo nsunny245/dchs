@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
-use App\Traits\ScopedByCampus;
 use App\Traits\ConvertsImagesToWebp;
+use App\Traits\ScopedByCampus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Admission extends Model
 {
-    use ScopedByCampus, ConvertsImagesToWebp;
+    use ConvertsImagesToWebp, ScopedByCampus;
 
     public function webpImageFields(): array
     {
@@ -35,6 +35,7 @@ class Admission extends Model
     protected $casts = [
         'dob' => 'date',
         'admission_date' => 'date',
+        'custom_installment_start_date' => 'date',
         'applied_at' => 'datetime',
         'academic_details' => 'array',
         'custom_installments' => 'array',

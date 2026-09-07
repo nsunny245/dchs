@@ -2,30 +2,37 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use App\Models\User;
+use App\Filament\Resources\TimetableResource\Pages\TimetableWizard;
 use App\Models\Campus;
 use App\Models\Course;
-use App\Models\Staff;
 use App\Models\Room;
+use App\Models\Staff;
 use App\Models\Subject;
 use App\Models\Timetable;
 use App\Models\TimetableSlot;
-use App\Services\Timetable\TimetableConflictService;
+use App\Models\User;
 use App\Services\Timetable\TimetableBuilderService;
+use App\Services\Timetable\TimetableConflictService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
+use Tests\TestCase;
 
 class ProgramTimetableTest extends TestCase
 {
     use RefreshDatabase;
 
     protected Campus $campus;
+
     protected Course $course;
+
     protected User $admin;
+
     protected Staff $teacher;
+
     protected Room $room;
+
     protected Subject $subject1;
+
     protected Subject $subject2;
 
     protected function setUp(): void
@@ -159,5 +166,59 @@ class ProgramTimetableTest extends TestCase
         $response = $this->actingAs($this->admin, 'campus')->get(route('pdf.timetable', $timetable->id));
         $response->assertStatus(200);
         $response->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_custom_slot_can_use_manual_subject_day_and_time(): void
+    {
+        $this->actingAs($this->admin);
+        $timetable = Timetable::create([
+            'title' => 'Fully Manual Timetable',
+            'campus_id' => $this->campus->id,
+            'course_id' => $this->course->id,
+            'semester_name' => 'Custom Term',
+            'section_name' => 'Custom Group',
+            'effective_from' => now()->format('Y-m-d'),
+            'working_days' => ['sunday'],
+            'status' => 'draft',
+        ]);
+
+        $page = new TimetableWizard;
+        $page->recordId = $timetable->id;
+        $page->modalSubjectId = null;
+        $page->modalSubjectName = 'Client Named Clinical Workshop';
+        $page->modalDay = 'sunday';
+        $page->modalStartTime = '14:20';
+        $page->modalEndTime = '16:05';
+        $page->modalClassType = 'Clinical';
+        $page->saveSlot();
+
+        $this->assertDatabaseHas('timetable_slots', [
+            'timetable_id' => $timetable->id,
+            'subject_id' => null,
+            'subject_name' => 'Client Named Clinical Workshop',
+            'day_of_week' => 'sunday',
+            'start_time' => '14:20',
+            'end_time' => '16:05',
+        ]);
+    }
+
+    public function test_full_date_field_opens_native_picker_from_any_click_area(): void
+    {
+        $response = $this->actingAs($this->admin, 'campus')->get('/campus/timetables/create');
+
+        $response->assertOk();
+        $response->assertSee('input.showPicker()', false);
+    }
+
+    public function test_super_admin_can_open_teacher_attendance_with_campus_selection(): void
+    {
+        $superAdmin = User::factory()->create();
+        $superAdmin->assignRole(Role::findOrCreate('Super Admin', 'web'));
+
+        $response = $this->actingAs($superAdmin, 'admin')->get('/admin/teacher-attendances/create');
+
+        $response->assertOk();
+        $response->assertSee('Campus');
+        $response->assertSee('Teacher / Staff');
     }
 }

@@ -115,6 +115,13 @@ class AdmissionWorkflowFoundationTest extends TestCase
             'address' => 'Okara', 'campus_id' => $campus->id, 'course_id' => $course->id,
             'academic_session_id' => $session->id, 'admission_date' => '2026-07-23',
             'status' => 'submitted', 'concession_amount' => 0,
+            'custom_tuition_fee' => 10000, 'custom_admission_fee' => 1000,
+            'custom_installment_count' => 3,
+            'custom_installments' => [
+                ['title' => 'Tuition Installment #1', 'amount' => 3000, 'due_date' => '2026-08-10'],
+                ['title' => 'Tuition Installment #2', 'amount' => 3000, 'due_date' => '2026-09-10'],
+                ['title' => 'Tuition Installment #3', 'amount' => 3000, 'due_date' => '2026-10-10'],
+            ],
         ]);
 
         $action = app(FinalizeAdmissionAction::class);
@@ -128,10 +135,19 @@ class AdmissionWorkflowFoundationTest extends TestCase
         $this->assertSame(1, StudentLedgerEntry::where('student_id', $first->id)->count());
         $this->assertSame(
             (int) round((float) StudentFeeAccount::where('admission_id', $admission->id)->value('net_payable') * 100),
-            StudentInstallment::where('admission_id', $admission->id)->sum('net_paisa'),
+            StudentInstallment::where('admission_id', $admission->id)->sum('net_paisa')
+                + (int) round((float) FeeVoucher::where('admission_id', $admission->id)
+                    ->where('voucher_type', 'new_enrollment')->value('total_amount') * 100),
         );
         $this->assertSame(3, FeeVoucher::where('admission_id', $admission->id)->whereNotNull('installment_id')->count());
-        $this->assertSame(3, FeeVoucher::where('admission_id', $admission->id)->distinct('voucher_number')->count('voucher_number'));
+        $this->assertSame(4, FeeVoucher::where('admission_id', $admission->id)->distinct('voucher_number')->count('voucher_number'));
+        $this->assertDatabaseHas('fee_vouchers', [
+            'admission_id' => $admission->id,
+            'voucher_type' => 'new_enrollment',
+            'title' => 'Admission Fee',
+            'installment_id' => null,
+            'total_amount' => 1000,
+        ]);
     }
 
     public function test_unapproved_concession_rolls_back_finalization(): void

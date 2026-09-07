@@ -27,30 +27,29 @@
     --color-brand-info: #12365D;
 }
 
-/* Student financial report: every field and the row actions remain visible on
-   desktop without a horizontal table scrollbar. */
-@media (min-width: 1280px) {
+/* Student financial report.
+   Laptop/desktop: keep every column inside the available width and pin Actions
+   to the right edge. Tablet/mobile: turn each record into a labelled card so no
+   information or control is pushed off-screen. Typography remains unchanged. */
+@media (min-width: 1367px) {
     .fi-resource-student-resource .fi-ta-content {
         overflow-x: visible !important;
     }
 
     .fi-resource-student-resource .fi-ta-table {
-        font-size: .68rem !important;
         table-layout: fixed !important;
         width: 100% !important;
     }
 
     .fi-resource-student-resource .fi-ta-header-cell {
-        font-size: .64rem !important;
-        line-height: 1.15 !important;
-        padding: .55rem .3rem !important;
+        line-height: 1.25 !important;
+        padding: .7rem .35rem !important;
         white-space: normal !important;
     }
 
     .fi-resource-student-resource .fi-ta-header-cell-label,
     .fi-resource-student-resource .fi-ta-text-item-label {
-        font-size: inherit !important;
-        line-height: 1.25 !important;
+        line-height: 1.3 !important;
         overflow-wrap: anywhere !important;
         white-space: normal !important;
     }
@@ -62,41 +61,162 @@
 
     .fi-resource-student-resource .fi-ta-cell > div {
         min-width: 0 !important;
-        padding: .45rem .28rem !important;
+        padding: .65rem .32rem !important;
     }
 
     .fi-resource-student-resource .fi-ta-table th:nth-child(1),
-    .fi-resource-student-resource .fi-ta-table td:nth-child(1) { width: 2rem; }
+    .fi-resource-student-resource .fi-ta-table td:nth-child(1) { width: 2.5%; }
     .fi-resource-student-resource .fi-ta-table th:nth-child(2),
-    .fi-resource-student-resource .fi-ta-table td:nth-child(2) { width: 2.4rem; }
+    .fi-resource-student-resource .fi-ta-table td:nth-child(2) { width: 3%; }
     .fi-resource-student-resource .fi-ta-table th:nth-child(3),
-    .fi-resource-student-resource .fi-ta-table td:nth-child(3) { width: 3.4rem; }
+    .fi-resource-student-resource .fi-ta-table td:nth-child(3) { width: 4.5%; }
     .fi-resource-student-resource .fi-ta-table th:nth-child(4),
-    .fi-resource-student-resource .fi-ta-table td:nth-child(4) { width: 10.5rem; }
+    .fi-resource-student-resource .fi-ta-table td:nth-child(4) { width: 10%; }
     .fi-resource-student-resource .fi-ta-table th:nth-child(5),
-    .fi-resource-student-resource .fi-ta-table td:nth-child(5) { width: 11rem; }
+    .fi-resource-student-resource .fi-ta-table td:nth-child(5) { width: 10%; }
     .fi-resource-student-resource .fi-ta-table th:nth-child(6),
-    .fi-resource-student-resource .fi-ta-table td:nth-child(6) { width: 7.2rem; }
+    .fi-resource-student-resource .fi-ta-table td:nth-child(6) { width: 7%; }
     .fi-resource-student-resource .fi-ta-table th:nth-child(7),
-    .fi-resource-student-resource .fi-ta-table td:nth-child(7) { width: 9rem; }
+    .fi-resource-student-resource .fi-ta-table td:nth-child(7) { width: 9%; }
     .fi-resource-student-resource .fi-ta-table th:nth-child(8),
-    .fi-resource-student-resource .fi-ta-table td:nth-child(8) { width: 4rem; }
+    .fi-resource-student-resource .fi-ta-table td:nth-child(8) { width: 4%; }
     .fi-resource-student-resource .fi-ta-table th:nth-child(9),
-    .fi-resource-student-resource .fi-ta-table td:nth-child(9) { width: 6.5rem; }
+    .fi-resource-student-resource .fi-ta-table td:nth-child(9) { width: 7%; }
     .fi-resource-student-resource .fi-ta-table th:nth-child(n+10):nth-child(-n+14),
-    .fi-resource-student-resource .fi-ta-table td:nth-child(n+10):nth-child(-n+14) { width: 6.8rem; }
+    .fi-resource-student-resource .fi-ta-table td:nth-child(n+10):nth-child(-n+14) { width: 7%; }
     .fi-resource-student-resource .fi-ta-table th:last-child,
-    .fi-resource-student-resource .fi-ta-table td:last-child { width: 7.2rem; }
+    .fi-resource-student-resource .fi-ta-table td:last-child {
+        background: #fff;
+        box-shadow: -8px 0 18px -16px rgba(8, 34, 69, .8);
+        position: sticky;
+        right: 0;
+        width: 8%;
+        z-index: 4;
+    }
+
+    .fi-resource-student-resource .fi-ta-table thead th:last-child {
+        background: var(--dgc-navy-900);
+        z-index: 5;
+    }
 
     .fi-resource-student-resource .fi-ta-actions {
-        justify-content: center !important;
+        justify-content: flex-end !important;
         white-space: nowrap !important;
     }
 
     .fi-resource-student-resource .fi-ta-actions .fi-btn {
-        font-size: .67rem !important;
         min-height: 2rem !important;
-        padding: .35rem .55rem !important;
+        padding-inline: .65rem !important;
+    }
+}
+
+@media (max-width: 1366px) {
+    .fi-resource-student-resource .fi-ta-content,
+    .fi-resource-student-resource .fi-ta-ctn {
+        overflow: visible !important;
+    }
+
+    .fi-resource-student-resource .fi-ta-table,
+    .fi-resource-student-resource .fi-ta-table tbody {
+        display: block;
+        width: 100% !important;
+    }
+
+    .fi-resource-student-resource .fi-ta-table thead {
+        border: 0;
+        clip: rect(0 0 0 0);
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        padding: 0;
+        position: absolute;
+        width: 1px;
+    }
+
+    .fi-resource-student-resource .fi-ta-row {
+        background: #fff;
+        border: 1px solid var(--dgc-border);
+        border-left: 4px solid var(--dgc-gold-500);
+        border-radius: .85rem;
+        box-shadow: 0 8px 24px rgba(8, 34, 69, .08);
+        display: grid;
+        gap: 0;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin: .85rem;
+        overflow: hidden;
+    }
+
+    .fi-resource-student-resource .fi-ta-cell,
+    .fi-resource-student-resource .fi-ta-actions-cell {
+        align-items: center;
+        border-bottom: 1px solid #edf1f6;
+        display: grid;
+        gap: .55rem;
+        grid-template-columns: minmax(7.5rem, .8fr) minmax(0, 1.2fr);
+        min-width: 0 !important;
+        padding: .75rem 1rem !important;
+    }
+
+    .fi-resource-student-resource .fi-ta-cell::before,
+    .fi-resource-student-resource .fi-ta-actions-cell::before {
+        color: var(--dgc-text-secondary);
+        content: '';
+        font-weight: 700;
+        line-height: 1.3;
+    }
+
+    .fi-resource-student-resource .fi-ta-cell:nth-child(1)::before { content: 'Select'; }
+    .fi-resource-student-resource .fi-ta-cell:nth-child(2)::before { content: 'S.No'; }
+    .fi-resource-student-resource .fi-ta-cell:nth-child(3)::before { content: 'Photo'; }
+    .fi-resource-student-resource .fi-ta-cell:nth-child(4)::before { content: 'Enrollment number'; }
+    .fi-resource-student-resource .fi-ta-cell:nth-child(5)::before { content: 'Full name'; }
+    .fi-resource-student-resource .fi-ta-cell:nth-child(6)::before { content: 'Phone'; }
+    .fi-resource-student-resource .fi-ta-cell:nth-child(7)::before { content: 'Course'; }
+    .fi-resource-student-resource .fi-ta-cell:nth-child(8)::before { content: 'Active'; }
+    .fi-resource-student-resource .fi-ta-cell:nth-child(9)::before { content: 'Enrollment date'; }
+    .fi-resource-student-resource .fi-ta-cell:nth-child(10)::before { content: 'Total package'; }
+    .fi-resource-student-resource .fi-ta-cell:nth-child(11)::before { content: 'Discount'; }
+    .fi-resource-student-resource .fi-ta-cell:nth-child(12)::before { content: 'Paid'; }
+    .fi-resource-student-resource .fi-ta-cell:nth-child(13)::before { content: 'Net fee'; }
+    .fi-resource-student-resource .fi-ta-cell:nth-child(14)::before { content: 'Outstanding'; }
+    .fi-resource-student-resource .fi-ta-actions-cell::before { content: 'Actions'; }
+
+    .fi-resource-student-resource .fi-ta-cell > div,
+    .fi-resource-student-resource .fi-ta-actions-cell > div {
+        min-width: 0;
+        padding: 0 !important;
+    }
+
+    .fi-resource-student-resource .fi-ta-actions-cell {
+        background: var(--dgc-surface-soft);
+        grid-column: 1 / -1;
+    }
+
+    .fi-resource-student-resource .fi-ta-actions {
+        justify-content: flex-start !important;
+    }
+
+    .fi-resource-student-resource .fi-ta-actions .fi-btn {
+        min-height: 2.75rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .fi-resource-student-resource .fi-ta-row {
+        grid-template-columns: minmax(0, 1fr);
+        margin: .7rem .4rem;
+    }
+
+    .fi-resource-student-resource .fi-ta-cell,
+    .fi-resource-student-resource .fi-ta-actions-cell {
+        grid-column: 1;
+        grid-template-columns: minmax(7rem, .75fr) minmax(0, 1.25fr);
+        padding-inline: .85rem !important;
+    }
+
+    .fi-resource-student-resource .fi-ta-actions .fi-btn {
+        justify-content: center;
+        width: 100%;
     }
 }
 
@@ -1641,6 +1761,29 @@ div[role="tabpanel"].fi-fo-wizard-step {
     border: 1px solid #e6c77f !important;
     box-shadow: 0 10px 28px rgba(8, 34, 69, .08) !important;
     overflow: hidden !important;
+}
+
+.admission-page .admission-fee-print-action {
+    align-items: flex-end !important;
+    display: flex !important;
+    min-height: 2.75rem;
+}
+
+.admission-page .admission-fee-print-action .fi-btn {
+    align-items: center !important;
+    background: linear-gradient(135deg, #e0a126, #c98708) !important;
+    border: 1px solid #b97905 !important;
+    border-radius: .6rem !important;
+    box-shadow: 0 5px 14px rgba(201, 135, 8, .22) !important;
+    color: #fff !important;
+    display: inline-flex !important;
+    justify-content: center !important;
+    min-height: 2.75rem;
+    width: 100%;
+}
+
+.admission-page .admission-fee-print-action .fi-btn * {
+    color: #fff !important;
 }
 
 .admission-page .admission-installment-builder > .fi-section-header {

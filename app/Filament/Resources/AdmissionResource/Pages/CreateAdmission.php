@@ -10,6 +10,8 @@ use App\Services\Admissions\AdmissionDraftService;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
+use Filament\Support\Exceptions\Halt;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class CreateAdmission extends CreateRecord
@@ -50,8 +52,9 @@ class CreateAdmission extends CreateRecord
             ) {
                 $payload['custom_installments'] = AdmissionResource::buildInstallmentRows(
                     (int) $payload['custom_installment_count'],
-                    $payload['custom_tuition_fee'],
-                    $payload['admission_date'] ?? now(),
+                    max(0, (float) $payload['custom_tuition_fee'] - (float) ($payload['concession_amount'] ?? 0) - (float) ($payload['custom_admission_fee'] ?? 0)),
+                    $payload['custom_installment_start_date'] ?? $payload['admission_date'] ?? now(),
+                    (int) ($payload['custom_installment_interval_months'] ?? 1),
                 );
             }
 
@@ -139,8 +142,37 @@ class CreateAdmission extends CreateRecord
         $draft = $this->draftUuid
             ? AdmissionDraft::where('uuid', $this->draftUuid)->first()
             : null;
-        app(FinalizeAdmissionAction::class)
-            ->execute($record, filament()->auth()->id(), $draft);
+        try {
+            app(FinalizeAdmissionAction::class)
+                ->execute($record, filament()->auth()->id(), $draft);
+        } catch (\Throwable $exception) {
+            $reference = Str::upper(Str::random(8));
+            report($exception);
+            logger()->error('Admission finalization failed after the admission row was saved.', [
+                'reference' => $reference,
+                'admission_id' => $record->id,
+                'campus_id' => $record->campus_id,
+                'course_id' => $record->course_id,
+                'academic_session_id' => $record->academic_session_id,
+                'actor_id' => filament()->auth()->id(),
+                'exception' => $exception::class,
+                'message' => $exception->getMessage(),
+            ]);
+
+            $message = $exception instanceof ValidationException
+                ? collect($exception->errors())->flatten()->first()
+                : "The admission was saved, but enrollment could not finish. Error reference: {$reference}.";
+
+            Notification::make()
+                ->danger()
+                ->persistent()
+                ->title('Enrollment could not be completed')
+                ->body($message.' Open this saved admission, correct the problem, and submit it again.')
+                ->send();
+
+            $this->redirect(AdmissionResource::getUrl('edit', ['record' => $record]));
+            throw new Halt;
+        }
     }
 
     protected function getFormActions(): array

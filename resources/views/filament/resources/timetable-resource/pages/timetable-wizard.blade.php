@@ -186,14 +186,7 @@
 
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-1.5">Semester / Year <span class="text-red-500">*</span></label>
-                        <select wire:model.live="semester_name" class="w-full text-xs rounded-lg border-slate-300 focus:border-navy-900 focus:ring-navy-900">
-                            <option value="Year 1">Year 1</option>
-                            <option value="Year 2">Year 2</option>
-                            <option value="Semester 1">Semester 1</option>
-                            <option value="Semester 2">Semester 2</option>
-                            <option value="Semester 3">Semester 3</option>
-                            <option value="Semester 4">Semester 4</option>
-                        </select>
+                        <input type="text" wire:model.blur="semester_name" placeholder="e.g. Year 1, Semester 3" class="w-full text-xs rounded-lg border-slate-300 focus:border-navy-900 focus:ring-navy-900" />
                     </div>
 
                     <div>
@@ -228,6 +221,17 @@
                         <label class="block text-xs font-semibold text-slate-700 mb-1.5">Default Period Duration (Mins)</label>
                         <input type="number" wire:model.blur="default_period_duration" class="w-full text-xs rounded-lg border-slate-300 focus:border-navy-900 focus:ring-navy-900" />
                     </div>
+                    <div class="dgc-span-2">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Working Days</label>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as $day)
+                                <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-amber-400">
+                                    <input type="checkbox" wire:model.live="working_days" value="{{ $day }}" class="rounded text-navy-900 focus:ring-amber-400" />
+                                    {{ ucfirst($day) }}
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
 
                 <div class="flex justify-end pt-4 border-t">
@@ -245,7 +249,7 @@
                 <div class="flex items-center justify-between border-b pb-3">
                     <div>
                         <h3 class="text-base font-bold font-display text-navy-900">Step 2: Program Subjects & Teacher Assignments</h3>
-                        <p class="text-xs text-slate-500">Auto-loaded subjects for <strong>{{ Course::find($course_id)?->name }}</strong> ({{ $semester_name }})</p>
+                        <p class="text-xs text-slate-500">Optional subject shortcuts for <strong>{{ Course::find($course_id)?->name }}</strong>. You can also type any subject directly while creating a slot.</p>
                     </div>
                     <span class="text-xs bg-navy-50 text-navy-900 px-3 py-1 rounded-full font-semibold border border-navy-200">
                         {{ count($selectedSubjectIds) }} Subjects Selected
@@ -348,7 +352,7 @@
                                     </div>
                                 </div>
                             @empty
-                                <p class="text-xs text-slate-400 italic text-center py-4">No subjects synced yet.</p>
+                                <p class="text-xs text-slate-400 italic text-center py-4">No predefined subjects selected. Use “Add Custom Slot” to enter subjects manually.</p>
                             @endforelse
                         </div>
                     </div>
@@ -363,6 +367,9 @@
                                 <p class="text-xs text-slate-500">Click any empty cell to schedule a class. Click scheduled cards to edit.</p>
                             </div>
                             <div class="flex items-center space-x-2">
+                                <button type="button" wire:click="openAddSlotModal('{{ $working_days[0] ?? 'monday' }}', '08:30', '09:15')" class="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-navy-950 text-xs font-bold rounded-lg shadow">
+                                    Add Custom Slot
+                                </button>
                                 <button type="button" wire:click="goToStep(4)" class="px-4 py-2 bg-navy-900 hover:bg-navy-800 text-white text-xs font-bold rounded-lg shadow">
                                     Preview & Export
                                 </button>
@@ -375,12 +382,9 @@
                                 <thead>
                                     <tr class="bg-navy-900 text-white text-center font-bold">
                                         <th class="p-3 w-28 border-r border-navy-800">Time / Period</th>
-                                        <th class="p-3 border-r border-navy-800">Monday</th>
-                                        <th class="p-3 border-r border-navy-800">Tuesday</th>
-                                        <th class="p-3 border-r border-navy-800">Wednesday</th>
-                                        <th class="p-3 border-r border-navy-800">Thursday</th>
-                                        <th class="p-3 border-r border-navy-800">Friday</th>
-                                        <th class="p-3">Saturday</th>
+                                        @foreach($working_days as $day)
+                                            <th class="p-3 border-r border-navy-800">{{ ucfirst($day) }}</th>
+                                        @endforeach
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-200">
@@ -392,7 +396,7 @@
                                         @if($p->is_break)
                                             <tr class="bg-amber-50 text-amber-900 text-center font-bold">
                                                 <td class="p-2 border-r text-[11px] font-mono bg-amber-100/70">{{ $p->name }}<br><span class="text-[10px] text-amber-700 font-normal">{{ $st }} - {{ $et }}</span></td>
-                                                <td colspan="6" class="p-2 text-xs uppercase tracking-wider text-amber-800 italic">● {{ $p->name }} Break Period ●</td>
+                                                <td colspan="{{ max(1, count($working_days)) }}" class="p-2 text-xs uppercase tracking-wider text-amber-800 italic">● {{ $p->name }} Break Period ●</td>
                                             </tr>
                                         @else
                                             <tr>
@@ -401,7 +405,7 @@
                                                     <span class="text-[10px] text-slate-500 font-normal">{{ $st }} - {{ $et }}</span>
                                                 </td>
 
-                                                @foreach(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as $day)
+                                                @foreach($working_days as $day)
                                                     @php
                                                         $cellSlots = $slots->filter(function ($s) use ($day, $st, $et) {
                                                             $sDay = strtolower($s->day_of_week);
@@ -596,13 +600,18 @@
                     @endif
 
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Subject <span class="text-red-500">*</span></label>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Choose Existing Subject (Optional)</label>
                         <select wire:model.live="modalSubjectId" class="w-full text-xs rounded-lg border-slate-300 focus:ring-navy-900">
                             <option value="">-- Select Subject --</option>
                             @foreach($availableSubjects as $s)
                                 <option value="{{ $s['id'] }}">{{ $s['code'] }} — {{ $s['name'] }}</option>
                             @endforeach
                         </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Editable Subject Name <span class="text-red-500">*</span></label>
+                        <input type="text" wire:model.blur="modalSubjectName" placeholder="Type the subject exactly as it should appear" class="w-full text-xs rounded-lg border-slate-300 focus:ring-navy-900" />
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
@@ -648,6 +657,7 @@
                                 <option value="thursday">Thursday</option>
                                 <option value="friday">Friday</option>
                                 <option value="saturday">Saturday</option>
+                                <option value="sunday">Sunday</option>
                             </select>
                         </div>
                     </div>

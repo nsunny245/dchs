@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class TeacherAttendanceResource extends Resource
 {
@@ -25,7 +26,29 @@ class TeacherAttendanceResource extends Resource
 
     public static function form(Form $form): Form
     {
-        return $form->schema([Forms\Components\Select::make('staff_id')->label('Teacher / Staff')->options(fn () => Staff::query()->where('is_active', true)->orderBy('full_name')->pluck('full_name', 'id'))->searchable()->required(), Forms\Components\DatePicker::make('date')->default(now())->required(), Forms\Components\Select::make('status')->options(['present' => 'Present', 'absent' => 'Absent', 'late' => 'Late', 'leave' => 'Leave'])->default('present')->required(), Forms\Components\Textarea::make('remarks'), Forms\Components\Hidden::make('campus_id')->default(fn () => filament()->auth()->user()?->campus_id), Forms\Components\Hidden::make('marked_by')->default(fn () => auth()->id())])->columns(2);
+        return $form->schema([
+            Forms\Components\Select::make('campus_id')
+                ->relationship('campus', 'name')
+                ->label('Campus')
+                ->default(fn () => filament()->auth()->user()?->campus_id)
+                ->disabled(fn (): bool => ! (filament()->auth()->user()?->hasRole('Super Admin') ?? false))
+                ->dehydrated()
+                ->required()
+                ->live(),
+            Forms\Components\Select::make('staff_id')
+                ->label('Teacher / Staff')
+                ->options(fn (Forms\Get $get) => Staff::query()
+                    ->where('is_active', true)
+                    ->when($get('campus_id'), fn (Builder $query, $campusId) => $query->where('campus_id', $campusId))
+                    ->orderBy('full_name')
+                    ->pluck('full_name', 'id'))
+                ->searchable()
+                ->required(),
+            Forms\Components\DatePicker::make('date')->default(now())->required(),
+            Forms\Components\Select::make('status')->options(['present' => 'Present', 'absent' => 'Absent', 'late' => 'Late', 'leave' => 'Leave'])->default('present')->required(),
+            Forms\Components\Textarea::make('remarks'),
+            Forms\Components\Hidden::make('marked_by')->default(fn () => auth()->id()),
+        ])->columns(2);
     }
 
     public static function table(Table $table): Table
@@ -43,5 +66,17 @@ class TeacherAttendanceResource extends Resource
     public static function getPages(): array
     {
         return ['index' => Pages\ListTeacherAttendances::route('/'), 'create' => Pages\CreateTeacherAttendance::route('/create'), 'edit' => Pages\EditTeacherAttendance::route('/{record}/edit')];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $user = filament()->auth()->user();
+
+        if ($user && ! $user->hasRole('Super Admin') && $user->campus_id) {
+            $query->where('campus_id', $user->campus_id);
+        }
+
+        return $query;
     }
 }

@@ -15,6 +15,7 @@ use App\Services\Fees\FeeVoucherService;
 use App\Services\Fees\OfficialFeeStructureResolver;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
 
@@ -38,8 +39,8 @@ class EnrollmentService
             }
 
             // Check if already enrolled
-            if ($admission->status === 'enrolled' || Student::where('admission_id', $admission->id)->exists()) {
-                throw new \Exception('This applicant is already enrolled.');
+            if ($student = Student::where('admission_id', $admission->id)->first()) {
+                return $student;
             }
 
             $campus = $admission->campus;
@@ -49,18 +50,26 @@ class EnrollmentService
             $year = now()->year;
 
             // 2. Generate Enrollment Number
-            $sequence = Student::where('campus_id', $admission->campus_id)
-                ->where('course_id', $admission->course_id)
-                ->count() + 1;
+            $prefix = "DGC-{$campusCode}-{$courseCode}-{$year}-";
+            $sequenceStart = strlen($prefix) + 1;
+            $sequenceExpression = DB::getDriverName() === 'sqlite'
+                ? "CAST(SUBSTR(enrollment_number, {$sequenceStart}) AS INTEGER)"
+                : "CAST(SUBSTRING(enrollment_number, {$sequenceStart}) AS UNSIGNED)";
+            $sequence = (int) (Student::withoutGlobalScopes()
+                ->where('enrollment_number', 'like', "{$prefix}%")
+                ->lockForUpdate()
+                ->max(DB::raw($sequenceExpression)) ?? 0) + 1;
 
             $seqFormatted = str_pad($sequence, 6, '0', STR_PAD_LEFT);
-            $enrollmentNumber = "DGC-{$campusCode}-{$courseCode}-{$year}-{$seqFormatted}";
+            $enrollmentNumber = $prefix.$seqFormatted;
 
             // 3. Create Corresponding User Account for Student login
             $email = $admission->email;
             if (! $email || User::where('email', $email)->exists()) {
-                $sanitizedName = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $admission->applicant_name));
-                $email = $sanitizedName.rand(1000, 9999).'@student.dgc.edu.pk';
+                $sanitizedName = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $admission->applicant_name)) ?: 'student';
+                do {
+                    $email = $sanitizedName.'.'.Str::lower(Str::random(8)).'@student.dgc.edu.pk';
+                } while (User::where('email', $email)->exists());
             }
 
             $userPassword = str_replace('-', '', $admission->cnic) ?: 'password';
@@ -107,6 +116,21 @@ class EnrollmentService
             ]);
 
             // 6. Calculate Financial Dues
+            $tuitionTotal = $admission->custom_installment_count !== null
+                ? (float) $admission->custom_tuition_fee
+                : (float) $structure->total_fee;
+            $totalPackage = round($tuitionTotal, 2);
+            $concession = min(round((float) $admission->concession_amount, 2), $totalPackage);
+            $netPayable = max(0, $totalPackage - $concession);
+            $admissionFee = round(max(0, (float) $admission->custom_admission_fee), 2);
+
+            if ($admissionFee > $netPayable) {
+                throw ValidationException::withMessages([
+                    'custom_admission_fee' => 'Admission fee cannot exceed discounted tuition of PKR '.number_format($netPayable, 2).'.',
+                ]);
+            }
+
+            $remainingTuition = round($netPayable - $admissionFee, 2);
             $customSchedule = collect($admission->custom_installments ?? [])
                 ->map(function (array $installment, int $index) use ($admission): array {
                     $dueDate = filled($installment['due_date'] ?? null)
@@ -125,25 +149,14 @@ class EnrollmentService
 
             if ($hasCustomSchedule) {
                 $scheduledTotal = round((float) $customSchedule->sum('amount'), 2);
-                $declaredTuitionTotal = round((float) $admission->custom_tuition_fee, 2);
+                $declaredTuitionTotal = $remainingTuition;
 
                 if (abs($scheduledTotal - $declaredTuitionTotal) >= 0.01) {
                     throw ValidationException::withMessages([
-                        'custom_installments' => 'Custom installment amounts must total PKR '.number_format($declaredTuitionTotal, 2).'. Current schedule total: PKR '.number_format($scheduledTotal, 2).'.',
+                        'custom_installments' => 'Installment amounts must total the remaining tuition of PKR '.number_format($declaredTuitionTotal, 2).'. Current schedule total: PKR '.number_format($scheduledTotal, 2).'.',
                     ]);
                 }
             }
-
-            $tuitionTotal = $admission->custom_installment_count !== null
-                ? (float) $admission->custom_tuition_fee
-                : (float) $structure->total_fee;
-
-            // The admission fee is already included in tuition. Examination,
-            // verification and miscellaneous figures are agreement breakdowns,
-            // not extra balances to merge into the first installment voucher.
-            $totalPackage = round($tuitionTotal, 2);
-            $concession = min(round((float) $admission->concession_amount, 2), $totalPackage);
-            $netPayable = max(0, $totalPackage - $concession);
 
             // Create Student Fee Account
             $feeAccount = StudentFeeAccount::create([
@@ -163,20 +176,41 @@ class EnrollmentService
                 : ($admission->custom_installment_count !== null
                 ? (int) $admission->custom_installment_count
                 : ($structure->installment_count ?: 12));
-            $monthlyTuition = $installmentCount > 0 ? round($tuitionTotal / $installmentCount, 2) : 0.00;
-            $schedule = $hasCustomSchedule
-                ? $customSchedule
-                : collect(range(1, $installmentCount))->map(function (int $number) use ($admission, $installmentCount, $monthlyTuition, $tuitionTotal): array {
-                    $amount = $number === $installmentCount
-                        ? round($tuitionTotal - ($monthlyTuition * ($installmentCount - 1)), 2)
-                        : $monthlyTuition;
+            if ($installmentCount < 1) {
+                throw ValidationException::withMessages([
+                    'custom_installment_count' => 'At least one installment is required before enrollment.',
+                ]);
+            }
+            if ($installmentCount > 12) {
+                throw ValidationException::withMessages([
+                    'custom_installment_count' => 'No more than 12 tuition installments may be generated.',
+                ]);
+            }
+            if ($hasCustomSchedule && $installmentCount !== (int) $admission->custom_installment_count) {
+                throw ValidationException::withMessages([
+                    'custom_installments' => 'The saved installment rows must match the selected number of installments.',
+                ]);
+            }
+            $monthlyTuition = $installmentCount > 0 ? round($remainingTuition / $installmentCount, 2) : 0.00;
+            $intervalMonths = max(1, min(5, (int) ($admission->custom_installment_interval_months ?: 1)));
+            $firstInstallmentDate = Carbon::parse(
+                $admission->custom_installment_start_date ?: $admission->admission_date ?: now(),
+            );
+            $schedule = $remainingTuition <= 0
+                ? collect()
+                : ($hasCustomSchedule
+                    ? $customSchedule
+                    : collect(range(1, $installmentCount))->map(function (int $number) use ($firstInstallmentDate, $intervalMonths, $installmentCount, $monthlyTuition, $remainingTuition): array {
+                        $amount = $number === $installmentCount
+                            ? round($remainingTuition - ($monthlyTuition * ($installmentCount - 1)), 2)
+                            : $monthlyTuition;
 
-                    return [
-                        'title' => "Tuition Installment #{$number}",
-                        'amount' => $amount,
-                        'due_date' => Carbon::parse($admission->admission_date ?: now())->addMonths($number - 1),
-                    ];
-                });
+                        return [
+                            'title' => "Tuition Installment #{$number}",
+                            'amount' => $amount,
+                            'due_date' => $firstInstallmentDate->copy()->addMonthsNoOverflow(($number - 1) * $intervalMonths),
+                        ];
+                    }));
 
             $tuitionHead = FeeHead::firstOrCreate(
                 ['code' => 'TUITION_REC'],
@@ -189,17 +223,61 @@ class EnrollmentService
                     'sort_order' => 1,
                 ]
             );
-            $remainingConcession = $concession;
             $firstVoucher = null;
+
+            if ($admissionFee > 0) {
+                $admissionHead = FeeHead::firstOrCreate(
+                    ['code' => 'ADMISSION'],
+                    [
+                        'name' => 'Admission Fee',
+                        'category' => 'admission',
+                        'default_amount' => $admissionFee,
+                        'applies_to' => 'new_enrollment',
+                        'is_active' => true,
+                        'sort_order' => 0,
+                    ],
+                );
+                $voucherNumber = FeeVoucherService::generateVoucherNumber($campus, 'new_enrollment', $year);
+                $firstVoucher = FeeVoucher::create([
+                    'student_id' => $student->id,
+                    'admission_id' => $admission->id,
+                    'title' => 'Admission Fee',
+                    'campus_id' => $student->campus_id,
+                    'course_id' => $student->course_id,
+                    'academic_session_id' => $admission->academic_session_id,
+                    'fee_structure_id' => $structure->id,
+                    'student_fee_account_id' => $feeAccount->id,
+                    'voucher_number' => $voucherNumber['number'],
+                    'voucher_type' => 'new_enrollment',
+                    'orientation' => 'portrait_three_part',
+                    'issue_date' => now(),
+                    'due_date' => $admission->admission_date ?: now(),
+                    'status' => 'issued',
+                    'sequence_no' => $voucherNumber['sequence'],
+                    'subtotal' => $admissionFee,
+                    'discount_amount' => 0,
+                    'total_amount' => $admissionFee,
+                    'paid_amount' => 0,
+                    'balance_amount' => $admissionFee,
+                    'generated_by' => $actorId,
+                    'metadata' => ['source' => 'admission_form', 'fee_component' => 'admission_fee'],
+                ]);
+                FeeVoucherItem::create([
+                    'fee_voucher_id' => $firstVoucher->id,
+                    'fee_head_id' => $admissionHead->id,
+                    'description' => 'Admission Fee',
+                    'quantity' => 1,
+                    'unit_amount' => $admissionFee,
+                    'amount' => $admissionFee,
+                    'sort_order' => 0,
+                ]);
+            }
 
             foreach ($schedule as $index => $scheduledInstallment) {
                 $tuitionAmount = round((float) $scheduledInstallment['amount'], 2);
                 $installmentTitle = (string) $scheduledInstallment['title'];
-                $discountForThisVoucher = min($remainingConcession, $tuitionAmount);
-                $voucherAmount = max(0, $tuitionAmount - $discountForThisVoucher);
-                $remainingConcession -= $discountForThisVoucher;
                 $dueDate = Carbon::parse($scheduledInstallment['due_date']);
-                $issueDate = $index === 0 ? now() : $dueDate->copy()->startOfMonth();
+                $issueDate = $dueDate->copy()->startOfMonth();
                 $voucherNumber = FeeVoucherService::generateVoucherNumber($campus, 'monthly_installment', $year);
 
                 $voucher = FeeVoucher::create([
@@ -217,14 +295,15 @@ class EnrollmentService
                     'orientation' => 'portrait_three_part',
                     'issue_date' => $issueDate,
                     'due_date' => $dueDate,
-                    'status' => $index === 0 ? 'issued' : 'upcoming',
+                    'status' => $admissionFee <= 0 && $index === 0 ? 'issued' : 'upcoming',
                     'sequence_no' => $voucherNumber['sequence'],
                     'subtotal' => $tuitionAmount,
-                    'discount_amount' => $discountForThisVoucher,
-                    'total_amount' => $voucherAmount,
+                    'discount_amount' => 0,
+                    'total_amount' => $tuitionAmount,
                     'paid_amount' => 0.00,
-                    'balance_amount' => $voucherAmount,
-                    'generated_by' => $actorId ?: 1,
+                    'balance_amount' => $tuitionAmount,
+                    'generated_by' => $actorId,
+                    'metadata' => ['source' => 'admission_form', 'fee_component' => 'tuition_installment'],
                 ]);
 
                 FeeVoucherItem::create([
@@ -247,14 +326,16 @@ class EnrollmentService
             ]);
 
             // 9. Log Audit Record via audits table
-            FeeVoucherAudit::create([
-                'fee_voucher_id' => $firstVoucher->id,
-                'user_id' => $actorId ?: 1,
-                'action' => 'created',
-                'new_values' => ['student_id' => $student->id, 'enrollment_no' => $enrollmentNumber],
-                'ip_address' => request()->ip(),
-                'notes' => "Enrolled applicant {$admission->applicant_name} as student {$enrollmentNumber}. Vouchers generated.",
-            ]);
+            if ($firstVoucher) {
+                FeeVoucherAudit::create([
+                    'fee_voucher_id' => $firstVoucher->id,
+                    'user_id' => $actorId,
+                    'action' => 'created',
+                    'new_values' => ['student_id' => $student->id, 'enrollment_no' => $enrollmentNumber],
+                    'ip_address' => request()->ip(),
+                    'notes' => "Enrolled applicant {$admission->applicant_name} as student {$enrollmentNumber}. Vouchers generated.",
+                ]);
+            }
 
             return $student;
         });

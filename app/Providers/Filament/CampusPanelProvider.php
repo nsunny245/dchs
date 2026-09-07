@@ -90,6 +90,7 @@ class CampusPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin.css')
             ->renderHook(PanelsRenderHook::USER_MENU_BEFORE, fn () => view('components.topbar-notification'))
             ->renderHook(PanelsRenderHook::USER_MENU_AFTER, fn () => view('components.topbar-user-copy'))
+            ->renderHook(PanelsRenderHook::BODY_END, fn () => view('components.date-picker-anywhere'))
             ->renderHook(
                 PanelsRenderHook::PAGE_START,
                 fn () => view('components.campus-access-banner', [

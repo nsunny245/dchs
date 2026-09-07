@@ -582,6 +582,14 @@
                     <span>Scholarship/Concession:</span>
                     <span>-PKR {{ number_format($feePlan['concession'], 2) }}</span>
                 </div>
+                <div class="fee-summary-row">
+                    <span>Admission Fee Voucher:</span>
+                    <span>PKR {{ number_format($feePlan['admission_fee'], 2) }}</span>
+                </div>
+                <div class="fee-summary-row">
+                    <span>Remaining Tuition in Installments:</span>
+                    <span>PKR {{ number_format($feePlan['remaining_tuition'], 2) }}</span>
+                </div>
                 <div class="fee-summary-total">
                     <span>Final Net Payable:</span>
                     <span>PKR {{ number_format($feePlan['net_payable'], 2) }}</span>

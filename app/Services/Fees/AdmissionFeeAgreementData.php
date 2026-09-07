@@ -13,6 +13,7 @@ class AdmissionFeeAgreementData
         $plan = $admission->custom_installment_count !== null
             ? [
                 'custom_tuition_fee' => $admission->custom_tuition_fee,
+                'custom_admission_fee' => $admission->custom_admission_fee,
                 'custom_installment_count' => $admission->custom_installment_count,
                 'custom_verification_fee' => $admission->custom_verification_fee,
                 'custom_examination_fee' => $admission->custom_examination_fee,
@@ -21,6 +22,7 @@ class AdmissionFeeAgreementData
             : $this->officialPlan($admission);
 
         $tuition = (float) ($plan['custom_tuition_fee'] ?? 0);
+        $admissionFee = max(0, (float) ($plan['custom_admission_fee'] ?? 0));
         $verification = (float) ($plan['custom_verification_fee'] ?? 0);
         $examination = (float) ($plan['custom_examination_fee'] ?? 0);
         $other = (float) ($plan['custom_other_misc'] ?? 0);
@@ -37,9 +39,10 @@ class AdmissionFeeAgreementData
 
         if ($schedule->isEmpty()) {
             $schedule = collect(app(InstallmentPlanGenerator::class)->generate(
-                $tuition,
+                max(0, $tuition - $concession - $admissionFee),
                 $count,
-                Carbon::parse($admission->admission_date ?? now()),
+                Carbon::parse($admission->custom_installment_start_date ?? $admission->admission_date ?? now()),
+                max(1, (int) ($admission->custom_installment_interval_months ?: 1)),
             ))->map(fn (array $row): array => [
                 'title' => $row['title'],
                 'due_date' => Carbon::parse($row['due_date']),
@@ -53,6 +56,8 @@ class AdmissionFeeAgreementData
 
         return [
             'tuition' => $tuition,
+            'admission_fee' => $admissionFee,
+            'remaining_tuition' => max(0, $tuition - $concession - $admissionFee),
             'verification' => $verification,
             'examination' => $examination,
             'other' => $other,

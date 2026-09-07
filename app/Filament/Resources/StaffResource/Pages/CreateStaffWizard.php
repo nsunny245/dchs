@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\StaffResource\Pages;
 
 use App\Filament\Resources\StaffResource;
+use App\Models\Campus;
 use App\Models\EmploymentRecord;
 use App\Models\ProfessionalRegistration;
 use App\Models\SalaryRecord;
@@ -20,6 +21,7 @@ use Filament\Resources\Pages\Page;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
 use Livewire\WithFileUploads;
 use Spatie\Permission\Models\Role;
 
@@ -435,11 +437,18 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                         if (($state['staff_category'] ?? 'teaching') === 'administrative') {
                             $campusAdmin = Role::firstOrCreate(['name' => 'Campus Admin', 'guard_name' => 'web']);
                             if ($campusAdmin->permissions()->count() === 0) {
-                                $campusAdmin->syncPermissions(Role::findByName('Campus Principal', 'web')->permissions);
+                                $principal = Role::query()
+                                    ->where('name', 'Campus Principal')
+                                    ->where('guard_name', 'web')
+                                    ->first();
+                                if ($principal) {
+                                    $campusAdmin->syncPermissions($principal->permissions);
+                                }
                             }
                             $userAccount->assignRole($campusAdmin);
                         } else {
-                            $userAccount->assignRole('Faculty');
+                            $faculty = Role::firstOrCreate(['name' => 'Faculty', 'guard_name' => 'web']);
+                            $userAccount->assignRole($faculty);
                         }
                     }
                 }
@@ -599,7 +608,16 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
                 $this->redirect(StaffResource::getUrl('index'));
             });
         } catch (\Throwable $exception) {
+            $reference = Str::upper(Str::random(8));
             report($exception);
+            logger()->error('Staff onboarding transaction failed.', [
+                'reference' => $reference,
+                'campus_id' => $campusId,
+                'actor_id' => filament()->auth()->id(),
+                'staff_name' => $state['full_name'] ?? null,
+                'exception' => $exception::class,
+                'message' => $exception->getMessage(),
+            ]);
 
             if (app()->environment('testing')) {
                 throw $exception;
@@ -607,7 +625,7 @@ class CreateStaffWizard extends Page implements Forms\Contracts\HasForms
 
             Notification::make()
                 ->title('Staff onboarding could not be completed')
-                ->body('Nothing was saved. Please review the form and try again. The technical error has been logged.')
+                ->body("Nothing was saved. Error reference: {$reference}. Please share this reference with the system administrator.")
                 ->danger()
                 ->persistent()
                 ->send();

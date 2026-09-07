@@ -8,6 +8,7 @@ use App\Models\FeeVoucherAudit;
 use App\Models\Student;
 use App\Services\Fees\FeeVoucherCalculator;
 use App\Services\Fees\FeeVoucherService;
+use App\Services\Fees\TuitionVoucherDistributionService;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Validation\ValidationException;
 
@@ -78,6 +79,10 @@ class CreateFeeVoucher extends CreateRecord
     {
         $voucher = $this->record->load('items.feeHead');
         $voucher->update(FeeVoucherCalculator::calculate($voucher));
+        app(TuitionVoucherDistributionService::class)->rebalance(
+            $voucher,
+            filament()->auth()->id(),
+        );
         FeeVoucherService::recalculateAccountTotals($voucher->feeAccount);
 
         FeeVoucherAudit::create([

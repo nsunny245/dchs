@@ -2,19 +2,25 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\AdmissionResource;
+use App\Filament\Resources\AdmissionResource\Pages\EditAdmission;
 use App\Models\AcademicSession;
 use App\Models\Admission;
 use App\Models\Campus;
 use App\Models\Course;
 use App\Models\FeeHead;
+use App\Models\FeePayment;
 use App\Models\FeeStructure;
 use App\Models\FeeVoucher;
+use App\Models\PaymentAllocation;
 use App\Models\StudentFeeAccount;
 use App\Models\User;
 use App\Services\EnrollmentService;
 use App\Services\Fees\AdmissionFeeAgreementData;
 use App\Services\Fees\AdmissionVoucherReconciliationService;
+use App\Services\Fees\FeeVoucherCalculator;
 use App\Services\Fees\FeeVoucherPdfService;
+use App\Services\Fees\TuitionVoucherDistributionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -173,7 +179,7 @@ class AdmissionWizardTest extends TestCase
             'custom_installments' => [
                 ['title' => 'Registration Installment', 'amount' => 25000.00, 'due_date' => '2026-09-15'],
                 ['title' => 'Second Custom Installment', 'amount' => 33000.00, 'due_date' => '2026-10-20'],
-                ['title' => 'Final Custom Installment', 'amount' => 50000.00, 'due_date' => '2026-11-25'],
+                ['title' => 'Final Custom Installment', 'amount' => 42000.00, 'due_date' => '2026-11-25'],
             ],
         ]);
 
@@ -191,10 +197,16 @@ class AdmissionWizardTest extends TestCase
             ->get();
 
         $this->assertEquals(3, $installments->count());
-        $this->assertEquals(3, FeeVoucher::where('student_id', $student->id)->count());
+        $this->assertEquals(4, FeeVoucher::where('student_id', $student->id)->count());
+        $this->assertDatabaseHas('fee_vouchers', [
+            'student_id' => $student->id,
+            'voucher_type' => 'new_enrollment',
+            'title' => 'Admission Fee',
+            'total_amount' => 8000.00,
+        ]);
 
         $tuitionVouchers = FeeVoucher::where('student_id', $student->id)
-            ->where('title', '!=', 'Examination Registration Dues')
+            ->where('voucher_type', 'monthly_installment')
             ->orderBy('id')
             ->get();
 
@@ -211,7 +223,7 @@ class AdmissionWizardTest extends TestCase
         $this->assertSame([
             '25000.00',
             '33000.00',
-            '50000.00',
+            '42000.00',
         ], $tuitionVouchers->pluck('total_amount')->all());
 
         $this->assertSame([
@@ -263,5 +275,272 @@ class AdmissionWizardTest extends TestCase
             "/admin/admissions/{$admission->id}/edit?review=1",
             html_entity_decode($completionScreen),
         );
+    }
+
+    public function test_discount_and_admission_fee_are_separated_from_tuition_installments(): void
+    {
+        FeeStructure::create([
+            'course_id' => $this->course->id,
+            'total_fee' => 100000.00,
+            'installment_count' => 5,
+        ]);
+
+        $admission = Admission::create([
+            'applicant_name' => 'Fee Plan Student',
+            'father_name' => 'Parent Name',
+            'dob' => '2005-06-15',
+            'gender' => 'female',
+            'cnic' => '35302-7654321-8',
+            'phone' => '03001112222',
+            'address' => 'Okara City',
+            'campus_id' => $this->campus->id,
+            'course_id' => $this->course->id,
+            'academic_session_id' => $this->session->id,
+            'status' => 'approved',
+            'admission_date' => '2026-09-01',
+            'concession_amount' => 20000,
+            'custom_tuition_fee' => 100000,
+            'custom_admission_fee' => 15000,
+            'custom_installment_count' => 5,
+            'custom_installment_interval_months' => 2,
+            'custom_installment_start_date' => '2026-09-10',
+            'custom_installments' => AdmissionResource::buildInstallmentRows(5, 65000, '2026-09-10', 2),
+        ]);
+
+        $student = EnrollmentService::enroll($admission);
+        $account = $student->feeAccount;
+        $admissionVoucher = FeeVoucher::where('student_id', $student->id)->where('voucher_type', 'new_enrollment')->firstOrFail();
+        $installments = FeeVoucher::where('student_id', $student->id)->where('voucher_type', 'monthly_installment')->orderBy('due_date')->get();
+
+        $this->assertSame(80000.0, (float) $account->net_payable);
+        $this->assertSame('15000.00', $admissionVoucher->total_amount);
+        $this->assertNull($admissionVoucher->installment_id);
+        $this->assertSame(65000.0, (float) $installments->sum('total_amount'));
+        $this->assertSame(['2026-09-10', '2026-11-10', '2027-01-10', '2027-03-10', '2027-05-10'], $installments->pluck('due_date')->map->toDateString()->all());
+    }
+
+    public function test_reconciliation_preserves_admission_payment_and_syncs_unpaid_tuition_schedule(): void
+    {
+        FeeStructure::create([
+            'course_id' => $this->course->id,
+            'total_fee' => 100000,
+            'installment_count' => 4,
+        ]);
+
+        $admission = Admission::create([
+            'applicant_name' => 'Existing Paid Student',
+            'father_name' => 'Parent Name',
+            'dob' => '2005-06-15',
+            'gender' => 'female',
+            'cnic' => '35302-1111111-8',
+            'phone' => '03001112222',
+            'address' => 'Okara City',
+            'campus_id' => $this->campus->id,
+            'course_id' => $this->course->id,
+            'academic_session_id' => $this->session->id,
+            'status' => 'approved',
+            'admission_date' => '2026-09-01',
+            'custom_tuition_fee' => 100000,
+            'custom_admission_fee' => 10000,
+            'custom_installment_count' => 4,
+            'custom_installments' => [
+                ['title' => 'October Tuition', 'amount' => 15000, 'due_date' => '2026-10-10'],
+                ['title' => 'December Tuition', 'amount' => 25000, 'due_date' => '2026-12-10'],
+                ['title' => 'February Tuition', 'amount' => 25000, 'due_date' => '2027-02-10'],
+                ['title' => 'Final Tuition', 'amount' => 25000, 'due_date' => '2027-04-10'],
+            ],
+        ]);
+
+        $student = EnrollmentService::enroll($admission);
+        $account = $student->feeAccount;
+        $admissionVoucher = $account->vouchers()->where('voucher_type', 'new_enrollment')->firstOrFail();
+        $collector = User::factory()->create();
+        $payment = FeePayment::create([
+            'student_id' => $student->id,
+            'student_fee_account_id' => $account->id,
+            'fee_voucher_id' => $admissionVoucher->id,
+            'receipt_number' => 'TEST-RECEIPT-1',
+            'amount' => 5000,
+            'status' => 'paid',
+            'payment_date' => '2026-09-01',
+            'payment_method' => 'cash',
+            'collected_by' => $collector->id,
+        ]);
+        PaymentAllocation::create([
+            'payment_id' => $payment->id,
+            'fee_voucher_id' => $admissionVoucher->id,
+            'amount' => 5000,
+        ]);
+        $admissionVoucher->update(['paid_amount' => 5000, 'balance_amount' => 5000, 'status' => 'partially_paid']);
+        $account->update(['amount_paid' => 5000, 'balance' => 95000]);
+
+        // Simulate legacy voucher labels and dates without touching the paid row.
+        $account->vouchers()->where('voucher_type', 'monthly_installment')->get()->each(
+            fn (FeeVoucher $voucher, int $index) => $voucher->update([
+                'title' => 'Legacy Installment #'.($index + 1),
+                'due_date' => now()->setDate(2026, 9, 30)->addMonths($index),
+            ])
+        );
+
+        app(AdmissionVoucherReconciliationService::class)->reconcile($account->fresh());
+
+        $this->assertDatabaseHas('fee_payments', ['id' => $payment->id, 'amount' => 5000]);
+        $this->assertDatabaseHas('fee_vouchers', [
+            'id' => $admissionVoucher->id,
+            'title' => 'Admission Fee',
+            'total_amount' => 10000,
+            'paid_amount' => 5000,
+            'balance_amount' => 5000,
+            'status' => 'partially_paid',
+        ]);
+        $this->assertSame(
+            ['October Tuition', 'December Tuition', 'February Tuition', 'Final Tuition'],
+            $account->vouchers()->where('voucher_type', 'monthly_installment')->orderBy('due_date')->pluck('title')->all(),
+        );
+        $this->assertSame(5000.0, (float) $account->fresh()->amount_paid);
+        $this->assertSame(95000.0, (float) $account->fresh()->balance);
+    }
+
+    public function test_tuition_voucher_changes_redistribute_only_the_admission_tuition_plan(): void
+    {
+        FeeStructure::create([
+            'course_id' => $this->course->id,
+            'total_fee' => 100000,
+            'installment_count' => 3,
+        ]);
+        $admission = Admission::create([
+            'applicant_name' => 'Redistribution Student',
+            'father_name' => 'Parent Name',
+            'dob' => '2005-06-15',
+            'gender' => 'female',
+            'cnic' => '35302-2222222-8',
+            'phone' => '03002223333',
+            'address' => 'Okara City',
+            'campus_id' => $this->campus->id,
+            'course_id' => $this->course->id,
+            'academic_session_id' => $this->session->id,
+            'status' => 'approved',
+            'admission_date' => '2026-09-01',
+            'custom_tuition_fee' => 100000,
+            'custom_admission_fee' => 10000,
+            'custom_installment_count' => 3,
+            'custom_installments' => [
+                ['title' => 'Tuition #1', 'amount' => 20000, 'due_date' => '2026-10-10'],
+                ['title' => 'Tuition #2', 'amount' => 35000, 'due_date' => '2026-11-10'],
+                ['title' => 'Tuition #3', 'amount' => 35000, 'due_date' => '2026-12-10'],
+            ],
+        ]);
+        $student = EnrollmentService::enroll($admission);
+        $vouchers = $student->feeAccount->vouchers()->where('voucher_type', 'monthly_installment')->orderBy('due_date')->get();
+        $first = $vouchers->first()->load('items.feeHead');
+        $first->items->first()->update(['unit_amount' => 15000, 'amount' => 15000]);
+        $first->refresh()->update(FeeVoucherCalculator::calculate($first->fresh()));
+
+        app(TuitionVoucherDistributionService::class)->rebalance($first->fresh());
+
+        $this->assertSame(
+            ['15000.00', '37500.00', '37500.00'],
+            $student->feeAccount->vouchers()->where('voucher_type', 'monthly_installment')->orderBy('due_date')->pluck('total_amount')->all(),
+        );
+        $this->assertSame(
+            ['15000.00', '37500.00', '37500.00'],
+            collect($admission->fresh()->custom_installments)->pluck('amount')->all(),
+        );
+
+        $examHead = FeeHead::where('code', 'EXAM_CNA')->firstOrFail();
+        $examVoucher = FeeVoucher::create([
+            'student_id' => $student->id,
+            'admission_id' => $admission->id,
+            'student_fee_account_id' => $student->feeAccount->id,
+            'campus_id' => $this->campus->id,
+            'course_id' => $this->course->id,
+            'academic_session_id' => $this->session->id,
+            'voucher_number' => 'TEST-EXAM-001',
+            'sequence_no' => 999,
+            'title' => 'Examination Fee',
+            'voucher_type' => 'examination_fee',
+            'due_date' => '2027-01-10',
+            'subtotal' => 5000,
+            'total_amount' => 5000,
+            'balance_amount' => 5000,
+            'status' => 'issued',
+        ]);
+        $examVoucher->items()->create([
+            'fee_head_id' => $examHead->id,
+            'description' => 'Examination Fee',
+            'quantity' => 1,
+            'unit_amount' => 5000,
+            'amount' => 5000,
+            'adjustment_type' => 'debit',
+        ]);
+        app(TuitionVoucherDistributionService::class)->rebalance($examVoucher->fresh());
+
+        $this->assertSame(
+            ['15000.00', '37500.00', '37500.00'],
+            collect($admission->fresh()->custom_installments)->pluck('amount')->all(),
+        );
+        $this->assertDatabaseHas('fee_vouchers', [
+            'id' => $examVoucher->id,
+            'voucher_type' => 'examination_fee',
+            'total_amount' => 5000,
+        ]);
+    }
+
+    public function test_legacy_combined_admission_row_is_normalized_before_editing(): void
+    {
+        $page = new class extends EditAdmission
+        {
+            public function normalize(array $data): array
+            {
+                return parent::mutateFormDataBeforeFill($data);
+            }
+        };
+
+        $data = $page->normalize([
+            'admission_date' => '2026-08-31',
+            'custom_tuition_fee' => 100000,
+            'concession_amount' => 10000,
+            'custom_admission_fee' => 0,
+            'custom_installment_count' => 5,
+            'custom_installments' => [
+                ['title' => 'Admission fee', 'amount' => 10000, 'due_date' => '2026-08-31'],
+                ['title' => 'Installment #2', 'amount' => 20000, 'due_date' => '2026-10-10'],
+                ['title' => 'Installment #3', 'amount' => 20000, 'due_date' => '2026-11-10'],
+                ['title' => 'Installment #4', 'amount' => 20000, 'due_date' => '2026-12-10'],
+                ['title' => 'Installment #5', 'amount' => 20000, 'due_date' => '2027-01-10'],
+            ],
+        ]);
+
+        $this->assertSame(10000.0, $data['custom_admission_fee']);
+        $this->assertSame(4, $data['custom_installment_count']);
+        $this->assertSame('2026-10-10', $data['custom_installment_start_date']);
+        $this->assertSame(80000.0, (float) collect($data['custom_installments'])->sum('amount'));
+        $this->assertStringNotContainsString('admission', strtolower($data['custom_installments'][0]['title']));
+    }
+
+    public function test_editing_one_installment_redistributes_the_remaining_tuition(): void
+    {
+        $rows = [
+            'first' => ['title' => 'Installment #1', 'amount' => '15000.00'],
+            'second' => ['title' => 'Installment #2', 'amount' => '20000.00'],
+            'third' => ['title' => 'Installment #3', 'amount' => '20000.00'],
+            'fourth' => ['title' => 'Installment #4', 'amount' => '20000.00'],
+        ];
+
+        $adjusted = AdmissionResource::redistributeInstallmentAmounts($rows, 'first', 80000);
+
+        $this->assertSame('15000.00', $adjusted['first']['amount']);
+        $this->assertSame('21666.66', $adjusted['second']['amount']);
+        $this->assertSame('21666.66', $adjusted['third']['amount']);
+        $this->assertSame('21666.68', $adjusted['fourth']['amount']);
+        $this->assertSame(80000.0, (float) collect($adjusted)->sum('amount'));
+
+        $saved = AdmissionResource::rebalanceEditedInstallmentAmounts([
+            ['amount' => '15000.00'],
+            ['amount' => '20000.00'],
+            ['amount' => '20000.00'],
+            ['amount' => '20000.00'],
+        ], 80000);
+        $this->assertSame(['15000.00', '21666.66', '21666.66', '21666.68'], collect($saved)->pluck('amount')->all());
     }
 }

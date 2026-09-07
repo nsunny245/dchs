@@ -3,6 +3,9 @@
 namespace App\Filament\Resources\FeeVoucherResource\Pages;
 
 use App\Filament\Resources\FeeVoucherResource;
+use App\Services\Fees\FeeVoucherCalculator;
+use App\Services\Fees\FeeVoucherService;
+use App\Services\Fees\TuitionVoucherDistributionService;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
@@ -27,11 +30,15 @@ class EditFeeVoucher extends EditRecord
             'edit_requested_by' => null,
         ]);
 
-        $totals = \App\Services\Fees\FeeVoucherCalculator::calculate($voucher);
+        $totals = FeeVoucherCalculator::calculate($voucher);
         $voucher->update($totals);
 
         if ($voucher->feeAccount) {
-            \App\Services\Fees\FeeVoucherService::recalculateAccountTotals($voucher->feeAccount);
+            app(TuitionVoucherDistributionService::class)->rebalance(
+                $voucher,
+                filament()->auth()->id(),
+            );
+            FeeVoucherService::recalculateAccountTotals($voucher->feeAccount);
         }
     }
 }

@@ -33,7 +33,7 @@
                    class="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/30 bg-white/10 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/20">
                     Create Additional Fee Voucher
                 </a>
-                @if((float) $record->amount_paid <= 0)
+                @if(! $planMatches)
                     <button type="button"
                             wire:click="mountAction('syncAdmissionPlan')"
                             class="inline-flex min-h-11 items-center justify-center rounded-xl border border-amber-300/70 bg-amber-300/10 px-5 py-3 text-sm font-bold text-amber-200 transition hover:bg-amber-300/20">
@@ -51,11 +51,7 @@
                     <h3 class="text-base font-black text-amber-900 dark:text-amber-200">Legacy fee plan mismatch detected</h3>
                     <p class="mt-1 text-sm text-amber-800 dark:text-amber-300">
                         Saved admission rows total PKR {{ number_format($savedScheduleTotal, 2) }}, while active vouchers total PKR {{ number_format($scheduledAmount, 2) }}.
-                        @if($hasPaymentHistory)
-                            Because payment history exists, the system has protected this account from automatic rewriting.
-                        @else
-                            Use <strong>Sync Admission Plan</strong> to repair this unpaid account safely.
-                        @endif
+                        Use <strong>Sync Admission Plan</strong> to update unpaid tuition rows. Collected admission-fee payments are preserved; paid tuition rows remain protected.
                     </p>
                 </div>
                 @if($record->admission)

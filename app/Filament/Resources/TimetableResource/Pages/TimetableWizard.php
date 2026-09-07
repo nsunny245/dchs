@@ -81,6 +81,8 @@ class TimetableWizard extends Page
 
     public ?int $modalSubjectId = null;
 
+    public string $modalSubjectName = '';
+
     public ?int $modalTeacherId = null;
 
     public ?int $modalRoomId = null;
@@ -138,26 +140,23 @@ class TimetableWizard extends Page
             $this->campus_id = $user ? $user->campus_id : Campus::first()?->id;
             $this->course_id = Course::first()?->id;
             $this->academic_session_id = AcademicSession::first()?->id;
-            $this->autoGenerateTitle();
             $this->loadSubjectsForProgram();
         }
     }
 
     public function updatedCourseId(): void
     {
-        $this->autoGenerateTitle();
         $this->loadSubjectsForProgram();
     }
 
     public function updatedSemesterName(): void
     {
-        $this->autoGenerateTitle();
         $this->loadSubjectsForProgram();
     }
 
     public function updatedSectionName(): void
     {
-        $this->autoGenerateTitle();
+        // Titles and section labels are intentionally entered manually.
     }
 
     public function updatedTimetableTitle(): void
@@ -200,13 +199,6 @@ class TimetableWizard extends Page
 
         $this->availableSubjects = $subjects->toArray();
 
-        // Auto-select mandatory subjects by default
-        if (empty($this->selectedSubjectIds)) {
-            $this->selectedSubjectIds = $subjects->pluck('id')->toArray();
-            foreach ($subjects as $s) {
-                $this->subjectPeriods[$s->id] = $s->weekly_periods ?? 4;
-            }
-        }
     }
 
     public function goToStep(int $step): void
@@ -222,7 +214,7 @@ class TimetableWizard extends Page
 
     public function validateStep1(): bool
     {
-        if (! $this->campus_id || ! $this->course_id || ! $this->timetable_title || ! $this->effective_from) {
+        if (! $this->campus_id || ! $this->course_id || ! $this->timetable_title || ! $this->effective_from || empty($this->working_days)) {
             Notification::make()->title('Please fill all required setup fields.')->warning()->send();
 
             return false;
@@ -281,12 +273,6 @@ class TimetableWizard extends Page
 
     public function validateStep2(): bool
     {
-        if (empty($this->selectedSubjectIds)) {
-            Notification::make()->title('Please select at least one subject to include in the timetable.')->warning()->send();
-
-            return false;
-        }
-
         $timetable = Timetable::find($this->recordId);
         if ($timetable) {
             TimetableBuilderService::syncSubjects(
@@ -315,13 +301,6 @@ class TimetableWizard extends Page
         $this->modalStartTime = $startTime;
         $this->modalEndTime = $endTime;
 
-        // Auto preselect first available subject if present
-        if (! empty($this->selectedSubjectIds)) {
-            $firstSubId = $this->selectedSubjectIds[0];
-            $this->modalSubjectId = $firstSubId;
-            $this->modalTeacherId = $this->subjectTeachers[$firstSubId] ?? null;
-        }
-
         $this->isSlotModalOpen = true;
     }
 
@@ -331,6 +310,7 @@ class TimetableWizard extends Page
             $subject = Subject::find($value);
             if ($subject) {
                 $this->modalClassType = $subject->default_class_type ?? 'Theory';
+                $this->modalSubjectName = $subject->name;
             }
             if (isset($this->subjectTeachers[$value]) && $this->subjectTeachers[$value]) {
                 $this->modalTeacherId = $this->subjectTeachers[$value];
@@ -376,6 +356,7 @@ class TimetableWizard extends Page
         $this->modalStartTime = date('H:i', strtotime($slot->start_time));
         $this->modalEndTime = date('H:i', strtotime($slot->end_time));
         $this->modalSubjectId = $slot->subject_id;
+        $this->modalSubjectName = $slot->subject_name;
         $this->modalTeacherId = $slot->teacher_id;
         $this->modalRoomId = $slot->room_id;
         $this->modalClassType = $slot->class_type ?? 'Theory';
@@ -387,8 +368,8 @@ class TimetableWizard extends Page
 
     public function saveSlot(): void
     {
-        if (! $this->modalSubjectId) {
-            Notification::make()->title('Please select a subject for this slot.')->warning()->send();
+        if (blank($this->modalSubjectName)) {
+            Notification::make()->title('Please enter a subject name for this slot.')->warning()->send();
 
             return;
         }
@@ -400,12 +381,13 @@ class TimetableWizard extends Page
             return;
         }
 
-        $subject = Subject::find($this->modalSubjectId);
-        $subjectName = $subject ? $subject->name : 'Subject';
+        $subjectName = trim($this->modalSubjectName);
 
-        $ttSubject = TimetableSubject::where('timetable_id', $this->recordId)
-            ->where('subject_id', $this->modalSubjectId)
-            ->first();
+        $ttSubject = $this->modalSubjectId
+            ? TimetableSubject::where('timetable_id', $this->recordId)
+                ->where('subject_id', $this->modalSubjectId)
+                ->first()
+            : null;
 
         if ($this->editingSlotId) {
             $slot = TimetableSlot::find($this->editingSlotId);
@@ -469,6 +451,7 @@ class TimetableWizard extends Page
         $this->isSlotModalOpen = false;
         $this->editingSlotId = null;
         $this->modalSubjectId = null;
+        $this->modalSubjectName = '';
         $this->modalTeacherId = null;
         $this->modalRoomId = null;
         $this->modalClassType = 'Theory';

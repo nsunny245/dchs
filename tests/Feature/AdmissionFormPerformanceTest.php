@@ -98,6 +98,7 @@ class AdmissionFormPerformanceTest extends TestCase
             ->set('data.campus_id', $campus->id)
             ->set('data.academic_session_id', $session->id)
             ->set('data.admission_date', '2026-08-12')
+            ->set('data.custom_installment_start_date', '2026-08-12')
             ->set('data.course_id', $course->id)
             ->assertSet('data.custom_tuition_fee', 120000)
             ->assertSet('data.custom_admission_fee', '0.00')
@@ -114,6 +115,10 @@ class AdmissionFormPerformanceTest extends TestCase
         $this->assertCount(4, $installments);
         $this->assertSame('30000.00', $installments[0]['amount']);
         $this->assertSame('2026-11-12', $installments[3]['due_date']);
+
+        $component->set('data.custom_installment_interval_months', 3);
+        $installments = $component->get('data.custom_installments');
+        $this->assertSame('2027-05-12', $installments[3]['due_date']);
 
         $this->getJson(route('admin.admissions.fee-plan-preview', [
             'course_id' => $course->id,

@@ -48,10 +48,13 @@ class InstallmentPlanGenerator
     /**
      * @return array<int, array{number:int,title:string,due_date:string,gross_paisa:int,concession_paisa:int,net_paisa:int}>
      */
-    public function generate(string|int|float $netPayable, int $count, CarbonInterface $firstDueDate): array
+    public function generate(string|int|float $netPayable, int $count, CarbonInterface $firstDueDate, int $intervalMonths = 1): array
     {
         if ($count < 1) {
             throw new InvalidArgumentException('Installment count must be at least one.');
+        }
+        if ($intervalMonths < 1 || $intervalMonths > 12) {
+            throw new InvalidArgumentException('Installment interval must be between 1 and 12 months.');
         }
 
         $totalPaisa = $this->toPaisa($netPayable);
@@ -64,7 +67,7 @@ class InstallmentPlanGenerator
             $schedule[] = [
                 'number' => $number,
                 'title' => "Tuition Installment #{$number}",
-                'due_date' => $firstDueDate->copy()->addMonthsNoOverflow($number - 1)->toDateString(),
+                'due_date' => $firstDueDate->copy()->addMonthsNoOverflow(($number - 1) * $intervalMonths)->toDateString(),
                 'gross_paisa' => $amount,
                 'concession_paisa' => 0,
                 'net_paisa' => $amount,
