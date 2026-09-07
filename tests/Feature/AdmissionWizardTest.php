@@ -277,6 +277,61 @@ class AdmissionWizardTest extends TestCase
         );
     }
 
+    public function test_enrollment_normalizes_a_stale_schedule_for_another_campus(): void
+    {
+        FeeStructure::create([
+            'course_id' => $this->course->id,
+            'campus_id' => null,
+            'academic_session_id' => null,
+            'total_fee' => 100000.00,
+            'installment_count' => 12,
+            'status' => 'active',
+        ]);
+        $chichawatni = Campus::create([
+            'name' => 'Daniyal College Chichawatni',
+            'city' => 'Chichawatni',
+            'is_active' => true,
+        ]);
+        $staleRows = collect(range(1, 12))->map(fn (int $number): array => [
+            'title' => "Tuition Installment #{$number}",
+            'amount' => '12500.00',
+            'due_date' => now()->addMonths($number - 1)->toDateString(),
+        ])->all();
+        $admission = Admission::create([
+            'applicant_name' => 'Cross Campus Applicant',
+            'father_name' => 'Parent Name',
+            'dob' => '2005-06-15',
+            'gender' => 'female',
+            'cnic' => '36501-1234567-8',
+            'phone' => '03009876543',
+            'address' => 'Chichawatni',
+            'campus_id' => $chichawatni->id,
+            'course_id' => $this->course->id,
+            'academic_session_id' => $this->session->id,
+            'status' => 'pending',
+            'admission_date' => now()->toDateString(),
+            'custom_tuition_fee' => 100000.00,
+            'concession_type' => 'special',
+            'concession_amount' => 15000.00,
+            'concession_status' => 'approved',
+            'custom_admission_fee' => 25000.00,
+            'custom_installment_count' => 5,
+            'custom_installment_interval_months' => 1,
+            'custom_installment_start_date' => now()->toDateString(),
+            'custom_installments' => $staleRows,
+        ]);
+
+        $student = EnrollmentService::enroll($admission);
+
+        $this->assertSame($chichawatni->id, $student->campus_id);
+        $this->assertCount(5, $admission->fresh()->custom_installments);
+        $this->assertSame(60000.0, (float) collect($admission->fresh()->custom_installments)->sum('amount'));
+        $this->assertSame(5, FeeVoucher::where('student_id', $student->id)
+            ->where('voucher_type', 'monthly_installment')->count());
+        $this->assertSame(60000.0, (float) FeeVoucher::where('student_id', $student->id)
+            ->where('voucher_type', 'monthly_installment')->sum('subtotal'));
+    }
+
     public function test_discount_and_admission_fee_are_separated_from_tuition_installments(): void
     {
         FeeStructure::create([

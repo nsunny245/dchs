@@ -131,6 +131,17 @@ class EnrollmentService
             }
 
             $remainingTuition = round($netPayable - $admissionFee, 2);
+            $declaredInstallmentCount = $admission->custom_installment_count !== null
+                ? (int) $admission->custom_installment_count
+                : null;
+            if ($declaredInstallmentCount !== null && ($declaredInstallmentCount < 1 || $declaredInstallmentCount > 12)) {
+                throw ValidationException::withMessages([
+                    'custom_installment_count' => $declaredInstallmentCount < 1
+                        ? 'At least one installment is required before enrollment.'
+                        : 'No more than 12 tuition installments may be generated.',
+                ]);
+            }
+
             $customSchedule = collect($admission->custom_installments ?? [])
                 ->map(function (array $installment, int $index) use ($admission): array {
                     $dueDate = filled($installment['due_date'] ?? null)
@@ -145,16 +156,35 @@ class EnrollmentService
                 })
                 ->filter(fn (array $installment): bool => $installment['amount'] > 0)
                 ->values();
-            $hasCustomSchedule = $admission->custom_installment_count !== null && $customSchedule->isNotEmpty();
+            $hasCustomSchedule = $declaredInstallmentCount !== null && $customSchedule->isNotEmpty();
 
             if ($hasCustomSchedule) {
                 $scheduledTotal = round((float) $customSchedule->sum('amount'), 2);
-                $declaredTuitionTotal = $remainingTuition;
+                if ($customSchedule->count() !== $declaredInstallmentCount || abs($scheduledTotal - $remainingTuition) >= 0.01) {
+                    $intervalMonths = max(1, min(5, (int) ($admission->custom_installment_interval_months ?: 1)));
+                    $firstInstallmentDate = Carbon::parse(
+                        $admission->custom_installment_start_date ?: $admission->admission_date ?: now(),
+                    );
+                    $customSchedule = collect(app(Fees\InstallmentPlanGenerator::class)->generate(
+                        $remainingTuition,
+                        $declaredInstallmentCount,
+                        $firstInstallmentDate,
+                        $intervalMonths,
+                    ))->map(fn (array $row): array => [
+                        'title' => $row['title'],
+                        'amount' => round($row['gross_paisa'] / 100, 2),
+                        'due_date' => Carbon::parse($row['due_date']),
+                    ])->values();
 
-                if (abs($scheduledTotal - $declaredTuitionTotal) >= 0.01) {
-                    throw ValidationException::withMessages([
-                        'custom_installments' => 'Installment amounts must total the remaining tuition of PKR '.number_format($declaredTuitionTotal, 2).'. Current schedule total: PKR '.number_format($scheduledTotal, 2).'.',
-                    ]);
+                    // Persist the corrected source schedule in the same transaction
+                    // so agreements, vouchers and fee collection can never diverge.
+                    $admission->forceFill([
+                        'custom_installments' => $customSchedule->map(fn (array $row): array => [
+                            'title' => $row['title'],
+                            'amount' => number_format($row['amount'], 2, '.', ''),
+                            'due_date' => $row['due_date']->toDateString(),
+                        ])->all(),
+                    ])->save();
                 }
             }
 
@@ -173,8 +203,8 @@ class EnrollmentService
             // 7. Generate Vouchers
             $installmentCount = $hasCustomSchedule
                 ? $customSchedule->count()
-                : ($admission->custom_installment_count !== null
-                ? (int) $admission->custom_installment_count
+                : ($declaredInstallmentCount !== null
+                ? $declaredInstallmentCount
                 : ($structure->installment_count ?: 12));
             if ($installmentCount < 1) {
                 throw ValidationException::withMessages([
