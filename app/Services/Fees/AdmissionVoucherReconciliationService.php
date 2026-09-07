@@ -32,16 +32,6 @@ class AdmissionVoucherReconciliationService
                 ]);
             }
 
-            $schedule = collect($admission->custom_installments ?? [])
-                ->filter(fn (array $row): bool => (float) ($row['amount'] ?? 0) > 0)
-                ->values();
-
-            if ($schedule->isEmpty()) {
-                throw ValidationException::withMessages([
-                    'account' => 'No editable admission installment schedule is saved for this student.',
-                ]);
-            }
-
             $vouchers = FeeVoucher::query()
                 ->with(['items.feeHead', 'installment'])
                 ->where('student_fee_account_id', $account->id)
@@ -56,15 +46,30 @@ class AdmissionVoucherReconciliationService
             $tuition = round(max(0, (float) $admission->custom_tuition_fee), 2);
             $concession = min(round(max(0, (float) $admission->concession_amount), 2), $tuition);
             $remainingTuition = max(0, $tuition - $concession - $admissionFee);
-            $scheduledTuition = round((float) $schedule->sum(
-                fn (array $row): float => (float) ($row['amount'] ?? 0)
-            ), 2);
+            $installmentCount = (int) ($admission->custom_installment_count ?? 0);
 
-            if (abs($scheduledTuition - $remainingTuition) > 0.01) {
+            if ($installmentCount < 1 || $installmentCount > 12) {
                 throw ValidationException::withMessages([
-                    'account' => 'The saved tuition installments do not equal the remaining tuition after concession and admission fee. Review the admission fee plan before synchronizing.',
+                    'account' => 'Select between 1 and 12 tuition installments before synchronizing this account.',
                 ]);
             }
+
+            $intervalMonths = max(1, min(5, (int) ($admission->custom_installment_interval_months ?: 1)));
+            $firstDueDate = Carbon::parse(
+                $admission->custom_installment_start_date ?: $admission->admission_date ?: now(),
+            );
+            $schedule = collect(app(InstallmentPlanGenerator::class)->generate(
+                $remainingTuition,
+                $installmentCount,
+                $firstDueDate,
+                $intervalMonths,
+            ))->map(fn (array $row): array => [
+                'title' => $row['title'],
+                'amount' => number_format($row['gross_paisa'] / 100, 2, '.', ''),
+                'due_date' => Carbon::parse($row['due_date'])->toDateString(),
+            ])->values();
+
+            $admission->forceFill(['custom_installments' => $schedule->all()])->save();
 
             $admissionVoucher = $vouchers->firstWhere('voucher_type', 'new_enrollment');
             $tuitionVouchers = $vouchers

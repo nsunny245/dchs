@@ -168,7 +168,7 @@ class AdmissionWizardTest extends TestCase
             'status' => 'approved',
             'admission_date' => now()->toDateString(),
 
-            // Custom fee plan overrides with deliberately uneven, ordered rows.
+            // Stale manual rows must be normalized from the authoritative plan inputs.
             'custom_installment_count' => 3,
             'custom_admission_fee' => 8000.00,
             'custom_tuition_fee' => 108000.00,
@@ -216,14 +216,14 @@ class AdmissionWizardTest extends TestCase
             'Final Custom Installment',
         ], $tuitionVouchers->pluck('title')->all());
         $this->assertSame([
-            '2026-09-15',
-            '2026-10-20',
-            '2026-11-25',
+            now()->toDateString(),
+            now()->addMonthNoOverflow()->toDateString(),
+            now()->addMonthsNoOverflow(2)->toDateString(),
         ], $tuitionVouchers->pluck('due_date')->map->toDateString()->all());
         $this->assertSame([
-            '25000.00',
-            '33000.00',
-            '42000.00',
+            '33333.33',
+            '33333.33',
+            '33333.34',
         ], $tuitionVouchers->pluck('total_amount')->all());
 
         $this->assertSame([
@@ -243,21 +243,22 @@ class AdmissionWizardTest extends TestCase
 
         $this->assertDatabaseHas('fee_vouchers', [
             'id' => $tuitionVouchers->first()->id,
-            'title' => 'Registration Installment',
-            'subtotal' => 25000,
-            'total_amount' => 25000,
+            'title' => 'Tuition Installment #1',
+            'subtotal' => 33333.33,
+            'total_amount' => 33333.33,
         ]);
         $this->assertEquals(108000.00, $account->fresh()->original_fee);
         $this->assertSame(200, FeeVoucherPdfService::streamBook($admission)->getStatusCode());
 
+        $admission->refresh();
         $feePlan = app(AdmissionFeeAgreementData::class)->build($admission);
         $agreement = view('pdf.admission-agreement', [
             'admission' => $admission->load(['campus', 'course', 'academicSession']),
             'studentPhotoDataUri' => null,
             'feePlan' => $feePlan,
         ])->render();
-        $this->assertStringContainsString('Registration Installment', $agreement);
-        $this->assertStringContainsString('25,000.00', $agreement);
+        $this->assertStringContainsString('Tuition Installment #1', $agreement);
+        $this->assertStringContainsString('33,333.33', $agreement);
         $this->assertStringNotContainsString('<td class="data-label">Admission Fee</td>', $agreement);
 
         $admin = User::factory()->create();
@@ -326,6 +327,10 @@ class AdmissionWizardTest extends TestCase
         $this->assertSame($chichawatni->id, $student->campus_id);
         $this->assertCount(5, $admission->fresh()->custom_installments);
         $this->assertSame(60000.0, (float) collect($admission->fresh()->custom_installments)->sum('amount'));
+        $this->assertSame(
+            ['12000.00', '12000.00', '12000.00', '12000.00', '12000.00'],
+            collect($admission->fresh()->custom_installments)->pluck('amount')->all(),
+        );
         $this->assertSame(5, FeeVoucher::where('student_id', $student->id)
             ->where('voucher_type', 'monthly_installment')->count());
         $this->assertSame(60000.0, (float) FeeVoucher::where('student_id', $student->id)
@@ -449,7 +454,7 @@ class AdmissionWizardTest extends TestCase
             'status' => 'partially_paid',
         ]);
         $this->assertSame(
-            ['October Tuition', 'December Tuition', 'February Tuition', 'Final Tuition'],
+            ['Tuition Installment #1', 'Tuition Installment #2', 'Tuition Installment #3', 'Tuition Installment #4'],
             $account->vouchers()->where('voucher_type', 'monthly_installment')->orderBy('due_date')->pluck('title')->all(),
         );
         $this->assertSame(5000.0, (float) $account->fresh()->amount_paid);
