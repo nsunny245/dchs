@@ -275,12 +275,14 @@ class ViewStudentFeeAccount extends ViewRecord
     protected function getViewData(): array
     {
         $vouchers = FeeVoucher::where('student_fee_account_id', $this->record->id)
-            ->with('items')
+            ->with('items.feeHead')
             ->orderBy('due_date', 'asc')
             ->orderBy('id', 'asc')
             ->get();
         $activeVouchers = $vouchers->whereNotIn('status', ['cancelled', 'void'])->values();
-        $tuitionVouchers = $activeVouchers->where('voucher_type', 'monthly_installment')->values();
+        $tuitionVouchers = $activeVouchers
+            ->filter(fn (FeeVoucher $voucher): bool => $voucher->isAdmissionTuitionInstallment())
+            ->values();
         $admissionVoucher = $activeVouchers->firstWhere('voucher_type', 'new_enrollment');
         $savedAdmissionFee = (float) ($this->record->admission?->custom_admission_fee ?? 0);
         $savedSchedule = collect($this->record->admission?->custom_installments ?? [])

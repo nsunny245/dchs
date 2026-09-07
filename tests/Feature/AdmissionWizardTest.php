@@ -323,7 +323,7 @@ class AdmissionWizardTest extends TestCase
     {
         FeeStructure::create([
             'course_id' => $this->course->id,
-            'total_fee' => 100000,
+            'total_fee' => 85000,
             'installment_count' => 4,
         ]);
 
@@ -516,6 +516,127 @@ class AdmissionWizardTest extends TestCase
         $this->assertSame('2026-10-10', $data['custom_installment_start_date']);
         $this->assertSame(80000.0, (float) collect($data['custom_installments'])->sum('amount'));
         $this->assertStringNotContainsString('admission', strtolower($data['custom_installments'][0]['title']));
+    }
+
+    public function test_reconciliation_retires_extra_unpaid_tuition_vouchers_and_preserves_other_fee_heads(): void
+    {
+        FeeStructure::create([
+            'course_id' => $this->course->id,
+            'total_fee' => 100000,
+            'installment_count' => 5,
+        ]);
+
+        $admission = Admission::create([
+            'applicant_name' => 'Legacy Schedule Student',
+            'father_name' => 'Parent Name',
+            'dob' => '2005-06-15',
+            'gender' => 'female',
+            'cnic' => '35302-9999999-8',
+            'phone' => '03009998888',
+            'address' => 'Okara City',
+            'campus_id' => $this->campus->id,
+            'course_id' => $this->course->id,
+            'academic_session_id' => $this->session->id,
+            'status' => 'approved',
+            'admission_date' => '2026-09-01',
+            'custom_tuition_fee' => 85000,
+            'custom_admission_fee' => 0,
+            'custom_installment_count' => 5,
+            'custom_installments' => collect(range(1, 5))->map(fn (int $number): array => [
+                'title' => "Tuition Installment #{$number}",
+                'amount' => 17000,
+                'due_date' => now()->setDate(2026, 9, 10)->addMonths($number - 1)->toDateString(),
+            ])->all(),
+        ]);
+
+        $student = EnrollmentService::enroll($admission);
+        $account = $student->feeAccount;
+
+        $legacyAdmissionVoucher = FeeVoucher::create([
+            'student_id' => $student->id,
+            'admission_id' => $admission->id,
+            'student_fee_account_id' => $account->id,
+            'campus_id' => $this->campus->id,
+            'course_id' => $this->course->id,
+            'academic_session_id' => $this->session->id,
+            'voucher_number' => 'LEGACY-ADMISSION-001',
+            'sequence_no' => 90,
+            'title' => 'Admission & First Month Dues',
+            'voucher_type' => 'new_enrollment',
+            'due_date' => '2026-07-30',
+            'subtotal' => 49333.33,
+            'total_amount' => 49333.33,
+            'balance_amount' => 49333.33,
+            'status' => 'issued',
+        ]);
+
+        foreach (range(6, 11) as $number) {
+            FeeVoucher::create([
+                'student_id' => $student->id,
+                'admission_id' => $admission->id,
+                'student_fee_account_id' => $account->id,
+                'campus_id' => $this->campus->id,
+                'course_id' => $this->course->id,
+                'academic_session_id' => $this->session->id,
+                'voucher_number' => "LEGACY-TUITION-{$number}",
+                'sequence_no' => 100 + $number,
+                'title' => "Legacy Tuition Installment #{$number}",
+                'voucher_type' => 'monthly_installment',
+                'due_date' => now()->setDate(2027, 2, 10)->addMonths($number - 6),
+                'subtotal' => 8333.33,
+                'total_amount' => 8333.33,
+                'balance_amount' => 8333.33,
+                'status' => 'upcoming',
+                'metadata' => ['source' => 'legacy', 'fee_component' => 'tuition_installment'],
+            ]);
+        }
+
+        $examHead = FeeHead::where('code', 'EXAM_CNA')->firstOrFail();
+        $examVoucher = FeeVoucher::create([
+            'student_id' => $student->id,
+            'admission_id' => $admission->id,
+            'student_fee_account_id' => $account->id,
+            'campus_id' => $this->campus->id,
+            'course_id' => $this->course->id,
+            'academic_session_id' => $this->session->id,
+            'voucher_number' => 'LEGACY-EXAM-001',
+            'sequence_no' => 999,
+            'title' => 'Examination Registration Dues',
+            'voucher_type' => 'monthly_installment',
+            'due_date' => '2026-12-10',
+            'subtotal' => 18000,
+            'total_amount' => 18000,
+            'balance_amount' => 18000,
+            'status' => 'upcoming',
+        ]);
+        $examVoucher->items()->create([
+            'fee_head_id' => $examHead->id,
+            'description' => 'Examination Registration Dues',
+            'quantity' => 1,
+            'unit_amount' => 18000,
+            'amount' => 18000,
+        ]);
+
+        app(AdmissionVoucherReconciliationService::class)->reconcile($account->fresh());
+
+        $activeVouchers = $account->vouchers()
+            ->with('items.feeHead')
+            ->whereNotIn('status', ['cancelled', 'void'])
+            ->get();
+
+        $this->assertCount(5, $activeVouchers->filter->isAdmissionTuitionInstallment());
+        $this->assertSame(7, $account->vouchers()->where('status', 'cancelled')->count());
+        $this->assertDatabaseHas('fee_vouchers', [
+            'id' => $legacyAdmissionVoucher->id,
+            'status' => 'cancelled',
+            'balance_amount' => 0,
+        ]);
+        $this->assertDatabaseHas('fee_vouchers', [
+            'id' => $examVoucher->id,
+            'status' => 'upcoming',
+            'total_amount' => 18000,
+        ]);
+        $this->assertSame(85000.0, (float) $activeVouchers->filter->isAdmissionTuitionInstallment()->sum('total_amount'));
     }
 
     public function test_editing_one_installment_redistributes_the_remaining_tuition(): void

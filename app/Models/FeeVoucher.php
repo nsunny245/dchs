@@ -113,4 +113,33 @@ class FeeVoucher extends Model
     {
         return $this->hasMany(FeeVoucherAudit::class, 'fee_voucher_id');
     }
+
+    public function isAdmissionTuitionInstallment(): bool
+    {
+        if ($this->voucher_type !== 'monthly_installment') {
+            return false;
+        }
+
+        $component = data_get($this->metadata, 'fee_component');
+        if ($component !== null) {
+            return $component === 'tuition_installment';
+        }
+
+        $items = $this->relationLoaded('items')
+            ? $this->items
+            : $this->items()->with('feeHead')->get();
+
+        if ($items->contains(fn (FeeVoucherItem $item): bool =>
+            $item->feeHead?->code === 'TUITION_REC' || $item->feeHead?->category === 'tuition'
+        )) {
+            return true;
+        }
+
+        if ($items->contains(fn (FeeVoucherItem $item): bool => $item->fee_head_id !== null)) {
+            return false;
+        }
+
+        return preg_match('/\b(tuition|installment)\b/i', (string) $this->title) === 1
+            && preg_match('/\b(exam|examination|miscellaneous|transport|hostel|uniform|library)\b/i', (string) $this->title) !== 1;
+    }
 }

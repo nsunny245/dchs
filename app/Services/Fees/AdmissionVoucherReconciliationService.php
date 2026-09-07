@@ -37,6 +37,7 @@ class AdmissionVoucherReconciliationService
             }
 
             $vouchers = FeeVoucher::query()
+                ->with(['items.feeHead', 'installment'])
                 ->where('student_fee_account_id', $account->id)
                 ->where('admission_id', $admission->id)
                 ->whereNotIn('status', ['cancelled', 'void'])
@@ -60,7 +61,9 @@ class AdmissionVoucherReconciliationService
             }
 
             $admissionVoucher = $vouchers->firstWhere('voucher_type', 'new_enrollment');
-            $tuitionVouchers = $vouchers->where('voucher_type', 'monthly_installment')->values();
+            $tuitionVouchers = $vouchers
+                ->filter(fn (FeeVoucher $voucher): bool => $voucher->isAdmissionTuitionInstallment())
+                ->values();
             $legacyAdmissionInstallmentId = $admissionVoucher?->installment_id;
 
             $paidTuitionVoucher = $tuitionVouchers->first(fn (FeeVoucher $voucher): bool => (float) $voucher->paid_amount > 0
@@ -74,10 +77,76 @@ class AdmissionVoucherReconciliationService
                 ]);
             }
 
-            if ($tuitionVouchers->count() !== $schedule->count()) {
-                throw ValidationException::withMessages([
-                    'account' => 'The saved tuition schedule and active tuition voucher count differ. Review this account manually to preserve its history.',
+            if ($admissionVoucher && $admissionFee <= 0) {
+                $admissionPaid = max(
+                    (float) $admissionVoucher->paid_amount,
+                    (float) $admissionVoucher->payments()->where('status', 'paid')->sum('amount'),
+                    (float) $admissionVoucher->allocations()->sum('amount'),
+                );
+
+                if ($admissionPaid > 0) {
+                    throw ValidationException::withMessages([
+                        'account' => 'The legacy admission voucher already has a payment. Enter the collected admission fee in the admission plan before synchronizing.',
+                    ]);
+                }
+
+                $before = $admissionVoucher->only(['title', 'status', 'total_amount', 'balance_amount', 'installment_id']);
+                $admissionVoucher->update([
+                    'status' => 'cancelled',
+                    'paid_amount' => 0,
+                    'balance_amount' => 0,
+                    'cancelled_by' => $actorId,
+                    'cancelled_at' => now(),
+                    'cancellation_reason' => 'Legacy combined admission voucher replaced by the saved tuition schedule.',
+                    'installment_id' => null,
+                    'metadata' => array_merge($admissionVoucher->metadata ?? [], ['reconciled_from_admission_plan' => true]),
                 ]);
+                FeeVoucherAudit::create([
+                    'fee_voucher_id' => $admissionVoucher->id,
+                    'user_id' => $actorId,
+                    'action' => 'cancelled_during_reconciliation',
+                    'old_values' => $before,
+                    'new_values' => $admissionVoucher->fresh()->only(['title', 'status', 'total_amount', 'balance_amount', 'installment_id']),
+                    'ip_address' => request()->ip(),
+                    'notes' => 'Unpaid legacy combined admission voucher retired because the saved plan has no separate admission fee.',
+                ]);
+                $admissionVoucher = null;
+            }
+
+            if ($tuitionVouchers->count() > $schedule->count()) {
+                $obsoleteVouchers = $tuitionVouchers->slice($schedule->count())->values();
+
+                foreach ($obsoleteVouchers as $voucher) {
+                    $installment = $voucher->installment;
+                    $before = $voucher->only(['title', 'status', 'total_amount', 'balance_amount', 'installment_id']);
+
+                    $voucher->update([
+                        'status' => 'cancelled',
+                        'paid_amount' => 0,
+                        'balance_amount' => 0,
+                        'cancelled_by' => $actorId,
+                        'cancelled_at' => now(),
+                        'cancellation_reason' => 'Replaced by the saved admission tuition schedule.',
+                        'installment_id' => null,
+                        'metadata' => array_merge($voucher->metadata ?? [], ['reconciled_from_admission_plan' => true]),
+                    ]);
+
+                    if ($installment) {
+                        $installment->delete();
+                    }
+
+                    FeeVoucherAudit::create([
+                        'fee_voucher_id' => $voucher->id,
+                        'user_id' => $actorId,
+                        'action' => 'cancelled_during_reconciliation',
+                        'old_values' => $before,
+                        'new_values' => $voucher->fresh()->only(['title', 'status', 'total_amount', 'balance_amount', 'installment_id']),
+                        'ip_address' => request()->ip(),
+                        'notes' => 'Unpaid legacy tuition voucher retired because the admission schedule contains fewer installments.',
+                    ]);
+                }
+
+                $tuitionVouchers = $tuitionVouchers->take($schedule->count())->values();
             }
 
             if ($admissionFee > 0 && ! $admissionVoucher) {
@@ -159,6 +228,39 @@ class AdmissionVoucherReconciliationService
                     'sort_order' => 1,
                 ],
             );
+
+            while ($tuitionVouchers->count() < $schedule->count()) {
+                $row = $schedule->get($tuitionVouchers->count());
+                $dueDate = Carbon::parse($row['due_date'] ?? $admission->admission_date ?? now());
+                $number = FeeVoucherService::generateVoucherNumber(
+                    $account->student->campus,
+                    'monthly_installment',
+                    $dueDate->year,
+                );
+
+                $tuitionVouchers->push(FeeVoucher::create([
+                    'student_id' => $account->student_id,
+                    'admission_id' => $admission->id,
+                    'title' => trim((string) ($row['title'] ?? '')) ?: 'Tuition Installment #'.($tuitionVouchers->count() + 1),
+                    'campus_id' => $account->student->campus_id,
+                    'course_id' => $account->student->course_id,
+                    'academic_session_id' => $admission->academic_session_id,
+                    'student_fee_account_id' => $account->id,
+                    'voucher_number' => $number['number'],
+                    'voucher_type' => 'monthly_installment',
+                    'orientation' => 'portrait_three_part',
+                    'issue_date' => $dueDate->copy()->startOfMonth(),
+                    'due_date' => $dueDate,
+                    'status' => 'upcoming',
+                    'sequence_no' => $number['sequence'],
+                    'subtotal' => 0,
+                    'total_amount' => 0,
+                    'paid_amount' => 0,
+                    'balance_amount' => 0,
+                    'generated_by' => $actorId,
+                    'metadata' => ['source' => 'admission_form', 'fee_component' => 'tuition_installment'],
+                ]));
+            }
 
             // Legacy records linked the admission-fee voucher to installment #1
             // and numbered tuition rows from #2. Move tuition rows temporarily so
