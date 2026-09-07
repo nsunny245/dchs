@@ -26,6 +26,12 @@ class AdmissionVoucherReconciliationService
                 throw ValidationException::withMessages(['account' => 'This fee account is not linked to an admission.']);
             }
 
+            if (! $account->student) {
+                throw ValidationException::withMessages([
+                    'account' => 'This legacy fee account is not linked to an active student and cannot be synchronized automatically.',
+                ]);
+            }
+
             $schedule = collect($admission->custom_installments ?? [])
                 ->filter(fn (array $row): bool => (float) ($row['amount'] ?? 0) > 0)
                 ->values();

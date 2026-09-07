@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Validation\Rules\Unique;
 
 class CampusResource extends Resource
 {
@@ -25,7 +26,18 @@ class CampusResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
-                    ->required(),
+                    ->required()
+                    ->live(onBlur: true),
+                Forms\Components\TextInput::make('code')
+                    ->label('Unique Campus ID')
+                    ->helperText('Permanent identifier, for example DGC-OKA or DGC-CHI. It cannot be changed after the campus is created.')
+                    ->placeholder('DGC-OKA')
+                    ->required()
+                    ->maxLength(32)
+                    ->regex('/^DGC-[A-Z0-9]{3,12}$/')
+                    ->unique(ignoreRecord: true, modifyRuleUsing: fn (Unique $rule): Unique => $rule)
+                    ->dehydrateStateUsing(fn (?string $state): string => strtoupper(trim((string) $state)))
+                    ->disabledOn('edit'),
                 Forms\Components\TextInput::make('city')
                     ->required(),
                 Forms\Components\TextInput::make('address'),
@@ -45,6 +57,11 @@ class CampusResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('S.No')->rowIndex(),
                 Tables\Columns\TextColumn::make('name')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('code')
+                    ->label('Campus ID')
+                    ->badge()
+                    ->color('primary')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('city')
                     ->searchable(),

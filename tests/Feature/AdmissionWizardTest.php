@@ -719,4 +719,41 @@ class AdmissionWizardTest extends TestCase
         ], 80000);
         $this->assertSame(['15000.00', '21666.66', '21666.66', '21666.68'], collect($saved)->pluck('amount')->all());
     }
+
+    public function test_orphan_legacy_fee_account_returns_validation_instead_of_crashing(): void
+    {
+        $admission = Admission::create([
+            'applicant_name' => 'Legacy Applicant',
+            'father_name' => 'Parent Name',
+            'dob' => '2005-01-01',
+            'gender' => 'female',
+            'cnic' => '36501-1234567-1',
+            'phone' => '03001234567',
+            'address' => 'Chichawatni',
+            'campus_id' => $this->campus->id,
+            'course_id' => $this->course->id,
+            'academic_session_id' => $this->session->id,
+            'admission_date' => now()->toDateString(),
+            'status' => 'approved',
+            'custom_tuition_fee' => 100000,
+            'custom_installment_count' => 1,
+            'custom_installments' => [[
+                'title' => 'Tuition Installment #1',
+                'amount' => '100000.00',
+                'due_date' => now()->toDateString(),
+            ]],
+        ]);
+        $account = StudentFeeAccount::create([
+            'student_id' => 999999,
+            'admission_id' => $admission->id,
+            'original_fee' => 100000,
+            'net_payable' => 100000,
+            'balance' => 100000,
+        ]);
+
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $this->expectExceptionMessage('legacy fee account is not linked to an active student');
+
+        app(AdmissionVoucherReconciliationService::class)->reconcile($account);
+    }
 }

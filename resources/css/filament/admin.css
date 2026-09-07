@@ -744,6 +744,37 @@ ol.fi-fo-wizard-header,
     }
 }
 
+/* Keep row controls visible at every panel width. Wide records can still be
+   panned with a trackpad or touch gesture, but the visual scrollbar stays out
+   of the interface and the pinned Actions cell never leaves the viewport. */
+.fi-ta-content {
+    overflow-x: auto !important;
+    scrollbar-width: none;
+}
+
+.fi-ta-content::-webkit-scrollbar {
+    display: none;
+}
+
+.fi-ta-table .fi-ta-actions-cell,
+.fi-ta-table .fi-ta-actions-header-cell {
+    background: #fff !important;
+    box-shadow: -10px 0 18px -18px rgba(8, 34, 69, .85);
+    position: sticky !important;
+    right: 0 !important;
+    z-index: 6 !important;
+}
+
+.fi-ta-table .fi-ta-actions-header-cell {
+    background: var(--dgc-navy-900) !important;
+    z-index: 7 !important;
+}
+
+.fi-ta-table .fi-ta-actions-cell .fi-ta-actions {
+    justify-content: flex-end !important;
+    white-space: nowrap !important;
+}
+
 @media (max-width: 1024px) {
     .admission-split-grid {
         grid-template-columns: 1fr !important;

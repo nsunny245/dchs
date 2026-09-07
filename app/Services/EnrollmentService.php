@@ -56,10 +56,11 @@ class EnrollmentService
             $sequenceExpression = DB::getDriverName() === 'sqlite'
                 ? "CAST(SUBSTR(enrollment_number, {$sequenceStart}) AS INTEGER)"
                 : "CAST(SUBSTRING(enrollment_number, {$sequenceStart}) AS UNSIGNED)";
-            $sequence = (int) (Student::withoutGlobalScopes()
+            $highestSequence = (int) (Student::withoutGlobalScopes()
                 ->where('enrollment_number', 'like', "{$prefix}%")
                 ->lockForUpdate()
-                ->max(DB::raw($sequenceExpression)) ?? 0) + 1;
+                ->max(DB::raw($sequenceExpression)) ?? 0);
+            $sequence = max(1233, $highestSequence) + 1;
 
             $seqFormatted = str_pad($sequence, 6, '0', STR_PAD_LEFT);
             $enrollmentNumber = $prefix.$seqFormatted;

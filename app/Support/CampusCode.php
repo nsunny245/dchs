@@ -14,6 +14,8 @@ class CampusCode
 
         $explicitCode = strtoupper(preg_replace('/[^A-Z0-9]/i', '', (string) $campus->code));
 
+        $explicitCode = preg_replace('/^DGC/', '', $explicitCode);
+
         if ($explicitCode !== '' && $explicitCode !== 'DAN') {
             return substr($explicitCode, 0, 6);
         }

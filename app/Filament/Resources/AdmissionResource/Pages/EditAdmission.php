@@ -182,6 +182,7 @@ class EditAdmission extends EditRecord
     {
         $account = StudentFeeAccount::query()
             ->where('admission_id', $this->record->id)
+            ->whereHas('student')
             ->first();
 
         if (! $account) {
