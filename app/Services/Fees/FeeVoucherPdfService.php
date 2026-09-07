@@ -12,10 +12,16 @@ class FeeVoucherPdfService
     {
         $vouchers = FeeVoucher::query()
             ->where('admission_id', $admission->id)
+            ->whereNotIn('status', ['cancelled', 'void'])
             ->with(['student.admission', 'student.campus', 'student.course', 'campus', 'course', 'academicSession', 'items.feeHead'])
             ->orderBy('due_date')
             ->orderBy('id')
-            ->get();
+            ->get()
+            ->filter(fn (FeeVoucher $voucher): bool =>
+                $voucher->voucher_type === 'new_enrollment'
+                || $voucher->isAdmissionTuitionInstallment()
+            )
+            ->values();
 
         abort_if($vouchers->isEmpty(), 404, 'No vouchers have been generated for this admission.');
 

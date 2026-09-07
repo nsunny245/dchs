@@ -304,31 +304,42 @@ class ViewStudentFeeAccount extends ViewRecord
                     && abs((float) $row['amount'] - (float) $voucher->subtotal) < 0.01;
             }));
 
+        // The admission plan area must mirror only the separate admission fee
+        // and the active tuition rows saved by the admission wizard. Cancelled
+        // legacy rows and independently-created fee-head vouchers belong outside
+        // this schedule and must not inflate its count or totals.
+        $planVouchers = collect([$admissionVoucher])
+            ->filter()
+            ->concat($tuitionVouchers)
+            ->sortBy(fn (FeeVoucher $voucher): string => ($voucher->due_date?->format('Y-m-d') ?? '').'-'.str_pad((string) $voucher->id, 12, '0', STR_PAD_LEFT))
+            ->values();
+        $planVoucherIds = $planVouchers->pluck('id');
+
         $payments = FeePayment::where('student_fee_account_id', $this->record->id)
             ->orderBy('payment_date', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();
 
         $nextVoucher = FeeVoucher::where('student_fee_account_id', $this->record->id)
+            ->whereIn('id', $planVoucherIds)
             ->whereNotIn('status', ['paid', 'waived', 'cancelled'])
             ->orderBy('due_date', 'asc')
             ->first();
 
         $overdue = FeeVoucher::where('student_fee_account_id', $this->record->id)
+            ->whereIn('id', $planVoucherIds)
             ->where('due_date', '<', now()->toDateString())
             ->whereNotIn('status', ['paid', 'waived', 'cancelled'])
             ->sum('balance_amount');
 
         return [
-            'vouchers' => $vouchers,
+            'vouchers' => $planVouchers,
             'payments' => $payments,
             'nextVoucher' => $nextVoucher,
             'overdueAmount' => $overdue,
-            'scheduledAmount' => (float) $activeVouchers->sum('subtotal'),
-            'voucherConcession' => (float) $activeVouchers->sum(
-                fn (FeeVoucher $voucher): float => (float) $voucher->discount_amount + (float) $voucher->scholarship_amount
-            ),
-            'installmentCount' => $activeVouchers->count(),
+            'scheduledAmount' => (float) $planVouchers->sum('subtotal'),
+            'voucherConcession' => (float) ($this->record->admission?->concession_amount ?? 0),
+            'installmentCount' => $tuitionVouchers->count(),
             'planMatches' => $planMatches,
             'hasPaymentHistory' => $this->record->payments()->where('status', 'paid')->where('amount', '>', 0)->exists(),
             'savedScheduleTotal' => $savedAdmissionFee + (float) $savedSchedule->sum(fn (array $row): float => (float) $row['amount']),
