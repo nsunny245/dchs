@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use League\Flysystem\UnableToRetrieveMetadata;
 
 class CreateAdmission extends CreateRecord
 {
@@ -98,6 +99,22 @@ class CreateAdmission extends CreateRecord
             $this->autosaveStatus = 'Saved '.now()->format('H:i:s');
         } catch (\Throwable $exception) {
             report($exception);
+        }
+    }
+
+    public function create(bool $another = false): void
+    {
+        try {
+            parent::create($another);
+        } catch (UnableToRetrieveMetadata $exception) {
+            report($exception);
+
+            Notification::make()
+                ->danger()
+                ->persistent()
+                ->title('An uploaded file has expired')
+                ->body('One of the selected files is no longer available in temporary storage. Re-upload the highlighted photo or document, then submit again. Your other form data is still available.')
+                ->send();
         }
     }
 

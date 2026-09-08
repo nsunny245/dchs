@@ -35,6 +35,8 @@ class AdmissionResource extends Resource
         'Okara' => 'Okara',
         'Okara Cantonment' => 'Okara Cantonment',
         'Chichawatni' => 'Chichawatni',
+        'Depalpur' => 'Depalpur',
+        'Haveli Lakha' => 'Haveli Lakha',
         'Sahiwal' => 'Sahiwal',
         'Pakpattan' => 'Pakpattan',
         'Lahore' => 'Lahore',

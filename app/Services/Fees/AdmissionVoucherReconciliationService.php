@@ -54,22 +54,31 @@ class AdmissionVoucherReconciliationService
                 ]);
             }
 
-            $intervalMonths = max(1, min(5, (int) ($admission->custom_installment_interval_months ?: 1)));
-            $firstDueDate = Carbon::parse(
-                $admission->custom_installment_start_date ?: $admission->admission_date ?: now(),
-            );
-            $schedule = collect(app(InstallmentPlanGenerator::class)->generate(
-                $remainingTuition,
-                $installmentCount,
-                $firstDueDate,
-                $intervalMonths,
-            ))->map(fn (array $row): array => [
-                'title' => $row['title'],
-                'amount' => number_format($row['gross_paisa'] / 100, 2, '.', ''),
-                'due_date' => Carbon::parse($row['due_date'])->toDateString(),
-            ])->values();
+            $schedule = collect($admission->custom_installments ?? [])
+                ->filter(fn (array $row): bool => (float) ($row['amount'] ?? 0) > 0)
+                ->values();
+            $scheduledTotal = round((float) $schedule->sum(
+                fn (array $row): float => (float) ($row['amount'] ?? 0)
+            ), 2);
 
-            $admission->forceFill(['custom_installments' => $schedule->all()])->save();
+            if ($schedule->count() !== $installmentCount || abs($scheduledTotal - $remainingTuition) > 0.01) {
+                $intervalMonths = max(1, min(5, (int) ($admission->custom_installment_interval_months ?: 1)));
+                $firstDueDate = Carbon::parse(
+                    $admission->custom_installment_start_date ?: $admission->admission_date ?: now(),
+                );
+                $schedule = collect(app(InstallmentPlanGenerator::class)->generate(
+                    $remainingTuition,
+                    $installmentCount,
+                    $firstDueDate,
+                    $intervalMonths,
+                ))->map(fn (array $row): array => [
+                    'title' => $row['title'],
+                    'amount' => number_format($row['gross_paisa'] / 100, 2, '.', ''),
+                    'due_date' => Carbon::parse($row['due_date'])->toDateString(),
+                ])->values();
+
+                $admission->forceFill(['custom_installments' => $schedule->all()])->save();
+            }
 
             $admissionVoucher = $vouchers->firstWhere('voucher_type', 'new_enrollment');
             $tuitionVouchers = $vouchers

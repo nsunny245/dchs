@@ -144,34 +144,48 @@ class EnrollmentService
                 ]);
             }
 
-            $hasCustomSchedule = $declaredInstallmentCount !== null;
-            $intervalMonths = max(1, min(5, (int) ($admission->custom_installment_interval_months ?: 1)));
-            $firstInstallmentDate = Carbon::parse(
-                $admission->custom_installment_start_date ?: $admission->admission_date ?: now(),
-            );
-            $customSchedule = $hasCustomSchedule
-                ? collect(app(Fees\InstallmentPlanGenerator::class)->generate(
-                    $remainingTuition,
-                    $declaredInstallmentCount,
-                    $firstInstallmentDate,
-                    $intervalMonths,
-                ))->map(fn (array $row, int $index): array => [
-                    'title' => trim((string) data_get($admission->custom_installments, "{$index}.title")) ?: $row['title'],
-                    'amount' => round($row['gross_paisa'] / 100, 2),
-                    'due_date' => Carbon::parse($row['due_date']),
-                ])->values()
-                : collect();
+            $customSchedule = collect($admission->custom_installments ?? [])
+                ->map(function (array $installment, int $index) use ($admission): array {
+                    $dueDate = filled($installment['due_date'] ?? null)
+                        ? Carbon::parse($installment['due_date'])
+                        : Carbon::parse($admission->admission_date ?: now())->addMonths($index);
+
+                    return [
+                        'title' => trim((string) ($installment['title'] ?? '')) ?: 'Tuition Installment #'.($index + 1),
+                        'amount' => round(max(0, (float) ($installment['amount'] ?? 0)), 2),
+                        'due_date' => $dueDate,
+                    ];
+                })
+                ->filter(fn (array $installment): bool => $installment['amount'] > 0)
+                ->values();
+            $hasCustomSchedule = $declaredInstallmentCount !== null && $customSchedule->isNotEmpty();
 
             if ($hasCustomSchedule) {
-                // The admission inputs are the single source of truth. Always persist
-                // an equal schedule so stale manual splits cannot leak into vouchers.
-                $admission->forceFill([
-                    'custom_installments' => $customSchedule->map(fn (array $row): array => [
+                $scheduledTotal = round((float) $customSchedule->sum('amount'), 2);
+                if ($customSchedule->count() !== $declaredInstallmentCount || abs($scheduledTotal - $remainingTuition) >= 0.01) {
+                    $intervalMonths = max(1, min(5, (int) ($admission->custom_installment_interval_months ?: 1)));
+                    $firstInstallmentDate = Carbon::parse(
+                        $admission->custom_installment_start_date ?: $admission->admission_date ?: now(),
+                    );
+                    $customSchedule = collect(app(Fees\InstallmentPlanGenerator::class)->generate(
+                        $remainingTuition,
+                        $declaredInstallmentCount,
+                        $firstInstallmentDate,
+                        $intervalMonths,
+                    ))->map(fn (array $row): array => [
                         'title' => $row['title'],
-                        'amount' => number_format($row['amount'], 2, '.', ''),
-                        'due_date' => $row['due_date']->toDateString(),
-                    ])->all(),
-                ])->save();
+                        'amount' => round($row['gross_paisa'] / 100, 2),
+                        'due_date' => Carbon::parse($row['due_date']),
+                    ])->values();
+
+                    $admission->forceFill([
+                        'custom_installments' => $customSchedule->map(fn (array $row): array => [
+                            'title' => $row['title'],
+                            'amount' => number_format($row['amount'], 2, '.', ''),
+                            'due_date' => $row['due_date']->toDateString(),
+                        ])->all(),
+                    ])->save();
+                }
             }
 
             // Create Student Fee Account

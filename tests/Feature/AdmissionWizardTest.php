@@ -22,6 +22,7 @@ use App\Services\Fees\FeeVoucherCalculator;
 use App\Services\Fees\FeeVoucherPdfService;
 use App\Services\Fees\TuitionVoucherDistributionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -168,7 +169,7 @@ class AdmissionWizardTest extends TestCase
             'status' => 'approved',
             'admission_date' => now()->toDateString(),
 
-            // Stale manual rows must be normalized from the authoritative plan inputs.
+            // Custom fee plan overrides with deliberately uneven, ordered rows.
             'custom_installment_count' => 3,
             'custom_admission_fee' => 8000.00,
             'custom_tuition_fee' => 108000.00,
@@ -216,14 +217,14 @@ class AdmissionWizardTest extends TestCase
             'Final Custom Installment',
         ], $tuitionVouchers->pluck('title')->all());
         $this->assertSame([
-            now()->toDateString(),
-            now()->addMonthNoOverflow()->toDateString(),
-            now()->addMonthsNoOverflow(2)->toDateString(),
+            '2026-09-15',
+            '2026-10-20',
+            '2026-11-25',
         ], $tuitionVouchers->pluck('due_date')->map->toDateString()->all());
         $this->assertSame([
-            '33333.33',
-            '33333.33',
-            '33333.34',
+            '25000.00',
+            '33000.00',
+            '42000.00',
         ], $tuitionVouchers->pluck('total_amount')->all());
 
         $this->assertSame([
@@ -243,22 +244,21 @@ class AdmissionWizardTest extends TestCase
 
         $this->assertDatabaseHas('fee_vouchers', [
             'id' => $tuitionVouchers->first()->id,
-            'title' => 'Tuition Installment #1',
-            'subtotal' => 33333.33,
-            'total_amount' => 33333.33,
+            'title' => 'Registration Installment',
+            'subtotal' => 25000,
+            'total_amount' => 25000,
         ]);
         $this->assertEquals(108000.00, $account->fresh()->original_fee);
         $this->assertSame(200, FeeVoucherPdfService::streamBook($admission)->getStatusCode());
 
-        $admission->refresh();
         $feePlan = app(AdmissionFeeAgreementData::class)->build($admission);
         $agreement = view('pdf.admission-agreement', [
             'admission' => $admission->load(['campus', 'course', 'academicSession']),
             'studentPhotoDataUri' => null,
             'feePlan' => $feePlan,
         ])->render();
-        $this->assertStringContainsString('Tuition Installment #1', $agreement);
-        $this->assertStringContainsString('33,333.33', $agreement);
+        $this->assertStringContainsString('Registration Installment', $agreement);
+        $this->assertStringContainsString('25,000.00', $agreement);
         $this->assertStringNotContainsString('<td class="data-label">Admission Fee</td>', $agreement);
 
         $admin = User::factory()->create();
@@ -454,7 +454,7 @@ class AdmissionWizardTest extends TestCase
             'status' => 'partially_paid',
         ]);
         $this->assertSame(
-            ['Tuition Installment #1', 'Tuition Installment #2', 'Tuition Installment #3', 'Tuition Installment #4'],
+            ['October Tuition', 'December Tuition', 'February Tuition', 'Final Tuition'],
             $account->vouchers()->where('voucher_type', 'monthly_installment')->orderBy('due_date')->pluck('title')->all(),
         );
         $this->assertSame(5000.0, (float) $account->fresh()->amount_paid);
@@ -756,7 +756,7 @@ class AdmissionWizardTest extends TestCase
             'balance' => 100000,
         ]);
 
-        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $this->expectException(ValidationException::class);
         $this->expectExceptionMessage('legacy fee account is not linked to an active student');
 
         app(AdmissionVoucherReconciliationService::class)->reconcile($account);

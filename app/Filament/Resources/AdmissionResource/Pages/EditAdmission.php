@@ -161,20 +161,19 @@ class EditAdmission extends EditRecord
             }
         }
 
-        $installmentCount = max(1, min(12, (int) ($data['custom_installment_count'] ?? 1)));
-        $remainingTuition = max(
-            0,
-            (float) ($data['custom_tuition_fee'] ?? 0)
-                - (float) ($data['concession_amount'] ?? 0)
-                - (float) ($data['custom_admission_fee'] ?? 0),
-        );
-        $data['custom_installment_count'] = $installmentCount;
-        $data['custom_installments'] = AdmissionResource::buildInstallmentRows(
-            $installmentCount,
-            $remainingTuition,
-            $data['custom_installment_start_date'] ?? $data['admission_date'] ?? now(),
-            (int) ($data['custom_installment_interval_months'] ?? 1),
-        );
+        $rows = $data['custom_installments'] ?? [];
+        if (count($rows) > 1) {
+            $remainingTuition = max(
+                0,
+                (float) ($data['custom_tuition_fee'] ?? 0)
+                    - (float) ($data['concession_amount'] ?? 0)
+                    - (float) ($data['custom_admission_fee'] ?? 0),
+            );
+            $data['custom_installments'] = AdmissionResource::rebalanceEditedInstallmentAmounts(
+                $rows,
+                $remainingTuition,
+            );
+        }
 
         return $data;
     }
