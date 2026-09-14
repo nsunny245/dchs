@@ -236,9 +236,9 @@
     --dgc-surface-soft: #F8FAFC;
     --dgc-border: #D9E2EC;
     --dgc-border-strong: #BAC8D8;
-    --dgc-text-primary: #102033;
-    --dgc-text-secondary: #5E6D7E;
-    --dgc-text-muted: #8290A3;
+    --dgc-text-primary: #0F172A;
+    --dgc-text-secondary: #475569;
+    --dgc-text-muted: #94A3B8;
     --dgc-success: #16855B;
     --dgc-success-bg: #EAF8F2;
     --dgc-warning: #B7791F;
@@ -269,35 +269,35 @@ body,
 .fi-layout,
 .fi-main {
     background-color: #F4F7FB !important;
-    color: #102033 !important;
+    color: #0F172A !important;
 }
 
-/* Cards & Section Styling Alignment - Glassmorphism & Depth */
+/* Cards & Section Styling Alignment - Clean Elevation & Crisp Borders */
 .fi-section,
 .fi-card,
 .fi-ta-ctn,
 .fi-wi-widget {
-    border: 1px solid #D9E2EC !important;
-    border-top: 4px solid #082245 !important; /* Premium navy top bar */
-    border-radius: 12px !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02) !important;
     background-color: #FFFFFF !important;
     overflow: hidden !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* Section Header Styling - Accent Tints */
+/* Section Header Styling - Clean Slate Surfaces */
 .fi-section-header {
-    background-color: #FAF3E6 !important; /* Pale gold header background */
-    border-bottom: 1px solid #D9E2EC !important;
+    background-color: #F8FAFC !important;
+    border-bottom: 1px solid #E2E8F0 !important;
     padding: 14px 20px !important;
 }
 
 .fi-section-header-title,
 .fi-section-header h3 {
-    color: #081F35 !important;
-    font-weight: 700 !important;
-    font-size: 15px !important;
+    color: #0F172A !important;
+    font-weight: 800 !important;
+    font-size: 0.975rem !important;
+    letter-spacing: -0.01em !important;
 }
 
 /* Sidebar Branding & Navigation Customization */
@@ -355,7 +355,7 @@ body,
 /* Navigation Group Labels styling */
 .fi-sidebar-nav-group-label,
 .fi-sidebar-group-label {
-    color: #DCB371 !important; /* Soft gold navigation headers */
+    color: #DCB371 !important;
     font-size: 11px !important;
     text-transform: uppercase !important;
     letter-spacing: 0.075em !important;
@@ -387,7 +387,7 @@ body,
 /* Active Nav Item Indicator & Left Gold Bar */
 .fi-sidebar-item-active .fi-sidebar-item-button,
 .fi-sidebar-item-button[aria-current="page"] {
-    background-color: rgba(201, 150, 60, 0.15) !important; /* Gold tint background */
+    background-color: rgba(201, 150, 60, 0.15) !important;
     border-left-color: #C9963C !important;
     font-weight: 700 !important;
 }
@@ -396,7 +396,7 @@ body,
 .fi-sidebar-item-button[aria-current="page"] *,
 .fi-sidebar-item-active .fi-sidebar-item-icon,
 .fi-sidebar-item-button[aria-current="page"] .fi-sidebar-item-icon {
-    color: #C9963C !important; /* Gold */
+    color: #C9963C !important;
 }
 
 /* User Account Menu Avatar styling */
@@ -436,13 +436,16 @@ body,
     background-color: #F0F9FF !important;
 }
 
-/* Table Headers Styling - Navy and gold bottom line */
+/* Table Headers Styling - Executive Deep Navy & Gold Accent Line */
 .fi-ta-header-cell {
     background-color: #082245 !important;
     color: #FFFFFF !important;
-    font-weight: 600 !important;
-    padding: 14px 16px !important;
-    border-bottom: 3px solid #C9963C !important;
+    font-weight: 700 !important;
+    font-size: 0.75rem !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+    padding: 12px 16px !important;
+    border-bottom: 2px solid #C9963C !important;
 }
 
 .fi-ta-header-cell *,
@@ -452,14 +455,14 @@ body,
 
 /* Table Rows - Smooth hover transitions */
 .fi-ta-row {
-    transition: all 0.2s ease !important;
+    transition: all 0.15s ease !important;
 }
 
 .fi-ta-row:hover {
-    background-color: #F1F7FC !important;
+    background-color: #F1F5F9 !important;
 }
 
-/* Forms Input Customization - 46px heights, 10px radii, visible gold rings */
+/* Forms Input Customization - Clean height, modern rounded corners, soft glow focus */
 input[type="text"],
 input[type="email"],
 input[type="tel"],
@@ -467,30 +470,11 @@ input[type="number"],
 input[type="password"],
 input[type="date"],
 .fi-input-wrp {
-    height: 46px !important;
+    min-height: 42px !important;
     border-radius: 10px !important;
-    border: 1px solid #D9E2EC !important;
+    border: 1px solid #CBD5E1 !important;
     background-color: #FFFFFF !important;
-    transition: all 0.2s ease !important;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02) !important;
-}
-
-select,
-select.fi-select-input {
-    height: 46px !important;
-    border-radius: 10px !important;
-    border: 1px solid #D9E2EC !important;
-    background-color: #FFFFFF !important;
-    transition: all 0.2s ease !important;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02) !important;
-    appearance: none !important;
-    -webkit-appearance: none !important;
-    -moz-appearance: none !important;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
-    background-position: right 12px center !important;
-    background-repeat: no-repeat !important;
-    background-size: 20px !important;
-    padding-right: 36px !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 }
 
 .fi-input-wrp input {
@@ -500,19 +484,17 @@ select.fi-select-input {
 }
 
 .fi-input-wrp:focus-within {
-    border-color: #C9963C !important;
-    box-shadow: 0 0 0 3px rgba(201, 150, 60, 0.2) !important;
+    border-color: #10345D !important;
+    box-shadow: 0 0 0 3px rgba(16, 52, 93, 0.14) !important;
 }
-
-
 
 /* Buttons Styling */
 .fi-btn.fi-btn-color-primary,
 button[type="submit"].fi-btn {
     background-color: #082245 !important;
     color: #FFFFFF !important;
-    font-weight: 600 !important;
-    border-radius: 8px !important;
+    font-weight: 700 !important;
+    border-radius: 10px !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
     border: 1px solid #082245 !important;
 }
@@ -521,7 +503,7 @@ button[type="submit"].fi-btn {
 button[type="submit"].fi-btn:hover {
     background-color: #081F35 !important;
     transform: translateY(-1px) !important;
-    box-shadow: 0 4px 12px rgba(8, 31, 53, 0.15) !important;
+    box-shadow: 0 6px 16px rgba(8, 31, 53, 0.18) !important;
 }
 
 .fi-btn.fi-btn-color-primary *,
