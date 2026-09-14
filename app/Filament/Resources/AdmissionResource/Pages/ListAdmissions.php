@@ -16,6 +16,11 @@ class ListAdmissions extends ListRecords
     {
         return [
             Actions\CreateAction::make(),
+            Actions\Action::make('bulkAdmissions')
+                ->label('Bulk Admissions')
+                ->icon('heroicon-o-user-group')
+                ->color('warning')
+                ->url(AdmissionResource::getUrl('bulk')),
             Actions\Action::make('resumeDraft')
                 ->label('Resume Draft')
                 ->icon('heroicon-o-arrow-path')

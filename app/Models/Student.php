@@ -16,6 +16,13 @@ class Student extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'is_active' => 'boolean',
+        'profile_complete' => 'boolean',
+        'enrollment_date' => 'date',
+        'imported_at' => 'datetime',
+    ];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -74,6 +81,11 @@ class Student extends Model
     public function activeIdCard(): HasOne
     {
         return $this->hasOne(StudentIdCard::class)->where('status', 'active')->latestOfMany();
+    }
+
+    public function importBatch(): BelongsTo
+    {
+        return $this->belongsTo(StudentImportBatch::class, 'student_import_batch_id');
     }
 
     public function getStudentPhotoAttribute()

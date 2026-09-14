@@ -13,7 +13,7 @@ use App\Models\StudentFeeSnapshot;
 use App\Models\User;
 use App\Services\Fees\FeeVoucherService;
 use App\Services\Fees\OfficialFeeStructureResolver;
-use App\Support\CampusCode;
+use App\Services\Admissions\EnrollmentNumberService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -46,24 +46,8 @@ class EnrollmentService
 
             $campus = $admission->campus;
             $course = $admission->course;
-            $campusCode = CampusCode::for($campus);
-            $courseCode = $course ? $course->code : 'GEN';
             $year = now()->year;
-
-            // 2. Generate Enrollment Number
-            $prefix = "DGC-{$campusCode}-{$courseCode}-{$year}-";
-            $sequenceStart = strlen($prefix) + 1;
-            $sequenceExpression = DB::getDriverName() === 'sqlite'
-                ? "CAST(SUBSTR(enrollment_number, {$sequenceStart}) AS INTEGER)"
-                : "CAST(SUBSTRING(enrollment_number, {$sequenceStart}) AS UNSIGNED)";
-            $highestSequence = (int) (Student::withoutGlobalScopes()
-                ->where('enrollment_number', 'like', "{$prefix}%")
-                ->lockForUpdate()
-                ->max(DB::raw($sequenceExpression)) ?? 0);
-            $sequence = max(1233, $highestSequence) + 1;
-
-            $seqFormatted = str_pad($sequence, 6, '0', STR_PAD_LEFT);
-            $enrollmentNumber = $prefix.$seqFormatted;
+            $enrollmentNumber = app(EnrollmentNumberService::class)->generate($campus, $course, $year);
 
             // 3. Create Corresponding User Account for Student login
             $email = $admission->email;

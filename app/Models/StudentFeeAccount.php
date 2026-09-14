@@ -10,6 +10,16 @@ class StudentFeeAccount extends Model
 {
     protected $guarded = [];
 
+    protected $casts = [
+        'original_fee' => 'decimal:2',
+        'concession_amount' => 'decimal:2',
+        'net_payable' => 'decimal:2',
+        'amount_paid' => 'decimal:2',
+        'opening_paid_amount' => 'decimal:2',
+        'balance' => 'decimal:2',
+        'opening_balance_recorded_at' => 'datetime',
+    ];
+
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);

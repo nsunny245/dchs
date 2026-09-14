@@ -194,6 +194,19 @@ class EditAdmission extends EditRecord
                 $account,
                 filament()->auth()->id(),
             );
+
+            if ($account->source === 'bulk_import') {
+                $account->student->update(['profile_complete' => true]);
+                $account->student->user?->update(['status' => true]);
+                $metadata = $this->record->workflow_metadata ?? [];
+                $metadata['profile_complete'] = true;
+                $metadata['profile_completed_at'] = now()->toIso8601String();
+                $this->record->forceFill([
+                    'workflow_metadata' => $metadata,
+                    'workflow_step' => 7,
+                    'completion_percentage' => 100,
+                ])->saveQuietly();
+            }
         } catch (ValidationException $exception) {
             Notification::make()
                 ->title('Admission saved; fee schedule needs review')

@@ -1152,7 +1152,16 @@ class AdmissionResource extends Resource
                         ->url(fn ($record) => route('pdf.download-documents-zip', $record))
                         ->openUrlInNewTab(),
 
-                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\EditAction::make()
+                        ->label(fn (Admission $record): string => $record->student !== null && ! (bool) $record->student->profile_complete
+                            ? 'Complete Profile'
+                            : 'Edit')
+                        ->icon(fn (Admission $record): string => $record->student !== null && ! (bool) $record->student->profile_complete
+                            ? 'heroicon-o-clipboard-document-check'
+                            : 'heroicon-o-pencil-square')
+                        ->color(fn (Admission $record): string => $record->student !== null && ! (bool) $record->student->profile_complete
+                            ? 'warning'
+                            : 'primary'),
                 ])->label('Actions')->button()->color('primary'),
             ], position: Tables\Enums\ActionsPosition::AfterColumns)
             ->bulkActions([
@@ -1205,6 +1214,7 @@ class AdmissionResource extends Resource
     {
         return [
             'index' => Pages\ListAdmissions::route('/'),
+            'bulk' => Pages\BulkAdmissions::route('/bulk'),
             'create' => Pages\CreateAdmission::route('/create'),
             'edit' => Pages\EditAdmission::route('/{record}/edit'),
         ];

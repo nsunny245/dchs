@@ -45,7 +45,13 @@ class AdmissionVoucherReconciliationService
             $admissionFee = round(max(0, (float) $admission->custom_admission_fee), 2);
             $tuition = round(max(0, (float) $admission->custom_tuition_fee), 2);
             $concession = min(round(max(0, (float) $admission->concession_amount), 2), $tuition);
-            $remainingTuition = max(0, $tuition - $concession - $admissionFee);
+            // Historical bulk imports already carry a paid opening balance.
+            // Their later voucher schedule must cover only what remains, while
+            // the opening receipt stays separate and auditable.
+            $openingPaid = $account->source === 'bulk_import'
+                ? round(max(0, (float) $account->opening_paid_amount), 2)
+                : 0;
+            $remainingTuition = max(0, $tuition - $concession - $admissionFee - $openingPaid);
             $installmentCount = (int) ($admission->custom_installment_count ?? 0);
 
             if ($installmentCount < 1 || $installmentCount > 12) {
