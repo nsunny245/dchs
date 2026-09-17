@@ -15,7 +15,9 @@ class ListAdmissions extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('New Admission')
+                ->icon('heroicon-o-plus'),
             Actions\Action::make('bulkAdmissions')
                 ->label('Bulk Admissions')
                 ->icon('heroicon-o-user-group')
@@ -24,6 +26,7 @@ class ListAdmissions extends ListRecords
             Actions\Action::make('resumeDraft')
                 ->label('Resume Draft')
                 ->icon('heroicon-o-arrow-path')
+                ->color('gray')
                 ->form([
                     Select::make('draft')
                         ->label('Saved admission draft')

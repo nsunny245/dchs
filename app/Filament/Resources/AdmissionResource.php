@@ -1110,14 +1110,14 @@ class AdmissionResource extends Resource
                         default => 'primary',
                     }),
                 Tables\Columns\TextColumn::make('documents_status')
-                    ->label('Docs Missing')
+                    ->label('Documents')
                     ->getStateUsing(function (Admission $record): string {
                         $missing = self::missingDocumentLabels($record);
 
-                        return $missing === [] ? 'Documents Complete' : count($missing).' Missing';
+                        return $missing === [] ? 'Complete' : count($missing).' Missing';
                     })
                     ->badge()
-                    ->color(fn (string $state): string => $state === 'Documents Complete' ? 'success' : 'danger'),
+                    ->color(fn (string $state): string => $state === 'Complete' ? 'success' : 'danger'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

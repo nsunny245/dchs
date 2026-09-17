@@ -436,6 +436,18 @@ body,
     background-color: #F0F9FF !important;
 }
 
+/* Table Layout & Breathing Room - Prevent Text Overlap & Column Squashing */
+.fi-ta-content {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+}
+
+.fi-ta-table {
+    width: 100% !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+}
+
 /* Table Headers Styling - Executive Deep Navy & Gold Accent Line */
 .fi-ta-header-cell {
     background-color: #082245 !important;
@@ -444,16 +456,54 @@ body,
     font-size: 0.75rem !important;
     letter-spacing: 0.04em !important;
     text-transform: uppercase !important;
-    padding: 12px 16px !important;
+    padding: 12px 14px !important;
     border-bottom: 2px solid #C9963C !important;
+    white-space: nowrap !important;
 }
 
 .fi-ta-header-cell *,
 .fi-ta-header-cell span {
     color: #FFFFFF !important;
+    white-space: nowrap !important;
 }
 
-/* Table Rows - Smooth hover transitions */
+/* Table Cells & Rows */
+.fi-ta-cell {
+    padding: 10px 14px !important;
+    vertical-align: middle !important;
+}
+
+.fi-ta-cell .fi-badge {
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+    font-weight: 700 !important;
+}
+
+/* Actions Column Protection - Never squeezed, clean breathing room */
+.fi-ta-actions-cell {
+    white-space: nowrap !important;
+    padding: 10px 16px !important;
+    min-width: 6.5rem !important;
+    text-align: right !important;
+}
+
+.fi-ta-actions {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 0.5rem !important;
+    white-space: nowrap !important;
+}
+
+.fi-ta-actions .fi-btn {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    padding: 0.45rem 0.9rem !important;
+    font-size: 0.8125rem !important;
+}
+
 .fi-ta-row {
     transition: all 0.15s ease !important;
 }
@@ -488,26 +538,157 @@ input[type="date"],
     box-shadow: 0 0 0 3px rgba(16, 52, 93, 0.14) !important;
 }
 
-/* Buttons Styling */
-.fi-btn.fi-btn-color-primary,
-button[type="submit"].fi-btn {
-    background-color: #082245 !important;
-    color: #FFFFFF !important;
+/* Select Fields System-Wide - Generous right padding so text never collides with arrow icon */
+select.fi-select-input {
+    min-width: 5rem !important;
+    padding-right: 2.25rem !important;
+    padding-left: 0.75rem !important;
+    background-position: right 0.65rem center !important;
+    cursor: pointer !important;
+}
+
+/* Pagination records-per-page select box ('10 v' collision fix) */
+.fi-pagination-records-per-page-select {
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+.fi-pagination-records-per-page-select .fi-input-wrp {
+    min-height: 36px !important;
+    height: 36px !important;
+    min-width: 8.5rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    border-radius: 8px !important;
+    background-color: #FFFFFF !important;
+    border: 1px solid #CBD5E1 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.fi-pagination-records-per-page-select .fi-input-wrp-prefix {
+    padding-left: 0.75rem !important;
+    padding-right: 0.6rem !important;
+    font-size: 0.8125rem !important;
+    color: #64748B !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    border-right: 1px solid #E2E8F0 !important;
+}
+
+.fi-pagination-records-per-page-select select.fi-select-input {
+    min-width: 4.5rem !important;
+    height: 34px !important;
+    padding-left: 0.75rem !important;
+    padding-right: 2rem !important;
+    font-size: 0.8125rem !important;
+    font-weight: 700 !important;
+    color: #0F172A !important;
+    line-height: 34px !important;
+    background-position: right 0.5rem center !important;
+}
+
+/* Buttons Styling - System-Wide Cohesive Theme */
+.fi-btn {
     font-weight: 700 !important;
     border-radius: 10px !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    white-space: nowrap !important;
+}
+
+/* Primary Button: Executive Deep Navy */
+.fi-btn.fi-btn-color-primary,
+button[type="submit"].fi-btn:not(.fi-btn-color-warning):not(.fi-btn-color-danger) {
+    background-color: #082245 !important;
+    color: #FFFFFF !important;
     border: 1px solid #082245 !important;
 }
 
 .fi-btn.fi-btn-color-primary:hover,
-button[type="submit"].fi-btn:hover {
+button[type="submit"].fi-btn:not(.fi-btn-color-warning):not(.fi-btn-color-danger):hover {
     background-color: #081F35 !important;
     transform: translateY(-1px) !important;
     box-shadow: 0 6px 16px rgba(8, 31, 53, 0.18) !important;
 }
 
 .fi-btn.fi-btn-color-primary *,
-button[type="submit"].fi-btn * {
+button[type="submit"].fi-btn:not(.fi-btn-color-warning):not(.fi-btn-color-danger) * {
+    color: #FFFFFF !important;
+}
+
+/* Warning Button: Royal Amber / Executive Gold (e.g. Bulk Admissions) */
+.fi-btn.fi-btn-color-warning {
+    background-color: #C9963C !important;
+    color: #FFFFFF !important;
+    border: 1px solid #C9963C !important;
+    box-shadow: 0 2px 6px rgba(201, 150, 60, 0.2) !important;
+}
+
+.fi-btn.fi-btn-color-warning:hover {
+    background-color: #B97708 !important;
+    border-color: #B97708 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 16px rgba(185, 119, 8, 0.25) !important;
+}
+
+.fi-btn.fi-btn-color-warning * {
+    color: #FFFFFF !important;
+}
+
+/* Gray / Secondary Outlined Button (e.g. Resume Draft, Back actions) */
+.fi-btn.fi-btn-color-gray {
+    background-color: #FFFFFF !important;
+    color: #334155 !important;
+    border: 1px solid #CBD5E1 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.fi-btn.fi-btn-color-gray:hover {
+    background-color: #F8FAFC !important;
+    border-color: #94A3B8 !important;
+    color: #0F172A !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06) !important;
+}
+
+.fi-btn.fi-btn-color-gray * {
+    color: #334155 !important;
+}
+
+.fi-btn.fi-btn-color-gray:hover * {
+    color: #0F172A !important;
+}
+
+/* Success Button */
+.fi-btn.fi-btn-color-success {
+    background-color: #16855B !important;
+    color: #FFFFFF !important;
+    border: 1px solid #16855B !important;
+}
+
+.fi-btn.fi-btn-color-success:hover {
+    background-color: #126946 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 16px rgba(22, 133, 91, 0.2) !important;
+}
+
+.fi-btn.fi-btn-color-success * {
+    color: #FFFFFF !important;
+}
+
+/* Danger Button */
+.fi-btn.fi-btn-color-danger {
+    background-color: #C43D4B !important;
+    color: #FFFFFF !important;
+    border: 1px solid #C43D4B !important;
+}
+
+.fi-btn.fi-btn-color-danger:hover {
+    background-color: #9F2B37 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 16px rgba(196, 61, 75, 0.2) !important;
+}
+
+.fi-btn.fi-btn-color-danger * {
     color: #FFFFFF !important;
 }
 
