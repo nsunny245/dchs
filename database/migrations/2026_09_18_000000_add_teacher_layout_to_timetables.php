@@ -8,10 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('timetables', function (Blueprint $table) {
-            $table->json('teacher_layout')->nullable();
-            $table->unsignedInteger('layout_version')->default(0);
-        });
+        if (! Schema::hasColumn('timetables', 'teacher_layout')) {
+            Schema::table('timetables', function (Blueprint $table) {
+                $table->json('teacher_layout')->nullable();
+            });
+        }
+        if (! Schema::hasColumn('timetables', 'layout_version')) {
+            Schema::table('timetables', function (Blueprint $table) {
+                $table->unsignedInteger('layout_version')->default(0);
+            });
+        }
     }
 
     public function down(): void

@@ -8,7 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('student_import_batches', function (Blueprint $table): void {
+        if (! Schema::hasTable('student_import_batches')) {
+            Schema::create('student_import_batches', function (Blueprint $table): void {
             $table->id();
             $table->uuid('uuid')->unique();
             $table->foreignId('campus_id')->constrained()->restrictOnDelete();
@@ -22,9 +23,11 @@ return new class extends Migration
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
             $table->index(['campus_id', 'created_at']);
-        });
+            });
+        }
 
-        Schema::create('student_import_rows', function (Blueprint $table): void {
+        if (! Schema::hasTable('student_import_rows')) {
+            Schema::create('student_import_rows', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('student_import_batch_id')->constrained()->cascadeOnDelete();
             $table->unsignedInteger('row_number');
@@ -39,20 +42,43 @@ return new class extends Migration
             $table->timestamp('processed_at')->nullable();
             $table->timestamps();
             $table->unique(['student_import_batch_id', 'row_number'], 'student_import_rows_batch_row_unique');
-        });
+            });
+        }
 
-        Schema::table('students', function (Blueprint $table): void {
-            $table->boolean('profile_complete')->default(true)->after('is_active');
-            $table->foreignId('student_import_batch_id')->nullable()->after('profile_complete')
-                ->constrained()->nullOnDelete();
-            $table->timestamp('imported_at')->nullable()->after('student_import_batch_id');
-        });
+        if (! Schema::hasColumn('students', 'profile_complete')) {
+            Schema::table('students', function (Blueprint $table): void {
+                $table->boolean('profile_complete')->default(true)->after('is_active');
+            });
+        }
+        if (! Schema::hasColumn('students', 'student_import_batch_id')) {
+            Schema::table('students', function (Blueprint $table): void {
+                // Kept unconstrained for compatibility with legacy MyISAM and
+                // installations whose existing primary keys are not BIGINT.
+                $table->unsignedBigInteger('student_import_batch_id')->nullable()->after('profile_complete');
+                $table->index('student_import_batch_id', 'students_import_batch_index');
+            });
+        }
+        if (! Schema::hasColumn('students', 'imported_at')) {
+            Schema::table('students', function (Blueprint $table): void {
+                $table->timestamp('imported_at')->nullable()->after('student_import_batch_id');
+            });
+        }
 
-        Schema::table('student_fee_accounts', function (Blueprint $table): void {
-            $table->decimal('opening_paid_amount', 14, 2)->default(0)->after('amount_paid');
-            $table->timestamp('opening_balance_recorded_at')->nullable()->after('opening_paid_amount');
-            $table->string('source', 32)->default('admission')->after('status');
-        });
+        if (! Schema::hasColumn('student_fee_accounts', 'opening_paid_amount')) {
+            Schema::table('student_fee_accounts', function (Blueprint $table): void {
+                $table->decimal('opening_paid_amount', 14, 2)->default(0)->after('amount_paid');
+            });
+        }
+        if (! Schema::hasColumn('student_fee_accounts', 'opening_balance_recorded_at')) {
+            Schema::table('student_fee_accounts', function (Blueprint $table): void {
+                $table->timestamp('opening_balance_recorded_at')->nullable()->after('opening_paid_amount');
+            });
+        }
+        if (! Schema::hasColumn('student_fee_accounts', 'source')) {
+            Schema::table('student_fee_accounts', function (Blueprint $table): void {
+                $table->string('source', 32)->default('admission')->after('status');
+            });
+        }
     }
 
     public function down(): void
@@ -62,8 +88,8 @@ return new class extends Migration
         });
 
         Schema::table('students', function (Blueprint $table): void {
-            $table->dropConstrainedForeignId('student_import_batch_id');
-            $table->dropColumn(['profile_complete', 'imported_at']);
+            $table->dropIndex('students_import_batch_index');
+            $table->dropColumn(['student_import_batch_id', 'profile_complete', 'imported_at']);
         });
 
         Schema::dropIfExists('student_import_rows');

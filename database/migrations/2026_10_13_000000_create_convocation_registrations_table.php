@@ -8,11 +8,17 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('convocation_registrations')) {
+            return;
+        }
+
         Schema::create('convocation_registrations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('campus_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('academic_session_id')->constrained('academic_sessions')->restrictOnDelete();
-            $table->foreignId('course_id')->constrained('courses')->restrictOnDelete();
+            // Indexes preserve fast dashboard filtering while avoiding foreign
+            // key failures on legacy databases with mixed engines or ID types.
+            $table->unsignedBigInteger('campus_id');
+            $table->unsignedBigInteger('academic_session_id');
+            $table->unsignedBigInteger('course_id');
             $table->string('student_name');
             $table->string('attendee_name');
             $table->string('attendee_relation', 40);
@@ -21,6 +27,8 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['campus_id', 'status']);
+            $table->index('academic_session_id');
+            $table->index('course_id');
             $table->index('attendee_cnic');
         });
     }
