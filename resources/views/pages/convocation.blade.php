@@ -24,7 +24,7 @@
 
 <section class="bg-brand-surface py-16 md:py-24">
     <div class="container mx-auto px-6">
-        <div class="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[.72fr_1.28fr]">
+        <div class="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[minmax(260px,.58fr)_minmax(0,1.42fr)] lg:items-start">
             <aside class="h-fit rounded-2xl bg-navy-900 p-7 text-white shadow-xl lg:sticky lg:top-32">
                 <p class="text-[11px] font-bold uppercase tracking-[.2em] text-gold-400">Before you submit</p>
                 <h2 class="mt-3 font-display text-2xl font-bold">Keep the official details ready</h2>
