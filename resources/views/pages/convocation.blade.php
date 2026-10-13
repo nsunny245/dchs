@@ -4,9 +4,28 @@
 @section('meta_description', 'Submit student and attendee information for the Daniyal Group of Colleges convocation.')
 
 @section('content')
+<style>
+    .convocation-hero-grid,
+    .convocation-details-grid {
+        display: grid;
+        gap: 2rem;
+    }
+
+    @media (min-width: 1024px) {
+        .convocation-hero-grid {
+            grid-template-columns: minmax(0, 1.1fr) minmax(360px, .9fr);
+            align-items: center;
+        }
+
+        .convocation-details-grid {
+            grid-template-columns: minmax(260px, .58fr) minmax(0, 1.42fr);
+            align-items: start;
+        }
+    }
+</style>
 <section class="relative overflow-hidden bg-navy-950 text-white">
     <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 20% 20%, #ebb45a 0, transparent 28%), radial-gradient(circle at 80% 80%, #2c6fad 0, transparent 30%);"></div>
-    <div class="container relative z-10 mx-auto grid gap-10 px-6 py-16 lg:grid-cols-[1.1fr_.9fr] lg:items-center lg:py-24">
+    <div class="convocation-hero-grid container relative z-10 mx-auto px-6 py-16 lg:py-24">
         <div>
             <span class="inline-flex items-center gap-2 rounded-full border border-gold-500/40 bg-gold-500/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[.22em] text-gold-400">
                 Convocation Registration
@@ -24,7 +43,7 @@
 
 <section class="bg-brand-surface py-16 md:py-24">
     <div class="container mx-auto px-6">
-        <div class="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[minmax(260px,.58fr)_minmax(0,1.42fr)] lg:items-start">
+        <div class="convocation-details-grid mx-auto max-w-7xl">
             <aside class="h-fit rounded-2xl bg-navy-900 p-7 text-white shadow-xl lg:sticky lg:top-32">
                 <p class="text-[11px] font-bold uppercase tracking-[.2em] text-gold-400">Before you submit</p>
                 <h2 class="mt-3 font-display text-2xl font-bold">Keep the official details ready</h2>
