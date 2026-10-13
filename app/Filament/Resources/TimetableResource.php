@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\TimetableResource\Pages;
 use App\Models\Timetable;
+use App\Services\Timetable\TeacherTimetableLayout;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -18,7 +19,7 @@ class TimetableResource extends Resource
 
     protected static ?string $navigationGroup = 'Academic Management';
 
-    protected static ?string $navigationLabel = 'Program Timetables';
+    protected static ?string $navigationLabel = 'Timetables';
 
     protected static ?int $navigationSort = 3;
 
@@ -77,7 +78,9 @@ class TimetableResource extends Resource
                     ])
                     ->formatStateUsing(fn ($state) => strtoupper($state)),
                 Tables\Columns\TextColumn::make('slots_count')
-                    ->counts('slots')
+                    ->getStateUsing(fn (Timetable $record) => $record->teacher_layout
+                        ? TeacherTimetableLayout::classCount($record->teacher_layout)
+                        : $record->slots->count())
                     ->label('Classes')
                     ->badge()
                     ->color('success'),
@@ -102,7 +105,7 @@ class TimetableResource extends Resource
                         ->label('Edit Timetable')
                         ->icon('heroicon-o-pencil-square')
                         ->color('primary')
-                        ->url(fn (Timetable $record) => static::getUrl('edit', ['record' => $record->id])),
+                        ->url(fn (Timetable $record) => static::getUrl($record->teacher_layout ? 'teacher-edit' : 'edit', ['record' => $record->id])),
                     Tables\Actions\Action::make('export_pdf')
                         ->label('PDF')
                         ->icon('heroicon-o-document-arrow-down')
@@ -140,6 +143,8 @@ class TimetableResource extends Resource
     {
         return [
             'index' => Pages\ListTimetables::route('/'),
+            'teacher-create' => Pages\TeacherTimetable::route('/teacher-layout/create'),
+            'teacher-edit' => Pages\TeacherTimetable::route('/{record}/teacher-layout'),
             'create' => Pages\TimetableWizard::route('/create'),
             'edit' => Pages\TimetableWizard::route('/{record}/edit'),
         ];

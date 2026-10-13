@@ -29,7 +29,7 @@
                 'Session' => $admission->academicSession?->name ?: 'Pending',
                 'Fee Plan' => $feeSnapshot?->feeStructure?->name ?: ('Version ' . ($feeSnapshot?->structure_version ?: 1)),
                 'Vouchers Generated' => $vouchers->count(),
-                'Document Status' => $admission->is_document_deficient ? 'Documents deficient' : 'Complete',
+                'Missing Documents' => count($admission->missingDocumentLabels()).' missing',
             ] as $label => $value)
                 <div class="rounded-xl border border-[#D9E2EC] bg-[#F8FAFC] p-4">
                     <div class="text-xs font-semibold uppercase tracking-wide text-[#8290A3]">{{ $label }}</div>
@@ -37,6 +37,10 @@
                 </div>
             @endforeach
         </div>
+
+        @if($admission->missingDocumentLabels())
+            <div class="px-6 pb-6 sm:px-10"><strong>Documents to collect</strong><p class="mt-2 text-sm">{{ implode(', ', $admission->missingDocumentLabels()) }}</p></div>
+        @endif
 
         <div class="flex flex-wrap gap-3 border-t border-[#D9E2EC] p-6 sm:px-10">
             @php

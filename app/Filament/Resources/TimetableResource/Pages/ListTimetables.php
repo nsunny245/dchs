@@ -13,6 +13,10 @@ class ListTimetables extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('teacher_layout')
+                ->label('Create Teacher Timetable')
+                ->icon('heroicon-o-table-cells')
+                ->url(fn (): string => TimetableResource::getUrl('teacher-create')),
             Actions\CreateAction::make()
                 ->label('Create Program Timetable')
                 ->icon('heroicon-o-plus-circle')

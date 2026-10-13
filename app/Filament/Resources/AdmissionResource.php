@@ -1110,9 +1110,10 @@ class AdmissionResource extends Resource
                         default => 'primary',
                     }),
                 Tables\Columns\TextColumn::make('documents_status')
-                    ->label('Documents')
+                    ->label('Missing documents')
+                    ->tooltip(fn (Admission $record): string => implode(', ', $record->missingDocumentLabels()) ?: 'All checklist documents uploaded')
                     ->getStateUsing(function (Admission $record): string {
-                        $missing = self::missingDocumentLabels($record);
+                        $missing = $record->missingDocumentLabels();
 
                         return $missing === [] ? 'Complete' : count($missing).' Missing';
                     })
@@ -1184,27 +1185,6 @@ class AdmissionResource extends Resource
     }
 
     /** @return array<int, string> */
-    private static function missingDocumentLabels(Admission $record): array
-    {
-        $documents = [
-            'Student Photo' => $record->student_photo,
-            'Student CNIC Front' => $record->student_cnic_front ?: $record->cnic_copy,
-            'Student CNIC Back' => $record->student_cnic_back,
-            'Father CNIC Front' => $record->father_cnic_front ?: $record->father_cnic_copy,
-            'Father CNIC Back' => $record->father_cnic_back,
-            'Matric Certificate' => $record->matric_copy,
-            'Intermediate Certificate' => $record->inter_copy,
-            'Domicile' => $record->domicile_copy,
-            'Character Certificate' => $record->character_certificate_copy,
-        ];
-
-        return collect($documents)
-            ->filter(fn (mixed $path): bool => blank($path))
-            ->keys()
-            ->values()
-            ->all();
-    }
-
     public static function getRelations(): array
     {
         return [];

@@ -12,6 +12,27 @@ class Admission extends Model
 {
     use ConvertsImagesToWebp, ScopedByCampus;
 
+    public function missingDocumentLabels(): array
+    {
+        $documents = [
+            'Student Photo' => $this->student_photo,
+            'Student CNIC Front' => $this->student_cnic_front ?: $this->cnic_copy,
+            'Student CNIC Back' => $this->student_cnic_back,
+            'Father CNIC Front' => $this->father_cnic_front ?: $this->father_cnic_copy,
+            'Father CNIC Back' => $this->father_cnic_back,
+            'Matric Certificate' => $this->matric_copy,
+            'Intermediate Certificate' => $this->inter_copy,
+            'Domicile' => $this->domicile_copy,
+            'Character Certificate' => $this->character_certificate_copy,
+        ];
+
+        return collect($documents)
+            ->filter(fn (mixed $path): bool => blank($path))
+            ->keys()
+            ->values()
+            ->all();
+    }
+
     public function webpImageFields(): array
     {
         return [

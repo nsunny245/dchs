@@ -4,9 +4,9 @@ namespace App\Models;
 
 use App\Traits\ScopedByCampus;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class Timetable extends Model
@@ -17,6 +17,8 @@ class Timetable extends Model
 
     protected $casts = [
         'working_days' => 'array',
+        'teacher_layout' => 'array',
+        'layout_version' => 'integer',
         'effective_from' => 'date',
         'effective_to' => 'date',
         'published_at' => 'datetime',

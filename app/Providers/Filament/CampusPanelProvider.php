@@ -2,10 +2,12 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\ExecutiveDashboard;
 use App\Filament\Resources\AcademicSessionResource;
 use App\Filament\Resources\AdmissionInquiryResource;
 use App\Filament\Resources\AdmissionResource;
 use App\Filament\Resources\AttendanceResource;
+use App\Filament\Resources\ConvocationRegistrationResource;
 use App\Filament\Resources\ExamResource;
 use App\Filament\Resources\ExpenseResource;
 use App\Filament\Resources\FeeCollectionResource;
@@ -27,7 +29,6 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationGroup;
-use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -50,6 +51,7 @@ class CampusPanelProvider extends PanelProvider
             ->id('campus')
             ->path('campus')
             ->login()
+            ->darkMode(false)
             ->authGuard('campus')
             ->colors([
                 'primary' => [
@@ -99,6 +101,7 @@ class CampusPanelProvider extends PanelProvider
             )
             ->resources([
                 VisitorQueryResource::class,
+                ConvocationRegistrationResource::class,
                 AdmissionInquiryResource::class,
                 AdmissionResource::class,
                 StudentResource::class,
@@ -116,7 +119,7 @@ class CampusPanelProvider extends PanelProvider
                 LeaveRequestResource::class,
             ])
             ->pages([
-                Pages\Dashboard::class,
+                ExecutiveDashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([

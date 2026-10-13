@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdmissionFeePlanPreviewController;
 use App\Http\Controllers\Admin\CampusDashboardAccessController;
 use App\Http\Controllers\AdmissionController;
 use App\Http\Controllers\CampusController;
+use App\Http\Controllers\ConvocationController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\DashboardImageController;
 use App\Http\Controllers\FeeVoucherPrintController;
@@ -27,6 +28,8 @@ Route::get('/apply', [AdmissionController::class, 'apply'])->name('admissions.ap
 Route::post('/apply', [AdmissionController::class, 'store'])->name('admissions.store');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact.store');
+Route::get('/convocation', [ConvocationController::class, 'create'])->name('convocation.create');
+Route::post('/convocation', [ConvocationController::class, 'store'])->middleware('throttle:10,1')->name('convocation.store');
 
 Route::middleware('auth:admin,campus')
     ->get('/admin/admission-fee-plan-preview', AdmissionFeePlanPreviewController::class)

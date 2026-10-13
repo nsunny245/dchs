@@ -23,10 +23,11 @@
         .slot-teacher { color: #475569; font-size: 8px; }
         .slot-room { color: #64748B; font-size: 8px; font-style: italic; }
         .signatures { margin-top: 25px; width: 100%; border-collapse: collapse; font-size: 9px; text-align: center; }
-        .signatures td { width: 33%; padding-top: 40px; border-top: 1px border-slate-300; }
+        .signatures td { width: 33%; padding-top: 40px; border-top: 1px solid #CBD5E1; }
     </style>
 </head>
 <body>
+    @unless($timetable->teacher_layout)
     <table class="header-table">
         <tr>
             <td style="width: 15%;">
@@ -39,7 +40,7 @@
             </td>
             <td style="width: 55%;">
                 <h1 class="title">Daniyal Group of Colleges</h1>
-                <div class="subtitle">{{ $timetable->campus->name ?? 'Campus' }} — Program Academic Timetable</div>
+                <div class="subtitle">{{ $timetable->campus->name ?? 'Campus' }} — Academic Timetable</div>
             </td>
             <td style="width: 30%; text-align: right;">
                 <div class="meta-box">
@@ -53,17 +54,18 @@
             </td>
         </tr>
     </table>
+    @endunless
 
+    @if($timetable->teacher_layout)
+        @include('pdf.teacher-timetable-grid', ['layout' => $timetable->teacher_layout])
+    @else
     <table class="grid-table">
         <thead>
             <tr>
                 <th style="width: 10%;">Time</th>
-                <th>Monday</th>
-                <th>Tuesday</th>
-                <th>Wednesday</th>
-                <th>Thursday</th>
-                <th>Friday</th>
-                <th>Saturday</th>
+                @foreach($timetable->working_days ?: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as $day)
+                    <th>{{ ucfirst($day) }}</th>
+                @endforeach
             </tr>
         </thead>
         <tbody>
@@ -75,12 +77,12 @@
                 @if($p->is_break)
                     <tr class="break-row">
                         <td class="period-col">{{ $st }}-{{ $et }}</td>
-                        <td colspan="6">● {{ strtoupper($p->name) }} BREAK PERIOD ●</td>
+                        <td colspan="{{ count($timetable->working_days ?: [1,2,3,4,5,6]) }}">● {{ strtoupper($p->name) }} BREAK PERIOD ●</td>
                     </tr>
                 @else
                     <tr>
                         <td class="period-col">{{ $st }}-{{ $et }}</td>
-                        @foreach(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as $day)
+                        @foreach($timetable->working_days ?: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as $day)
                             @php
                                 $cellSlots = $timetable->slots->filter(function ($s) use ($day, $st) {
                                     return strtolower($s->day_of_week) === $day && date('H:i', strtotime($s->start_time)) === $st;
@@ -99,6 +101,8 @@
             @endforeach
         </tbody>
     </table>
+
+    @endif
 
     <table class="signatures">
         <tr>

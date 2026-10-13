@@ -1,0 +1,507 @@
+{
+  "heading": "DANIYAL COLLEGE OF HEALTH SCIENCES, OKARA",
+  "subtitle": "WEEKLY CLASS TIMETABLE",
+  "groups": [
+    {
+      "label": "Monday to Wednesday",
+      "days": [
+        "monday",
+        "tuesday",
+        "wednesday"
+      ],
+      "periods": [
+        {
+          "label": "Period 1",
+          "start": "08:30",
+          "end": "09:10",
+          "is_break": false
+        },
+        {
+          "label": "Period 2",
+          "start": "09:10",
+          "end": "09:50",
+          "is_break": false
+        },
+        {
+          "label": "Period 3",
+          "start": "09:50",
+          "end": "10:30",
+          "is_break": false
+        },
+        {
+          "label": "Break",
+          "start": "10:30",
+          "end": "11:00",
+          "is_break": true
+        },
+        {
+          "label": "Period 5",
+          "start": "11:00",
+          "end": "11:40",
+          "is_break": false
+        },
+        {
+          "label": "Period 6",
+          "start": "11:40",
+          "end": "12:20",
+          "is_break": false
+        },
+        {
+          "label": "Period 7",
+          "start": "12:20",
+          "end": "13:00",
+          "is_break": false
+        },
+        {
+          "label": "Period 8",
+          "start": "13:00",
+          "end": "13:40",
+          "is_break": false
+        },
+        {
+          "label": "Period 9",
+          "start": "13:40",
+          "end": "14:00",
+          "is_break": false
+        }
+      ],
+      "teachers": [
+        {
+          "name": "DR. ASMA IFTIKHAR PHARMACIST",
+          "cells": [
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "Pharmaceutics B-category 25",
+              "days": []
+            },
+            {
+              "text": "Pharmacology B-category 24",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "PMF (RIT, OT, DISP) Computer +",
+              "days": []
+            },
+            {
+              "text": "DISP Main Book",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            }
+          ]
+        },
+        {
+          "name": "DR. FARZANA PHYSIOTHERAPIST",
+          "cells": [
+            {
+              "text": "Biochemistry B-category 2 4",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "Pharmacology B-category 25",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "PMF (RIT, OT, DISP) Public Health",
+              "days": []
+            },
+            {
+              "text": "MLT 24  Blood Banking & Serology",
+              "days": []
+            },
+            {
+              "text": "OT Main Book",
+              "days": []
+            },
+            {
+              "text": "Dental TUES",
+              "days": [
+                "tuesday"
+              ]
+            },
+            {
+              "text": "",
+              "days": []
+            }
+          ]
+        },
+        {
+          "name": "DR. MAHRUKH IJAZ PHYSIOTHERAPIST",
+          "cells": [
+            {
+              "text": "Anatomy & Physiology B-category 25",
+              "days": []
+            },
+            {
+              "text": "Pharmaceutics B-category 2 5",
+              "days": []
+            },
+            {
+              "text": "RIT Main Book",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "MLT Pathology",
+              "days": []
+            },
+            {
+              "text": "CST-1 TUES",
+              "days": [
+                "tuesday"
+              ]
+            },
+            {
+              "text": "MLT Parasitology",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            }
+          ]
+        },
+        {
+          "name": "MS. IRSUM MUSTAFA",
+          "cells": [
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "LHV-24 English",
+              "days": []
+            },
+            {
+              "text": "OBS LHV-25",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "Thursday and Friday",
+      "days": [
+        "thursday",
+        "friday"
+      ],
+      "periods": [
+        {
+          "label": "Period 1",
+          "start": "08:30",
+          "end": "09:10",
+          "is_break": false
+        },
+        {
+          "label": "Period 2",
+          "start": "09:10",
+          "end": "09:50",
+          "is_break": false
+        },
+        {
+          "label": "Period 3",
+          "start": "09:50",
+          "end": "10:30",
+          "is_break": false
+        },
+        {
+          "label": "Period 4",
+          "start": "10:30",
+          "end": "11:00",
+          "is_break": false
+        },
+        {
+          "label": "Period 5",
+          "start": "11:00",
+          "end": "11:40",
+          "is_break": false
+        },
+        {
+          "label": "Period 6",
+          "start": "11:40",
+          "end": "12:00",
+          "is_break": false
+        }
+      ],
+      "teachers": [
+        {
+          "name": "DR. ASMA IFTIKHAR PHARMACIST",
+          "cells": [
+            {
+              "text": "English LHV-25",
+              "days": []
+            },
+            {
+              "text": "Pharmaceutics B-category 25",
+              "days": []
+            },
+            {
+              "text": "Pharmacology B-category 24",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            }
+          ]
+        },
+        {
+          "name": "DR. FARZANA PHYSIOTHERAPIST",
+          "cells": [
+            {
+              "text": "Biochemistry B-category 25",
+              "days": []
+            },
+            {
+              "text": "OBS LHV-25",
+              "days": []
+            },
+            {
+              "text": "Pharmacology B-category 25",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            }
+          ]
+        },
+        {
+          "name": "DR. MAHRUKH IJAZ PHYSIOTHERAPIST",
+          "cells": [
+            {
+              "text": "Pharmaceutics B-category 24",
+              "days": []
+            },
+            {
+              "text": "Anatomy & Physiology B-category 25",
+              "days": []
+            },
+            {
+              "text": "OBS LHV-25",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "Sunday",
+      "days": [
+        "sunday"
+      ],
+      "periods": [
+        {
+          "label": "Period 1",
+          "start": "09:00",
+          "end": "10:00",
+          "is_break": false
+        },
+        {
+          "label": "Period 2",
+          "start": "10:00",
+          "end": "11:00",
+          "is_break": false
+        },
+        {
+          "label": "Period 3",
+          "start": "11:00",
+          "end": "12:00",
+          "is_break": false
+        },
+        {
+          "label": "Period 4",
+          "start": "12:00",
+          "end": "13:00",
+          "is_break": false
+        },
+        {
+          "label": "Period 5",
+          "start": "13:00",
+          "end": "14:00",
+          "is_break": false
+        },
+        {
+          "label": "Period 6",
+          "start": "14:00",
+          "end": "15:00",
+          "is_break": false
+        }
+      ],
+      "teachers": [
+        {
+          "name": "DR. ASMA IFTIKHAR PHARMACIST",
+          "cells": [
+            {
+              "text": "Pharmacology B-category 24",
+              "days": []
+            },
+            {
+              "text": "Pharmaceutics B-category 25",
+              "days": []
+            },
+            {
+              "text": "PMF Elementary Chemistry+ MLT Main Book",
+              "days": []
+            },
+            {
+              "text": "DISP  Main Book",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "Computer OTT-24",
+              "days": []
+            }
+          ]
+        },
+        {
+          "name": "DR. FARZANA PHYSIOTHERAPIST",
+          "cells": [
+            {
+              "text": "PMF PHY+CHEM",
+              "days": []
+            },
+            {
+              "text": "Computer  B-Category 24",
+              "days": []
+            },
+            {
+              "text": "Biochemistry B-category 25",
+              "days": []
+            },
+            {
+              "text": "OTT -24 Main Book",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            }
+          ]
+        },
+        {
+          "name": "DR. MAHRUKH IJAZ PHYSIOTHERAPIST",
+          "cells": [
+            {
+              "text": "Anatomy & Physiology B-category 25",
+              "days": []
+            },
+            {
+              "text": "MLT elementary anatomy",
+              "days": []
+            },
+            {
+              "text": "Pharmaceutics B-category 24",
+              "days": []
+            },
+            {
+              "text": "RIT Main Book",
+              "days": []
+            },
+            {
+              "text": "OTT-24 Public Health",
+              "days": []
+            },
+            {
+              "text": "",
+              "days": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

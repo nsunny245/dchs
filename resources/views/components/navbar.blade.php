@@ -23,7 +23,7 @@
                     {{ \App\Models\Setting::getGlobal('website_email', 'info@daniyalgroupofcolleges.com') }}
                 </span>
             </div>
-            <div class="flex items-center space-x-4">
+            <div class="hidden items-center space-x-4 sm:flex">
                 <a href="{{ route('filament.admin.auth.login') }}" class="text-gold-500 hover:text-white transition font-semibold">Staff Login</a>
                 <span class="text-navy-700">|</span>
                 <a href="#" class="text-gold-500 hover:text-white transition font-semibold">Student Login</a>
@@ -88,6 +88,7 @@
                 </div>
 
                 <a href="{{ route('admissions') }}" class="text-navy-900 hover:text-gold-700 font-bold text-[13px] px-3 py-2 nav-link-hover">Admissions</a>
+                <a href="{{ route('convocation.create') }}" class="text-navy-900 hover:text-gold-700 font-bold text-[13px] px-3 py-2 nav-link-hover">Convocation</a>
                 <a href="{{ route('contact') }}" class="text-navy-900 hover:text-gold-700 font-bold text-[13px] px-3 py-2 nav-link-hover">Contact</a>
 
                 <a href="{{ route('admissions.apply') }}" class="btn btn-accent rounded-full text-xs uppercase tracking-wider font-semibold py-2.5 px-6 shadow-sm hover:shadow hover:scale-[1.03] transition-all ml-4">
@@ -123,6 +124,7 @@
             <a href="{{ route('campuses') }}" @click="mobileMenuOpen = false" class="hover:text-gold-500 transition font-bold">Campuses</a>
             <a href="{{ route('courses') }}" @click="mobileMenuOpen = false" class="hover:text-gold-500 transition font-bold">Programs</a>
             <a href="{{ route('admissions') }}" @click="mobileMenuOpen = false" class="hover:text-gold-500 transition font-bold">Admissions</a>
+            <a href="{{ route('convocation.create') }}" @click="mobileMenuOpen = false" class="hover:text-gold-500 transition font-bold">Convocation</a>
             <a href="{{ route('contact') }}" @click="mobileMenuOpen = false" class="hover:text-gold-500 transition font-bold">Contact Us</a>
         </div>
 

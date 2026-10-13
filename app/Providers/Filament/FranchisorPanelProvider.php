@@ -29,6 +29,7 @@ class FranchisorPanelProvider extends PanelProvider
             ->id('franchisor')
             ->path('franchisor')
             ->login()
+            ->darkMode(false)
             ->authGuard('web')
             ->colors([
                 'primary' => [

@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\ExecutiveDashboard;
 use App\Filament\Pages\FranchiseReport;
 use App\Filament\Resources\AcademicSessionResource;
 use App\Filament\Resources\AdmissionInquiryResource;
@@ -9,6 +10,7 @@ use App\Filament\Resources\AdmissionResource;
 use App\Filament\Resources\AttendanceResource;
 use App\Filament\Resources\CampusResource;
 use App\Filament\Resources\ContactSubmissionResource;
+use App\Filament\Resources\ConvocationRegistrationResource;
 use App\Filament\Resources\CourseResource;
 use App\Filament\Resources\ExpenseCategoryResource;
 use App\Filament\Resources\ExpenseResource;
@@ -23,6 +25,7 @@ use App\Filament\Resources\StaffResource;
 use App\Filament\Resources\StudentResource;
 use App\Filament\Resources\SuperAdminFranchisorPaymentResource;
 use App\Filament\Resources\TeacherAttendanceResource;
+use App\Filament\Resources\TimetableResource;
 use App\Filament\Resources\UserResource;
 use App\Filament\Resources\VisitorQueryResource;
 use App\Filament\Widgets\CampusFinancialOverviewWidget;
@@ -33,7 +36,6 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationGroup;
-use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -57,6 +59,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->darkMode(false)
             ->authGuard('admin')
             ->colors([
                 'primary' => [
@@ -100,6 +103,7 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(PanelsRenderHook::BODY_END, fn () => view('components.date-picker-anywhere'))
             ->resources([
                 AdmissionResource::class,
+                TimetableResource::class,
                 StudentResource::class,
                 AttendanceResource::class,
                 StaffResource::class,
@@ -108,6 +112,7 @@ class AdminPanelProvider extends PanelProvider
                 VisitorQueryResource::class,
                 AdmissionInquiryResource::class,
                 ContactSubmissionResource::class,
+                ConvocationRegistrationResource::class,
                 FeeStructureResource::class,
                 FeeCollectionResource::class,
                 FeeHeadResource::class,
@@ -123,7 +128,7 @@ class AdminPanelProvider extends PanelProvider
                 SettingResource::class,
             ])
             ->pages([
-                Pages\Dashboard::class,
+                ExecutiveDashboard::class,
                 FranchiseReport::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')

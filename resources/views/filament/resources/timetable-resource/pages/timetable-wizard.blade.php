@@ -480,12 +480,7 @@
                         <thead>
                             <tr class="bg-navy-900 text-white text-center font-bold">
                                 <th class="p-2 border border-navy-800">Time</th>
-                                <th class="p-2 border border-navy-800">Monday</th>
-                                <th class="p-2 border border-navy-800">Tuesday</th>
-                                <th class="p-2 border border-navy-800">Wednesday</th>
-                                <th class="p-2 border border-navy-800">Thursday</th>
-                                <th class="p-2 border border-navy-800">Friday</th>
-                                <th class="p-2 border border-navy-800">Saturday</th>
+                                @foreach($working_days as $day)<th class="p-2 border border-navy-800">{{ ucfirst($day) }}</th>@endforeach
                             </tr>
                         </thead>
                         <tbody>
@@ -497,12 +492,12 @@
                                 @if($p->is_break)
                                     <tr class="bg-amber-50 text-center font-bold text-amber-900">
                                         <td class="p-2 border font-mono text-[10px]">{{ $st }}-{{ $et }}</td>
-                                        <td colspan="6" class="p-2 uppercase tracking-wider text-[11px]">● {{ $p->name }} ●</td>
+                                        <td colspan="{{ count($working_days) }}" class="p-2 uppercase tracking-wider text-[11px]">● {{ $p->name }} ●</td>
                                     </tr>
                                 @else
                                     <tr>
                                         <td class="p-2 border font-mono text-[10px] text-center font-bold bg-slate-50">{{ $st }}-{{ $et }}</td>
-                                        @foreach(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as $day)
+                                        @foreach($working_days as $day)
                                             @php
                                                 $cellSlots = $slots->filter(function ($s) use ($day, $st) {
                                                     return strtolower($s->day_of_week) === $day && date('H:i', strtotime($s->start_time)) === $st;
@@ -573,14 +568,14 @@
 
     <!-- SLOT ASSIGNMENT MODAL -->
     @if($isSlotModalOpen)
-        <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div role="dialog" aria-modal="true" aria-label="Edit class slot" x-data x-trap.inert.noscroll="true" x-on:keydown.escape.window="$wire.resetSlotModal()" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
             <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
                 <div class="bg-navy-900 text-white px-5 py-4 flex items-center justify-between">
                     <div>
                         <h4 class="text-sm font-bold font-display uppercase tracking-wider">Assign Class Slot</h4>
                         <p class="text-[11px] text-slate-300 font-mono">{{ ucfirst($modalDay) }} ({{ $modalStartTime }} - {{ $modalEndTime }})</p>
                     </div>
-                    <button type="button" wire:click="resetSlotModal" class="text-slate-400 hover:text-white">
+                    <button type="button" wire:click="resetSlotModal" aria-label="Close class editor" class="text-slate-400 hover:text-white">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
