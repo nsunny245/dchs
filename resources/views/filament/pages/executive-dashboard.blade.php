@@ -1,4 +1,8 @@
 <x-filament-panels::page>
+    @once
+        <style>{!! file_get_contents(resource_path('css/filament/executive-dashboard-inline.css')) !!}</style>
+    @endonce
+
     @php
         $cashMax = max(1, collect($cashSeries)->max(fn ($point) => max($point['in'], $point['out'])));
         $admissionMax = max(1, collect($admissionSeries)->max('value'));
