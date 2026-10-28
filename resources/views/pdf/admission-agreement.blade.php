@@ -271,13 +271,42 @@
         .policy-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 6px 20px;
-            margin-top: 5px;
+            gap: 7px 20px;
+            margin-top: 6px;
+        }
+        .policy-section + .policy-section {
+            margin-top: 12px;
+        }
+        .policy-heading {
+            color: #09264A;
+            font-size: 10.5px;
+            font-weight: 800;
+            letter-spacing: 0.25px;
+            text-transform: uppercase;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #C4CED8;
         }
         .policy-item {
             font-size: 9.5px;
             color: #223042;
             line-height: 1.35;
+        }
+        .policy-item strong {
+            color: #09264A;
+        }
+        .policy-undertaking {
+            margin-top: 12px;
+            padding: 9px 11px;
+            border: 1px solid #C4CED8;
+            border-left: 3px solid #E9A92F;
+            border-radius: 6px;
+            background: #FFFFFF;
+        }
+        .policy-undertaking p {
+            margin-top: 4px;
+            font-size: 9.5px;
+            line-height: 1.4;
+            color: #223042;
         }
 
         /* Signatures Section with separate Thumb box */
@@ -618,15 +647,31 @@
             <div class="card-header">
                 📜 Institute Regulation Policy
             </div>
-            <div class="policy-grid">
-                <div class="policy-item"><strong>1. Attendance:</strong> Minimum 80% attendance required. Absentee penalties apply.</div>
-                <div class="policy-item"><strong>2. Discipline:</strong> Professional conduct is mandatory. Zero tolerance for misconduct.</div>
-                <div class="policy-item"><strong>3. Payment Schedule:</strong> Installments must be paid by the 10th of every month.</div>
-                <div class="policy-item"><strong>4. Late Surcharge:</strong> Overdue payments incur late fees as per policy guidelines.</div>
-                <div class="policy-item"><strong>5. Non-Refundable:</strong> Verification, examination, and other itemized charges are non-refundable.</div>
-                <div class="policy-item"><strong>6. Integrity Check:</strong> Plagiarism or cheating results in academic suspension.</div>
-                <div class="policy-item"><strong>7. Uniform Policy:</strong> Students must adhere to the prescribed college dress code.</div>
-                <div class="policy-item"><strong>8. Facility Security:</strong> Students are liable for damage caused to library or labs.</div>
+            <div class="policy-section">
+                <div class="policy-heading">1. Fee Policy &amp; Financial Obligations</div>
+                <div class="policy-grid">
+                    <div class="policy-item"><strong>1.</strong> Monthly fees are payable from the beginning of the admission session, regardless of the actual admission date.</div>
+                    <div class="policy-item"><strong>2.</strong> Monthly installments must be paid by the 10th of each month. A late fine of Rs. 100 per day* will apply after the due date.</div>
+                    <div class="policy-item"><strong>3.</strong> At least 80% of the total fee package must be paid before enrollment with the relevant examination body, where applicable.</div>
+                    <div class="policy-item"><strong>4.</strong> The complete fee package must be cleared before enrollment with the Pharmacy Council or other relevant authority, where applicable.</div>
+                    <div class="policy-item"><strong>5.</strong> Fee liability continues until the full package is paid and is not calculated separately for First Year and Second Year.</div>
+                    <div class="policy-item"><strong>6.</strong> Examination, registration, and extracurricular activity charges are separate from the fee package and payable as required.</div>
+                </div>
+            </div>
+            <div class="policy-section">
+                <div class="policy-heading">2. Discipline &amp; Conduct</div>
+                <div class="policy-grid">
+                    <div class="policy-item"><strong>7.</strong> Minimum 75% attendance is required for examination eligibility, subject to the applicable examination rules.</div>
+                    <div class="policy-item"><strong>8.</strong> College uniform and ID card are compulsory during college hours.</div>
+                    <div class="policy-item"><strong>9.</strong> Mobile phone use during academic hours, weapons, ragging, harassment, abusive language, and unauthorized political activities are prohibited.</div>
+                    <div class="policy-item"><strong>10.</strong> Misconduct, fake documents, or violation of college rules may result in disciplinary action, including admission cancellation or expulsion, subject to applicable rules.</div>
+                    <div class="policy-item"><strong>11.</strong> All extracurricular activities require prior approval from the Principal/Administration.</div>
+                    <div class="policy-item"><strong>12.</strong> The administration may revise these rules in accordance with applicable laws and regulatory requirements.</div>
+                </div>
+            </div>
+            <div class="policy-undertaking">
+                <div class="policy-heading">13. Student/Parent Undertaking</div>
+                <p>I have read and understood the above rules and agree to comply with the college's fee policy, financial obligations, and code of conduct.</p>
             </div>
         </div>
 
