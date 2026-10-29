@@ -652,25 +652,26 @@
                 <div class="policy-grid">
                     <div class="policy-item"><strong>1.</strong> Monthly fees are payable from the beginning of the admission session, regardless of the actual admission date.</div>
                     <div class="policy-item"><strong>2.</strong> Monthly installments must be paid by the 10th of each month. A late fine of Rs. 100 per day* will apply after the due date.</div>
-                    <div class="policy-item"><strong>3.</strong> At least 80% of the total fee package must be paid before enrollment with the relevant examination body, where applicable.</div>
-                    <div class="policy-item"><strong>4.</strong> The complete fee package must be cleared before enrollment with the Pharmacy Council or other relevant authority, where applicable.</div>
-                    <div class="policy-item"><strong>5.</strong> Fee liability continues until the full package is paid and is not calculated separately for First Year and Second Year.</div>
-                    <div class="policy-item"><strong>6.</strong> Examination, registration, and extracurricular activity charges are separate from the fee package and payable as required.</div>
+                    <div class="policy-item"><strong>3.</strong> At least 50% of the total fee package must be paid by 31 March 2027. The remaining 50% must be paid by 31 December 2027 or before issuance of the roll number slip, whichever occurs first.</div>
+                    <div class="policy-item"><strong>4.</strong> At least 80% of the total fee package must be paid before enrollment with the relevant examination body, where applicable.</div>
+                    <div class="policy-item"><strong>5.</strong> The complete fee package must be cleared before enrollment with the Pharmacy Council or other relevant authority, where applicable.</div>
+                    <div class="policy-item"><strong>6.</strong> Fee liability continues until the full package is paid and is not calculated separately for First Year and Second Year.</div>
+                    <div class="policy-item"><strong>7.</strong> Examination, registration, and extracurricular activity charges are separate from the fee package and payable as required.</div>
                 </div>
             </div>
             <div class="policy-section">
                 <div class="policy-heading">2. Discipline &amp; Conduct</div>
                 <div class="policy-grid">
-                    <div class="policy-item"><strong>7.</strong> Minimum 75% attendance is required for examination eligibility, subject to the applicable examination rules.</div>
-                    <div class="policy-item"><strong>8.</strong> College uniform and ID card are compulsory during college hours.</div>
-                    <div class="policy-item"><strong>9.</strong> Mobile phone use during academic hours, weapons, ragging, harassment, abusive language, and unauthorized political activities are prohibited.</div>
-                    <div class="policy-item"><strong>10.</strong> Misconduct, fake documents, or violation of college rules may result in disciplinary action, including admission cancellation or expulsion, subject to applicable rules.</div>
-                    <div class="policy-item"><strong>11.</strong> All extracurricular activities require prior approval from the Principal/Administration.</div>
-                    <div class="policy-item"><strong>12.</strong> The administration may revise these rules in accordance with applicable laws and regulatory requirements.</div>
+                    <div class="policy-item"><strong>8.</strong> Minimum 75% attendance is required for examination eligibility, subject to the applicable examination rules.</div>
+                    <div class="policy-item"><strong>9.</strong> College uniform and ID card are compulsory during college hours.</div>
+                    <div class="policy-item"><strong>10.</strong> Mobile phone use during academic hours, weapons, ragging, harassment, abusive language, and unauthorized political activities are prohibited.</div>
+                    <div class="policy-item"><strong>11.</strong> Misconduct, fake documents, or violation of college rules may result in disciplinary action, including admission cancellation or expulsion, subject to applicable rules.</div>
+                    <div class="policy-item"><strong>12.</strong> All extracurricular activities require prior approval from the Principal/Administration.</div>
+                    <div class="policy-item"><strong>13.</strong> The administration may revise these rules in accordance with applicable laws and regulatory requirements.</div>
                 </div>
             </div>
             <div class="policy-undertaking">
-                <div class="policy-heading">13. Student/Parent Undertaking</div>
+                <div class="policy-heading">14. Student/Parent Undertaking</div>
                 <p>I have read and understood the above rules and agree to comply with the college's fee policy, financial obligations, and code of conduct.</p>
             </div>
         </div>
