@@ -653,7 +653,7 @@
                     <div class="policy-item"><strong>1.</strong> Monthly fees are payable from the beginning of the admission session, regardless of the actual admission date.</div>
                     <div class="policy-item"><strong>2.</strong> Monthly installments must be paid by the 10th of each month. A late fine of Rs. 100 per day* will apply after the due date.</div>
                     <div class="policy-item"><strong>3.</strong> At least 50% of the total fee package must be paid by 31 March 2027. The remaining 50% must be paid by 31 December 2027 or before issuance of the roll number slip, whichever occurs first.</div>
-                    <div class="policy-item"><strong>4.</strong> The complete fee package must be cleared before enrollment with the Pharmacy Council or other relevant authority, where applicable.</div>
+                    <div class="policy-item"><strong>4.</strong> All fees once paid are strictly non-refundable and non-transferable under any circumstances.</div>
                     <div class="policy-item"><strong>5.</strong> Fee liability continues until the full package is paid and is not calculated separately for First Year and Second Year.</div>
                     <div class="policy-item"><strong>6.</strong> Examination, registration, and extracurricular activity charges are separate from the fee package and payable as required.</div>
                 </div>

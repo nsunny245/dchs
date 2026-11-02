@@ -264,9 +264,11 @@ class AdmissionWizardTest extends TestCase
         $this->assertStringContainsString('A late fine of Rs. 100 per day* will apply after the due date.', $agreement);
         $this->assertStringContainsString('At least 50% of the total fee package must be paid by 31 March 2027.', $agreement);
         $this->assertStringContainsString('The remaining 50% must be paid by 31 December 2027 or before issuance of the roll number slip, whichever occurs first.', $agreement);
+        $this->assertStringContainsString('All fees once paid are strictly non-refundable and non-transferable under any circumstances.', $agreement);
         $this->assertStringContainsString('Minimum 75% attendance is required for examination eligibility', $agreement);
         $this->assertStringContainsString('13. Student/Parent Undertaking', $agreement);
         $this->assertStringNotContainsString('At least 80% of the total fee package must be paid before enrollment', $agreement);
+        $this->assertStringNotContainsString('The complete fee package must be cleared before enrollment with the Pharmacy Council', $agreement);
         $this->assertStringNotContainsString('Minimum 80% attendance required. Absentee penalties apply.', $agreement);
 
         $admin = User::factory()->create();
