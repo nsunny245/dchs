@@ -3,11 +3,14 @@
 namespace Tests\Feature;
 
 use App\Filament\Resources\AdmissionResource\Pages\CreateAdmission;
+use App\Filament\Resources\AdmissionResource;
+use App\Models\Admission;
 use App\Models\AcademicSession;
 use App\Models\Campus;
 use App\Models\Course;
 use App\Models\FeeHead;
 use App\Models\FeeStructure;
+use App\Models\Student;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -35,6 +38,12 @@ class AdmissionFormPerformanceTest extends TestCase
             'address' => 'Okara',
             'phone' => '03001234567',
             'email' => 'performance@example.test',
+            'is_active' => true,
+        ]);
+        Campus::create([
+            'name' => 'Main Campus',
+            'code' => 'MAIN-PERF',
+            'city' => 'Okara',
             'is_active' => true,
         ]);
         $course = Course::create([
@@ -83,7 +92,8 @@ class AdmissionFormPerformanceTest extends TestCase
 
         $component
             ->assertSee('Save Draft')
-            ->assertSee('Submit Admission & Generate Documents');
+            ->assertSee('Submit Admission & Generate Documents')
+            ->assertDontSee('Main Campus');
 
         $lookupQueries = collect($queries)->filter(
             fn (string $sql): bool => str_contains($sql, 'from "courses"')
@@ -140,5 +150,121 @@ class AdmissionFormPerformanceTest extends TestCase
             ]);
 
         $this->assertDatabaseCount('admissions', 0);
+    }
+
+    public function test_panels_use_fast_navigation_and_admission_rows_preload_action_relations(): void
+    {
+        $campus = Campus::create([
+            'name' => 'Navigation Campus',
+            'code' => 'NAV',
+            'city' => 'Okara',
+            'is_active' => true,
+        ]);
+        $course = Course::create([
+            'name' => 'Navigation Course',
+            'code' => 'NAV-COURSE',
+            'duration_months' => 12,
+            'is_active' => true,
+        ]);
+        $admission = Admission::create([
+            'applicant_name' => 'Navigation Test Student',
+            'father_name' => 'Navigation Test Guardian',
+            'cnic' => '35202-1000009-9',
+            'dob' => '2005-01-01',
+            'gender' => 'male',
+            'phone' => '03001000009',
+            'address' => 'Okara',
+            'campus_id' => $campus->id,
+            'course_id' => $course->id,
+        ]);
+
+        $user = User::factory()->create();
+        $user->assignRole(Role::findOrCreate('Super Admin', 'web'));
+        $this->actingAs($user, 'admin');
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+        $this->assertTrue(Filament::getPanel('admin')->hasSpaMode());
+        $this->assertTrue(Filament::getPanel('campus')->hasSpaMode());
+        $this->assertTrue(Filament::getPanel('franchisor')->hasSpaMode());
+
+        $record = AdmissionResource::getEloquentQuery()->findOrFail($admission->id);
+
+        $this->assertTrue($record->relationLoaded('campus'));
+        $this->assertTrue($record->relationLoaded('course'));
+        $this->assertTrue($record->relationLoaded('student'));
+    }
+
+    public function test_new_admission_form_starts_without_a_fake_student_name(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole(Role::findOrCreate('Super Admin', 'web'));
+        $this->actingAs($user, 'admin');
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+        Livewire::test(CreateAdmission::class)
+            ->assertSet('data.applicant_name', null);
+    }
+
+    public function test_complete_admission_form_submits_and_enrolls_the_student(): void
+    {
+        $campus = Campus::create([
+            'name' => 'Submission Campus',
+            'code' => 'SUB',
+            'city' => 'Okara',
+            'is_active' => true,
+        ]);
+        $course = Course::create([
+            'name' => 'Submission Course',
+            'code' => 'SUB-COURSE',
+            'duration_months' => 12,
+            'is_active' => true,
+        ]);
+        $session = AcademicSession::create([
+            'name' => '2026-2027 Submission',
+            'start_date' => '2026-01-01',
+            'end_date' => '2027-12-31',
+            'is_active' => true,
+        ]);
+        FeeStructure::create([
+            'course_id' => $course->id,
+            'campus_id' => $campus->id,
+            'academic_session_id' => $session->id,
+            'total_fee' => 120000,
+            'installment_count' => 4,
+            'status' => 'active',
+            'effective_date' => '2026-01-01',
+        ]);
+
+        $user = User::factory()->create();
+        $user->assignRole(Role::findOrCreate('Super Admin', 'web'));
+        $this->actingAs($user, 'admin');
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+        Livewire::test(CreateAdmission::class)
+            ->set('data.applicant_name', 'Local Workflow Test Student')
+            ->set('data.father_name', 'Local Workflow Test Guardian')
+            ->set('data.cnic', '35202-1000010-0')
+            ->set('data.dob', '2005-01-01')
+            ->set('data.gender', 'male')
+            ->set('data.phone', '03001000010')
+            ->set('data.address', 'Local test address, Okara')
+            ->set('data.father_phone', '03002000010')
+            ->set('data.father_address', 'Local test address, Okara')
+            ->set('data.campus_id', $campus->id)
+            ->set('data.academic_session_id', $session->id)
+            ->set('data.admission_date', '2026-11-06')
+            ->set('data.custom_installment_start_date', '2026-11-06')
+            ->set('data.course_id', $course->id)
+            ->call('create')
+            ->assertHasNoErrors();
+
+        $admission = Admission::where('cnic', '35202-1000010-0')->firstOrFail();
+
+        $this->assertNotNull($admission->finalized_at);
+        $this->assertDatabaseHas('students', [
+            'admission_id' => $admission->id,
+            'full_name' => 'Local Workflow Test Student',
+        ]);
+        $this->assertSame(1, Student::where('admission_id', $admission->id)->count());
     }
 }

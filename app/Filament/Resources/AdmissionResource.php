@@ -145,7 +145,11 @@ class AdmissionResource extends Resource
     {
         return once(fn (): array => [
             'courses' => Course::query()->orderBy('name')->pluck('name', 'id')->all(),
-            'campuses' => Campus::query()->orderBy('name')->pluck('name', 'id')->all(),
+            'campuses' => Campus::query()
+                ->where('name', 'not like', '%Main Campus%')
+                ->orderBy('name')
+                ->pluck('name', 'id')
+                ->all(),
             'sessions' => AcademicSession::query()->orderByDesc('start_date')->pluck('name', 'id')->all(),
         ]);
     }
@@ -385,7 +389,6 @@ class AdmissionResource extends Resource
                                                     ->schema([
                                                         Forms\Components\TextInput::make('applicant_name')
                                                             ->label('Student Full Name')
-                                                            ->default('Draft Student')
                                                             ->required()
                                                             ->maxLength(255),
                                                         Forms\Components\TextInput::make('cnic')
@@ -1174,7 +1177,12 @@ class AdmissionResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()
+            ->with([
+                'campus:id,name',
+                'course:id,name',
+                'student:id,admission_id,profile_complete',
+            ]);
         $user = filament()->auth()->user();
 
         if ($user && $user->campus_id !== null) {

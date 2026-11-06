@@ -51,6 +51,7 @@ class CampusPanelProvider extends PanelProvider
             ->id('campus')
             ->path('campus')
             ->login()
+            ->spa()
             ->darkMode(false)
             ->authGuard('campus')
             ->colors([
